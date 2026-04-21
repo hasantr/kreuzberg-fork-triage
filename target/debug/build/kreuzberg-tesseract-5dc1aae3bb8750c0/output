@@ -1,0 +1,19 @@
+cargo:rustc-link-search=native=C:\tess\leptonica\lib
+cargo:rustc-link-search=native=C:\tess\tesseract\lib
+cargo:rustc-env=TESSDATA_PREFIX_BUNDLED=C:\tess
+cargo:rerun-if-changed=build.rs
+cargo:rerun-if-changed=C:\tess\third_party
+cargo:rerun-if-changed=C:\tess\third_party\leptonica
+cargo:rerun-if-changed=C:\tess\third_party\tesseract
+cargo:rustc-link-search=native=C:\tess\leptonica\lib
+cargo:rustc-link-search=native=C:\tess\tesseract\lib
+cargo:rustc-link-lib=static=tesseract
+cargo:warning=Linking with tesseract (static linking): tesseract
+cargo:rustc-link-lib=static=leptonica
+cargo:warning=Linking with leptonica (static linking): leptonica
+cargo:rustc-link-lib=user32
+cargo:rustc-link-lib=gdi32
+cargo:rustc-link-lib=ws2_32
+cargo:rustc-link-lib=advapi32
+cargo:rustc-link-lib=shell32
+cargo:rustc-link-search=native=D:\PROJELER\kreuzberg-fork-triage\target\debug\build\kreuzberg-tesseract-5dc1aae3bb8750c0\out

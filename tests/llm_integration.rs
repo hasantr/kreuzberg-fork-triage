@@ -76,7 +76,7 @@ async fn test_vlm_ocr_openai() {
     let api_key = require_env!("OPENAI_API_KEY");
     let config = make_llm_config("openai/gpt-4o-mini", api_key);
     let image_bytes = std::fs::read("../../test_documents/images/test_hello_world.png").unwrap();
-    let result = kreuzberg::llm::vlm_ocr::vlm_ocr(&image_bytes, "image/png", "eng", &config)
+    let (result, _usage) = kreuzberg::llm::vlm_ocr::vlm_ocr(&image_bytes, "image/png", "eng", &config)
         .await
         .unwrap();
     assert!(!result.is_empty(), "VLM OCR returned empty string");
@@ -92,7 +92,7 @@ async fn test_vlm_ocr_anthropic() {
     let api_key = require_env!("ANTHROPIC_API_KEY");
     let config = make_llm_config("anthropic/claude-sonnet-4-20250514", api_key);
     let image_bytes = std::fs::read("../../test_documents/images/test_hello_world.png").unwrap();
-    let result = kreuzberg::llm::vlm_ocr::vlm_ocr(&image_bytes, "image/png", "eng", &config)
+    let (result, _usage) = kreuzberg::llm::vlm_ocr::vlm_ocr(&image_bytes, "image/png", "eng", &config)
         .await
         .unwrap();
     assert!(!result.is_empty(), "VLM OCR returned empty string");
@@ -108,7 +108,7 @@ async fn test_vlm_ocr_gemini() {
     let api_key = require_env!("GEMINI_API_KEY");
     let config = make_llm_config("gemini/gemini-2.5-flash", api_key);
     let image_bytes = std::fs::read("../../test_documents/images/test_hello_world.png").unwrap();
-    let result = kreuzberg::llm::vlm_ocr::vlm_ocr(&image_bytes, "image/png", "eng", &config)
+    let (result, _usage) = kreuzberg::llm::vlm_ocr::vlm_ocr(&image_bytes, "image/png", "eng", &config)
         .await
         .unwrap();
     assert!(!result.is_empty(), "VLM OCR returned empty string");
@@ -135,6 +135,7 @@ async fn test_llm_embed_openai() {
         batch_size: 32,
         show_download_progress: false,
         cache_dir: None,
+        acceleration: None,
     };
     let texts = vec!["Hello, world!".to_string(), "Rust is great".to_string()];
     let result = kreuzberg::embed_texts_async(texts, &config).await.unwrap();
@@ -160,6 +161,7 @@ async fn test_llm_embed_mistral() {
         batch_size: 32,
         show_download_progress: false,
         cache_dir: None,
+        acceleration: None,
     };
     let texts = vec!["Hello, world!".to_string()];
     let result = kreuzberg::embed_texts_async(texts, &config).await.unwrap();
@@ -184,7 +186,7 @@ async fn test_structured_extraction_openai() {
         prompt: None,
         llm: make_llm_config("openai/gpt-4o-mini", api_key),
     };
-    let result = kreuzberg::llm::structured::extract_structured(&text, &config)
+    let (result, _usage) = kreuzberg::llm::structured::extract_structured(&text, &config)
         .await
         .unwrap();
     assert!(result.is_object(), "Expected JSON object, got: {result}");
@@ -207,7 +209,7 @@ async fn test_structured_extraction_anthropic() {
         prompt: None,
         llm: make_llm_config("anthropic/claude-sonnet-4-20250514", api_key),
     };
-    let result = kreuzberg::llm::structured::extract_structured(&text, &config)
+    let (result, _usage) = kreuzberg::llm::structured::extract_structured(&text, &config)
         .await
         .unwrap();
     assert!(result.is_object(), "Expected JSON object");
@@ -227,7 +229,7 @@ async fn test_structured_extraction_gemini() {
         prompt: None,
         llm: make_llm_config("gemini/gemini-2.5-flash", api_key),
     };
-    let result = kreuzberg::llm::structured::extract_structured(&text, &config)
+    let (result, _usage) = kreuzberg::llm::structured::extract_structured(&text, &config)
         .await
         .unwrap();
     assert!(result.is_object(), "Expected JSON object");
@@ -256,7 +258,7 @@ async fn test_structured_extraction_custom_prompt() {
         ),
         llm: make_llm_config("openai/gpt-4o-mini", api_key),
     };
-    let result = kreuzberg::llm::structured::extract_structured(&text, &config)
+    let (result, _usage) = kreuzberg::llm::structured::extract_structured(&text, &config)
         .await
         .unwrap();
     assert!(result.is_object(), "Expected JSON object");

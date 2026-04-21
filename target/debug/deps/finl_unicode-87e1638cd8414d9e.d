@@ -1,0 +1,10 @@
+D:\PROJELER\kreuzberg-fork-triage\target\debug\deps\finl_unicode-87e1638cd8414d9e.d: C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\lib.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\categories.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\grapheme_clusters.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\mod.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\characters.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\grapheme_property.rs
+
+D:\PROJELER\kreuzberg-fork-triage\target\debug\deps\libfinl_unicode-87e1638cd8414d9e.rmeta: C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\lib.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\categories.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\grapheme_clusters.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\mod.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\characters.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\grapheme_property.rs
+
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\lib.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\categories.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\grapheme_clusters.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\mod.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\characters.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\finl_unicode-1.4.0\src\data\grapheme_property.rs:

@@ -623,7 +623,10 @@ pub fn derive_extraction_result(
     //    Prefer pre-built pages from the extractor (e.g. PDF native page tracking)
     //    over reconstructing from element-level page numbers.
     let pages = doc.prebuilt_pages.take().or_else(|| build_pages(&doc));
-    let ocr_elements = build_ocr_elements(&doc);
+    // Prefer pre-built OCR elements stored directly by the extractor (e.g. image OCR
+    // via inject_ocr_elements_from_vec was replaced by prebuilt_ocr_elements to avoid
+    // injecting raw word tokens into the rendering pipeline — issue #706).
+    let ocr_elements = doc.prebuilt_ocr_elements.take().or_else(|| build_ocr_elements(&doc));
 
     // 5. Optionally derive DocumentStructure (relationships already resolved above).
     let document = if include_document_structure {
@@ -669,6 +672,7 @@ pub fn derive_extraction_result(
         annotations: std::mem::take(&mut doc.annotations),
         children: std::mem::take(&mut doc.children),
         uris,
+        llm_usage: std::mem::take(&mut doc.llm_usage),
         #[cfg(feature = "tree-sitter")]
         code_intelligence,
         formatted_content,
@@ -759,6 +763,7 @@ fn build_pages(doc: &InternalDocument) -> Option<Vec<PageContent>> {
                 images,
                 hierarchy: None,
                 is_blank: None,
+                layout_regions: None,
             }
         })
         .collect();

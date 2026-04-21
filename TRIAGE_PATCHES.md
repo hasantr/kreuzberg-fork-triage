@@ -1,9 +1,14 @@
 # kreuzberg-fork-triage
 
-[Kreuzberg 4.8.4](https://github.com/Goldziher/kreuzberg) fork'u **üç additive patch** ile:
-bu patch'ler [`kreuzberg-ocr-triage`](https://github.com/hasantr/kreuzberg-ocr-triage)
+[Kreuzberg 4.9.2](https://github.com/kreuzberg-dev/kreuzberg) fork'u **üç
+additive patch** ile. Bu patch'ler
+[`kreuzberg-ocr-triage`](https://github.com/hasantr/kreuzberg-ocr-triage)
 adapter'ının çalışması için gerekli. Upstream'e PR olarak henüz sunulmadı; bu
 fork public olarak kullanılabilir durumda.
+
+> **Not:** Upstream repository 2026-04'te `Goldziher/kreuzberg` →
+> `kreuzberg-dev/kreuzberg`'ye taşındı. Bu fork yeni org'un v4.9.2 etiketine
+> dayanıyor (~2026-04-19). Requires **Rust 1.95+** (upstream gereksinimi).
 
 ## Patch listesi
 
@@ -33,6 +38,13 @@ boşa gidiyordu). Bu patch PNG encode aşamasını bypass'ler ve `process_image_
 kullanır. Kreuzberg Cargo.toml'a ek olarak `[dependencies.png] = "0.18"`
 eklenmiştir (zaten transitive olarak vardı, artık explicit).
 
+## Sürüm ve upgrade notları
+
+- **v4.9.2** baseline (2026-04-19, `kreuzberg-dev/kreuzberg` org).
+- Önceki baseline v4.8.4 (2026-04-13); 8 günlük gap'te bug fix'ler +
+  LLM usage tracking + smart document chunking eklendi.
+- Üç patch'in site'ları değişmedi; minor offset (5-7 satır) ile clean apply.
+
 ## Upstream PR durumu
 
 Henüz PR açılmadı. Bu fork **self-hosted** kullanımı için var:
@@ -42,9 +54,9 @@ Henüz PR açılmadı. Bu fork **self-hosted** kullanımı için var:
 kreuzberg = { git = "https://github.com/hasantr/kreuzberg-fork-triage", default-features = false, features = ["pdf", "ocr", "office", "html", "tokio-runtime"] }
 ```
 
-Upstream Kreuzberg 4.9+ bu patch'leri kabul ederse bu fork arşivlenir ve
+Upstream Kreuzberg bu patch'leri kabul ederse bu fork arşivlenir ve
 tüketiciler vanilla Kreuzberg'e döner.
 
 ## Lisans
 
-Upstream Kreuzberg [MIT](LICENSE) lisansı altında. Fork ve patch'ler de MIT.
+Upstream Kreuzberg lisansı (Elastic-2.0). Fork ve patch'ler de aynı lisans altında.

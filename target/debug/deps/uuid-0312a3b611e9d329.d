@@ -1,0 +1,13 @@
+D:\PROJELER\kreuzberg-fork-triage\target\debug\deps\uuid-0312a3b611e9d329.d: C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\lib.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\macros.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\builder.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\error.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\non_nil.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\parser.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\fmt.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\timestamp.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\external.rs
+
+D:\PROJELER\kreuzberg-fork-triage\target\debug\deps\libuuid-0312a3b611e9d329.rmeta: C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\lib.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\macros.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\builder.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\error.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\non_nil.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\parser.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\fmt.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\timestamp.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\external.rs
+
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\lib.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\macros.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\builder.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\error.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\non_nil.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\parser.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\fmt.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\timestamp.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\uuid-1.23.1\src\external.rs:

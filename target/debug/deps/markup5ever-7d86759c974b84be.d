@@ -1,0 +1,10 @@
+D:\PROJELER\kreuzberg-fork-triage\target\debug\deps\markup5ever-7d86759c974b84be.d: C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\lib.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\interface\mod.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\interface\tree_builder.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\serialize.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\util\buffer_queue.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\util\smallcharset.rs
+
+D:\PROJELER\kreuzberg-fork-triage\target\debug\deps\libmarkup5ever-7d86759c974b84be.rmeta: C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\lib.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\interface\mod.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\interface\tree_builder.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\serialize.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\util\buffer_queue.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\util\smallcharset.rs
+
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\lib.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\interface\mod.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\interface\tree_builder.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\serialize.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\util\buffer_queue.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\markup5ever-0.39.0\util\smallcharset.rs:

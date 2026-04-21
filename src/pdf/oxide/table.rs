@@ -75,9 +75,7 @@ pub(crate) fn extract_tables_native(doc: &mut OxideDocument) -> Result<Vec<Table
 ///
 /// Maps rows/cells from the native table structure to a 2D `Vec<Vec<String>>`
 /// grid and builds a markdown representation with proper header separators.
-fn convert_extracted_table(
-    table: &pdf_oxide::structure::table_extractor::ExtractedTable,
-) -> (Vec<Vec<String>>, String) {
+fn convert_extracted_table(table: &pdf_oxide::structure::table_extractor::Table) -> (Vec<Vec<String>>, String) {
     let mut cells: Vec<Vec<String>> = Vec::with_capacity(table.rows.len());
     let mut markdown = String::new();
     let mut found_header = false;
@@ -124,7 +122,7 @@ mod tests {
 
     #[test]
     fn test_convert_extracted_table_basic() {
-        use pdf_oxide::structure::table_extractor::{ExtractedTable, TableCell, TableRow};
+        use pdf_oxide::structure::table_extractor::{Table as ExtractedTable, TableCell, TableRow};
 
         let table = ExtractedTable {
             rows: vec![
@@ -135,6 +133,7 @@ mod tests {
                             colspan: 1,
                             rowspan: 1,
                             mcids: vec![],
+                            spans: vec![],
                             bbox: None,
                             is_header: true,
                         },
@@ -143,6 +142,7 @@ mod tests {
                             colspan: 1,
                             rowspan: 1,
                             mcids: vec![],
+                            spans: vec![],
                             bbox: None,
                             is_header: true,
                         },
@@ -156,6 +156,7 @@ mod tests {
                             colspan: 1,
                             rowspan: 1,
                             mcids: vec![],
+                            spans: vec![],
                             bbox: None,
                             is_header: false,
                         },
@@ -164,6 +165,7 @@ mod tests {
                             colspan: 1,
                             rowspan: 1,
                             mcids: vec![],
+                            spans: vec![],
                             bbox: None,
                             is_header: false,
                         },
@@ -187,7 +189,7 @@ mod tests {
 
     #[test]
     fn test_convert_extracted_table_no_header() {
-        use pdf_oxide::structure::table_extractor::{ExtractedTable, TableCell, TableRow};
+        use pdf_oxide::structure::table_extractor::{Table as ExtractedTable, TableCell, TableRow};
 
         let table = ExtractedTable {
             rows: vec![
@@ -197,6 +199,7 @@ mod tests {
                         colspan: 1,
                         rowspan: 1,
                         mcids: vec![],
+                        spans: vec![],
                         bbox: None,
                         is_header: false,
                     }],
@@ -208,6 +211,7 @@ mod tests {
                         colspan: 1,
                         rowspan: 1,
                         mcids: vec![],
+                        spans: vec![],
                         bbox: None,
                         is_header: false,
                     }],
@@ -227,7 +231,7 @@ mod tests {
 
     #[test]
     fn test_convert_extracted_table_empty() {
-        use pdf_oxide::structure::table_extractor::ExtractedTable;
+        use pdf_oxide::structure::table_extractor::Table as ExtractedTable;
 
         let table = ExtractedTable {
             rows: vec![],

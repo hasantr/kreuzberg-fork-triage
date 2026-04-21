@@ -1,0 +1,12 @@
+D:\PROJELER\kreuzberg-fork-triage\target\debug\deps\tendril-4b41397e3e6ec8e6.d: C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\lib.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\fmt.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\stream.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\buf32.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\tendril.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\utf8_decode.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\util.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\futf.rs
+
+D:\PROJELER\kreuzberg-fork-triage\target\debug\deps\libtendril-4b41397e3e6ec8e6.rmeta: C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\lib.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\fmt.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\stream.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\buf32.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\tendril.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\utf8_decode.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\util.rs C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\futf.rs
+
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\lib.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\fmt.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\stream.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\buf32.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\tendril.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\utf8_decode.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\util.rs:
+C:\Users\Hasan\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\tendril-0.5.0\src\futf.rs:
