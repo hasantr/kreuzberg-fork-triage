@@ -567,10 +567,10 @@ float** kreuzberg_embed_texts(const char** texts, KreuzbergEmbeddingConfig confi
 
 **Parameters:**
 
-| Name     | Type                        | Required | Description               |
-| -------- | --------------------------- | -------- | ------------------------- |
-| `texts`  | `const char**`              | Yes      | The texts                 |
-| `config` | `KreuzbergEmbeddingConfig*` | No       | The configuration options |
+| Name     | Type                       | Required | Description               |
+| -------- | -------------------------- | -------- | ------------------------- |
+| `texts`  | `const char**`             | Yes      | The texts                 |
+| `config` | `KreuzbergEmbeddingConfig` | Yes      | The configuration options |
 
 **Returns:** `float**`
 
@@ -657,20 +657,6 @@ for the Kreuzberg document extraction API.
 
 ---
 
-#### KreuzbergApiState
-
-API server state.
-
-Holds the default extraction configuration loaded from config file
-(via discovery or explicit path). Per-request configs override these defaults.
-
-| Field                | Type                        | Default | Description                                                                                                                                                                                                                                      |
-| -------------------- | --------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `default_config`     | `KreuzbergExtractionConfig` | —       | Default extraction configuration                                                                                                                                                                                                                 |
-| `extraction_service` | `const char*`               | —       | Tower service for extraction requests. Wrapped in `Arc<Mutex>` because `BoxCloneService` is `Send` but not `Sync`, while `ApiState` must be `Clone + Sync` for Axum's state requirement. The lock is held only long enough to clone the service. |
-
----
-
 #### KreuzbergArchiveEntry
 
 A single file extracted from an archive.
@@ -719,7 +705,7 @@ Bounding box in original image coordinates (x1, y1) top-left, (x2, y2) bottom-ri
 
 Batch item for byte array extraction.
 
-Used with `crate.batch_extract_bytes` and `crate.batch_extract_bytes_sync`
+Used with `batch_extract_bytes` and `batch_extract_bytes_sync`
 to represent a single item in a batch extraction job.
 
 | Field       | Type                             | Default | Description                                                       |
@@ -730,25 +716,11 @@ to represent a single item in a batch extraction job.
 
 ---
 
-#### KreuzbergBatchExtractFilesParams
-
-Request parameters for batch file extraction.
-
-| Field             | Type           | Default | Description                                                                                                                                           |
-| ----------------- | -------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `paths`           | `const char**` | —       | Paths to files to extract                                                                                                                             |
-| `config`          | `void**`       | `NULL`  | Extraction configuration (JSON object)                                                                                                                |
-| `pdf_password`    | `const char**` | `NULL`  | Password for encrypted PDFs                                                                                                                           |
-| `file_configs`    | `void****`     | `NULL`  | Per-file extraction configuration overrides (parallel array to paths). Each entry is either null (use default) or a FileExtractionConfig JSON object. |
-| `response_format` | `const char**` | `NULL`  | Wire format for the response: "json" (default) or "toon"                                                                                              |
-
----
-
 #### KreuzbergBatchFileItem
 
 Batch item for file extraction.
 
-Used with `crate.batch_extract_files` and `crate.batch_extract_files_sync`
+Used with `batch_extract_files` and `batch_extract_files_sync`
 to represent a single file in a batch extraction job.
 
 | Field    | Type                             | Default | Description                                                       |
@@ -775,33 +747,6 @@ BibTeX bibliography metadata.
 #### KreuzbergByteBufferPool
 
 Convenience type alias for a pooled Vec<u8>.
-
----
-
-#### KreuzbergCacheClearResponse
-
-Cache clear response.
-
-| Field           | Type          | Default | Description             |
-| --------------- | ------------- | ------- | ----------------------- |
-| `directory`     | `const char*` | —       | Cache directory path    |
-| `removed_files` | `uintptr_t`   | —       | Number of files removed |
-| `freed_mb`      | `double`      | —       | Space freed in MB       |
-
----
-
-#### KreuzbergCacheStatsResponse
-
-Cache statistics response.
-
-| Field                  | Type          | Default | Description                 |
-| ---------------------- | ------------- | ------- | --------------------------- |
-| `directory`            | `const char*` | —       | Cache directory path        |
-| `total_files`          | `uintptr_t`   | —       | Total number of cache files |
-| `total_size_mb`        | `double`      | —       | Total cache size in MB      |
-| `available_space_mb`   | `double`      | —       | Available disk space in MB  |
-| `oldest_file_age_days` | `double`      | —       | Age of oldest file in days  |
-| `newest_file_age_days` | `double`      | —       | Age of newest file in days  |
 
 ---
 
@@ -1578,8 +1523,8 @@ Embedded file descriptor extracted from the PDF name tree.
 
 Trait for in-process embedding backend plugins.
 
-Async to match the convention used by `crate.plugins.OcrBackend`,
-`crate.plugins.DocumentExtractor`, and `crate.plugins.PostProcessor`.
+Async to match the convention used by `OcrBackend`,
+`DocumentExtractor`, and `PostProcessor`.
 Host-language bridges (PyO3, napi-rs, Rustler, extendr, magnus, ext-php-rs,
 C FFI, etc.) wrap their synchronous host callables in `spawn_blocking` or the
 equivalent to satisfy the async signature.
@@ -1594,7 +1539,7 @@ itself must serialize access internally (e.g. via `Mutex<Inner>`).
 # Contract
 
 - `embed(texts)` MUST return exactly `texts.len()` vectors, each of length
-  `self.dimensions()`. The dispatcher in `crate.embeddings.embed_texts`
+  `self.dimensions()`. The dispatcher in `embed_texts`
   validates this before returning to downstream consumers; a non-conforming
   backend surfaces as a `KreuzbergError.Validation`, not a panic.
 - `embed` may be called from any thread. Its future must be `Send`
@@ -1606,7 +1551,7 @@ itself must serialize access internally (e.g. via `Mutex<Inner>`).
   afterwards. Later mutations of the backend's reported dimension are not
   observed by kreuzberg — implementations that need to change dimension
   must unregister and re-register.
-- `shutdown()` (inherited from `crate.plugins.Plugin`) may be invoked
+- `shutdown()` (inherited from `Plugin`) may be invoked
   concurrently with an in-flight `embed()` call. Implementations must
   tolerate this — e.g. by letting in-flight calls finish using resources
   held via the `Arc<dyn EmbeddingBackend>` reference, and only releasing
@@ -1614,12 +1559,12 @@ itself must serialize access internally (e.g. via `Mutex<Inner>`).
 
 # Runtime
 
-The synchronous `crate.embed_texts` entry uses
+The synchronous `embed_texts` entry uses
 `tokio.task.block_in_place` to await the trait's async `embed`, which
 requires a multi-thread tokio runtime. Callers running inside a
 `current_thread` runtime (e.g. `#[tokio.test]` without `flavor = "multi_thread"`,
 or `tokio.runtime.Builder.new_current_thread()`) must use
-`crate.embed_texts_async` instead, which awaits directly without
+`embed_texts_async` instead, which awaits directly without
 `block_in_place`.
 
 ##### Methods
@@ -1641,7 +1586,7 @@ Embed a batch of texts, returning one vector per input in order.
 
 **Errors:**
 
-Implementations should return `crate.KreuzbergError.Plugin` for
+Implementations should return `Plugin` for
 backend-specific failures. The dispatcher layers its own validation
 (length, per-vector dimension) on top.
 
@@ -1660,15 +1605,15 @@ Embedding configuration for text chunks.
 Configures embedding generation using ONNX models via the vendored embedding engine.
 Requires the `embeddings` feature to be enabled.
 
-| Field                     | Type                           | Default                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------------- | ------------------------------ | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`                   | `KreuzbergEmbeddingModelType`  | `KREUZBERG_KREUZBERG_PRESET` | The embedding model to use (defaults to "balanced" preset if not specified)                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `normalize`               | `bool`                         | `true`                       | Whether to normalize embedding vectors (recommended for cosine similarity)                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `batch_size`              | `uintptr_t`                    | `32`                         | Batch size for embedding generation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `show_download_progress`  | `bool`                         | `false`                      | Show model download progress                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `cache_dir`               | `const char**`                 | `NULL`                       | Custom cache directory for model files Defaults to `~/.cache/kreuzberg/embeddings/` if not specified. Allows full customization of model download location.                                                                                                                                                                                                                                                                                                                                                                                       |
-| `acceleration`            | `KreuzbergAccelerationConfig*` | `NULL`                       | Hardware acceleration for the embedding ONNX model. When set, controls which execution provider (CPU, CUDA, CoreML, TensorRT) is used for inference. Defaults to `NULL` (auto-select per platform).                                                                                                                                                                                                                                                                                                                                               |
-| `max_embed_duration_secs` | `uint64_t*`                    | `NULL`                       | Maximum wall-clock duration (in seconds) for a single `embed()` call when using `EmbeddingModelType.Plugin`. Applies only to the in-process plugin path — protects against hung host-language backends (e.g. a Python callback deadlocked on the GIL, a model stuck on CUDA OOM retries, etc.). On timeout, the dispatcher returns `crate.KreuzbergError.Plugin` instead of blocking forever. `NULL` disables the timeout. The default (60 seconds) is conservative for common in-process inference; increase for large batches on slow hardware. |
+| Field                     | Type                           | Default                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------- | ------------------------------ | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`                   | `KreuzbergEmbeddingModelType`  | `KREUZBERG_KREUZBERG_PRESET` | The embedding model to use (defaults to "balanced" preset if not specified)                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `normalize`               | `bool`                         | `true`                       | Whether to normalize embedding vectors (recommended for cosine similarity)                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `batch_size`              | `uintptr_t`                    | `32`                         | Batch size for embedding generation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `show_download_progress`  | `bool`                         | `false`                      | Show model download progress                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `cache_dir`               | `const char**`                 | `NULL`                       | Custom cache directory for model files Defaults to `~/.cache/kreuzberg/embeddings/` if not specified. Allows full customization of model download location.                                                                                                                                                                                                                                                                                                                                                                  |
+| `acceleration`            | `KreuzbergAccelerationConfig*` | `NULL`                       | Hardware acceleration for the embedding ONNX model. When set, controls which execution provider (CPU, CUDA, CoreML, TensorRT) is used for inference. Defaults to `NULL` (auto-select per platform).                                                                                                                                                                                                                                                                                                                          |
+| `max_embed_duration_secs` | `uint64_t*`                    | `NULL`                       | Maximum wall-clock duration (in seconds) for a single `embed()` call when using `EmbeddingModelType.Plugin`. Applies only to the in-process plugin path — protects against hung host-language backends (e.g. a Python callback deadlocked on the GIL, a model stuck on CUDA OOM retries, etc.). On timeout, the dispatcher returns `Plugin` instead of blocking forever. `NULL` disables the timeout. The default (60 seconds) is conservative for common in-process inference; increase for large batches on slow hardware. |
 
 ##### Methods
 
@@ -1771,34 +1716,6 @@ extracted content and metadata.
 | ---------- | ---------------------- | ------- | ----------------------------------------------------- |
 | `sheets`   | `KreuzbergExcelSheet*` | —       | All sheets in the workbook                            |
 | `metadata` | `void*`                | —       | Workbook-level metadata (author, creation date, etc.) |
-
----
-
-#### KreuzbergExtractBytesParams
-
-Request parameters for bytes extraction.
-
-| Field             | Type           | Default | Description                                              |
-| ----------------- | -------------- | ------- | -------------------------------------------------------- |
-| `data`            | `const char*`  | —       | Base64-encoded file content                              |
-| `mime_type`       | `const char**` | `NULL`  | Optional MIME type hint (auto-detected if not provided)  |
-| `config`          | `void**`       | `NULL`  | Extraction configuration (JSON object)                   |
-| `pdf_password`    | `const char**` | `NULL`  | Password for encrypted PDFs                              |
-| `response_format` | `const char**` | `NULL`  | Wire format for the response: "json" (default) or "toon" |
-
----
-
-#### KreuzbergExtractFileParams
-
-Request parameters for file extraction.
-
-| Field             | Type           | Default | Description                                              |
-| ----------------- | -------------- | ------- | -------------------------------------------------------- |
-| `path`            | `const char*`  | —       | Path to the file to extract                              |
-| `mime_type`       | `const char**` | `NULL`  | Optional MIME type hint (auto-detected if not provided)  |
-| `config`          | `void**`       | `NULL`  | Extraction configuration (JSON object)                   |
-| `pdf_password`    | `const char**` | `NULL`  | Password for encrypted PDFs                              |
-| `response_format` | `const char**` | `NULL`  | Wire format for the response: "json" (default) or "toon" |
 
 ---
 
@@ -1905,8 +1822,8 @@ It can be loaded from TOML, YAML, or JSON files, or created programmatically.
 | `acceleration`               | `KreuzbergAccelerationConfig*`         | `NULL`                        | Hardware acceleration configuration for ONNX Runtime models. Controls execution provider selection for layout detection and embedding models. When `NULL`, uses platform defaults (CoreML on macOS, CUDA on Linux, CPU on Windows).                                                                                                                                                                                                                                                                        |
 | `cache_namespace`            | `const char**`                         | `NULL`                        | Cache namespace for tenant isolation. When set, cache entries are stored under `{cache_dir}/{namespace}/`. Must be alphanumeric, hyphens, or underscores only (max 64 chars). Different namespaces have isolated cache spaces on the same filesystem.                                                                                                                                                                                                                                                      |
 | `cache_ttl_secs`             | `uint64_t*`                            | `NULL`                        | Per-request cache TTL in seconds. Overrides the global `max_age_days` for this specific extraction. When `0`, caching is completely skipped (no read or write). When `NULL`, the global TTL applies.                                                                                                                                                                                                                                                                                                       |
-| `email`                      | `KreuzbergEmailConfig*`                | `NULL`                        | Email extraction configuration (None = use defaults). Currently supports configuring the fallback codepage for MSG files that do not specify one. See `crate.core.config.EmailConfig` for details.                                                                                                                                                                                                                                                                                                         |
-| `concurrency`                | `const char**`                         | `NULL`                        | Concurrency limits for constrained environments (None = use defaults). Controls Rayon thread pool size, ONNX Runtime intra-op threads, and (when `max_concurrent_extractions` is unset) the batch concurrency semaphore. See `crate.core.config.ConcurrencyConfig` for details.                                                                                                                                                                                                                            |
+| `email`                      | `KreuzbergEmailConfig*`                | `NULL`                        | Email extraction configuration (None = use defaults). Currently supports configuring the fallback codepage for MSG files that do not specify one. See `EmailConfig` for details.                                                                                                                                                                                                                                                                                                                           |
+| `concurrency`                | `const char**`                         | `NULL`                        | Concurrency limits for constrained environments (None = use defaults). Controls Rayon thread pool size, ONNX Runtime intra-op threads, and (when `max_concurrent_extractions` is unset) the batch concurrency semaphore. See `ConcurrencyConfig` for details.                                                                                                                                                                                                                                              |
 | `max_archive_depth`          | `uintptr_t`                            | —                             | Maximum recursion depth for archive extraction (default: 3). Set to 0 to disable recursive extraction (legacy behavior).                                                                                                                                                                                                                                                                                                                                                                                   |
 | `tree_sitter`                | `KreuzbergTreeSitterConfig*`           | `NULL`                        | Tree-sitter language pack configuration (None = tree-sitter disabled). When set, enables code file extraction using tree-sitter parsers. Controls grammar download behavior and code analysis options.                                                                                                                                                                                                                                                                                                     |
 | `structured_extraction`      | `KreuzbergStructuredExtractionConfig*` | `NULL`                        | Structured extraction via LLM (None = disabled). When set, the extracted document content is sent to an LLM with the provided JSON schema. The structured response is stored in `ExtractionResult.structured_output`.                                                                                                                                                                                                                                                                                      |
@@ -1997,13 +1914,13 @@ FictionBook (FB2) metadata.
 Per-file extraction configuration overrides for batch processing.
 
 All fields are `Option<T>` — `NULL` means "use the batch-level default."
-This type is used with `crate.batch_extract_files` and
-`crate.batch_extract_bytes` to allow heterogeneous
+This type is used with `batch_extract_files` and
+`batch_extract_bytes` to allow heterogeneous
 extraction settings within a single batch.
 
 # Excluded Fields
 
-The following `super.ExtractionConfig` fields are batch-level only and
+The following `ExtractionConfig` fields are batch-level only and
 cannot be overridden per file:
 
 - `max_concurrent_extractions` — controls batch parallelism
@@ -2127,18 +2044,6 @@ A single heading in the hierarchy.
 | ------- | ------------- | ------- | ------------------------------------ |
 | `level` | `uint8_t`     | —       | Heading depth (1 = h1, 2 = h2, etc.) |
 | `text`  | `const char*` | —       | The text content of the heading.     |
-
----
-
-#### KreuzbergHealthResponse
-
-Health check response.
-
-| Field     | Type           | Default | Description              |
-| --------- | -------------- | ------- | ------------------------ |
-| `status`  | `const char*`  | —       | Health status            |
-| `version` | `const char*`  | —       | API version              |
-| `plugins` | `const char**` | `NULL`  | Plugin status (optional) |
 
 ---
 
@@ -3680,6 +3585,20 @@ result in place.
 
 # Example - Text Cleaning
 
+```rust
+async fn process(&self, result: &mut ExtractionResult, config: &ExtractionConfig)
+    -> Result<()> {
+    // Remove excessive whitespace
+    result.content = result
+        .content
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    Ok(())
+}
+```
+
 **Signature:**
 
 ```c
@@ -4513,9 +4432,70 @@ if validation fails.
 
 # Example - Content Length Validation
 
+```rust
+async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
+    -> Result<()> {
+    let length = result.content.len();
+
+    if length < self.min {
+        return Err(KreuzbergError::validation(format!(
+            "Content too short: {} < {} characters",
+            length, self.min
+        )));
+    }
+
+    if length > self.max {
+        return Err(KreuzbergError::validation(format!(
+            "Content too long: {} > {} characters",
+            length, self.max
+        )));
+    }
+
+    Ok(())
+}
+```
+
 # Example - Quality Score Validation
 
+```rust
+async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
+    -> Result<()> {
+    // Check if quality_score exists in metadata
+    let score = result.metadata
+        .additional
+        .get("quality_score")
+        .and_then(|v| v.as_f64())
+        .unwrap_or(0.0);
+
+    if score < self.min_score {
+        return Err(KreuzbergError::validation(format!(
+            "Quality score too low: {} < {}",
+            score, self.min_score
+        )));
+    }
+
+    Ok(())
+}
+```
+
 # Example - Security Validation
+
+```rust
+async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
+    -> Result<()> {
+    // Check for blocked patterns
+    for pattern in &self.blocked_patterns {
+        if result.content.contains(pattern) {
+            return Err(KreuzbergError::validation(format!(
+                "Content contains blocked pattern: {}",
+                pattern
+            )));
+        }
+    }
+
+    Ok(())
+}
+```
 
 **Signature:**
 
@@ -4558,27 +4538,6 @@ Priority value (higher = runs earlier).
 ```c
 int32_t kreuzberg_priority();
 ```
-
----
-
-#### KreuzbergVersionResponse
-
-Version response.
-
-| Field     | Type          | Default | Description              |
-| --------- | ------------- | ------- | ------------------------ |
-| `version` | `const char*` | —       | Kreuzberg version string |
-
----
-
-#### KreuzbergWarmRequest
-
-Cache warm request.
-
-| Field             | Type           | Default | Description                                 |
-| ----------------- | -------------- | ------- | ------------------------------------------- |
-| `all_embeddings`  | `bool`         | —       | Download all embedding model presets        |
-| `embedding_model` | `const char**` | `NULL`  | Specific embedding model preset to download |
 
 ---
 
@@ -4819,12 +4778,12 @@ available on HuggingFace Hub can be used, including OpenAI-compatible tokenizers
 
 Embedding model types supported by Kreuzberg.
 
-| Value              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `KREUZBERG_PRESET` | Use a preset model configuration (recommended) — Fields: `name`: `const char*`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `KREUZBERG_CUSTOM` | Use a custom ONNX model from HuggingFace — Fields: `model_id`: `const char*`, `dimensions`: `uintptr_t`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `KREUZBERG_LLM`    | Provider-hosted embedding model via liter-llm. Uses the model specified in the nested `LlmConfig` (e.g., `"openai/text-embedding-3-small"`). — Fields: `llm`: `KreuzbergLlmConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `KREUZBERG_PLUGIN` | In-process embedding backend registered via the plugin system. The caller registers an `EmbeddingBackend` once (e.g. a wrapper around an already-loaded `llama-cpp-python`, `sentence-transformers`, or tuned ONNX model), then references it by name in config. Kreuzberg calls back into the registered backend during chunking and standalone embed requests — no HuggingFace download, no ONNX Runtime requirement, no HTTP sidecar. When this variant is selected, only the following `EmbeddingConfig` fields apply: `normalize` (post-call L2 normalization) and `max_embed_duration_secs` (dispatcher timeout). Model-loading fields (`batch_size`, `cache_dir`, `show_download_progress`, `acceleration`) are ignored — the host owns the model lifecycle. Semantic chunking falls back to `ChunkingConfig.max_characters` when this variant is used, since there is no preset to look a chunk-size ceiling up against — size your context window via `max_characters` directly. See `crate.plugins.register_embedding_backend`. — Fields: `name`: `const char*` |
+| Value              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `KREUZBERG_PRESET` | Use a preset model configuration (recommended) — Fields: `name`: `const char*`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `KREUZBERG_CUSTOM` | Use a custom ONNX model from HuggingFace — Fields: `model_id`: `const char*`, `dimensions`: `uintptr_t`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `KREUZBERG_LLM`    | Provider-hosted embedding model via liter-llm. Uses the model specified in the nested `LlmConfig` (e.g., `"openai/text-embedding-3-small"`). — Fields: `llm`: `KreuzbergLlmConfig`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `KREUZBERG_PLUGIN` | In-process embedding backend registered via the plugin system. The caller registers an `EmbeddingBackend` once (e.g. a wrapper around an already-loaded `llama-cpp-python`, `sentence-transformers`, or tuned ONNX model), then references it by name in config. Kreuzberg calls back into the registered backend during chunking and standalone embed requests — no HuggingFace download, no ONNX Runtime requirement, no HTTP sidecar. When this variant is selected, only the following `EmbeddingConfig` fields apply: `normalize` (post-call L2 normalization) and `max_embed_duration_secs` (dispatcher timeout). Model-loading fields (`batch_size`, `cache_dir`, `show_download_progress`, `acceleration`) are ignored — the host owns the model lifecycle. Semantic chunking falls back to `ChunkingConfig.max_characters` when this variant is used, since there is no preset to look a chunk-size ceiling up against — size your context window via `max_characters` directly. See `register_embedding_backend`. — Fields: `name`: `const char*` |
 
 ---
 
@@ -5106,7 +5065,7 @@ Heuristic classification of what an image likely depicts.
 
 Result-shape selection for extraction results.
 
-Distinct from `crate.OutputFormat` (which controls rendering — Plain, Markdown,
+Distinct from `OutputFormat` (which controls rendering — Plain, Markdown,
 HTML, etc.). `ResultFormat` controls the _shape_ of the result: a unified content
 blob vs. an element-based decomposition.
 

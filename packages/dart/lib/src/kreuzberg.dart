@@ -303,14 +303,14 @@ class ExtractionConfig {
   /// Email extraction configuration (None = use defaults).
   ///
   /// Currently supports configuring the fallback codepage for MSG files
-  /// that do not specify one. See [`crate::core::config::EmailConfig`] for details.
+  /// that do not specify one. See `EmailConfig` for details.
   final EmailConfig? email;
 
   /// Concurrency limits for constrained environments (None = use defaults).
   ///
   /// Controls Rayon thread pool size, ONNX Runtime intra-op threads, and
   /// (when `max_concurrent_extractions` is unset) the batch concurrency
-  /// semaphore. See [`crate::core::config::ConcurrencyConfig`] for details.
+  /// semaphore. See `ConcurrencyConfig` for details.
   final String? concurrency;
 
   /// Maximum recursion depth for archive extraction (default: 3).
@@ -380,13 +380,13 @@ class ExtractionConfig {
 /// Per-file extraction configuration overrides for batch processing.
 ///
 /// All fields are `Option<T>` — `None` means "use the batch-level default."
-/// This type is used with [`crate::batch_extract_files`] and
-/// [`crate::batch_extract_bytes`] to allow heterogeneous
+/// This type is used with `batch_extract_files` and
+/// `batch_extract_bytes` to allow heterogeneous
 /// extraction settings within a single batch.
 ///
 /// # Excluded Fields
 ///
-/// The following [`super::ExtractionConfig`] fields are batch-level only and
+/// The following `ExtractionConfig` fields are batch-level only and
 /// cannot be overridden per file:
 /// - `max_concurrent_extractions` — controls batch parallelism
 /// - `use_cache` — global caching policy
@@ -506,7 +506,7 @@ class FileExtractionConfig {
 
 /// Batch item for byte array extraction.
 ///
-/// Used with [`crate::batch_extract_bytes`] and [`crate::batch_extract_bytes_sync`]
+/// Used with `batch_extract_bytes` and `batch_extract_bytes_sync`
 /// to represent a single item in a batch extraction job.
 class BatchBytesItem {
   /// The content bytes to extract from
@@ -526,7 +526,7 @@ class BatchBytesItem {
 
 /// Batch item for file extraction.
 ///
-/// Used with [`crate::batch_extract_files`] and [`crate::batch_extract_files_sync`]
+/// Used with `batch_extract_files` and `batch_extract_files_sync`
 /// to represent a single file in a batch extraction job.
 class BatchFileItem {
   /// Path to the file to extract from
@@ -1146,7 +1146,6 @@ class PostProcessorConfig {
 ///
 /// Use `..Default::default()` when constructing to allow for future field additions:
 /// ```rust
-/// # use kreuzberg::ChunkingConfig;
 /// let config = ChunkingConfig {
 ///     max_characters: 500,
 ///     ..Default::default()
@@ -1253,7 +1252,7 @@ class EmbeddingConfig {
   /// Applies only to the in-process plugin path — protects against hung
   /// host-language backends (e.g. a Python callback deadlocked on the GIL,
   /// a model stuck on CUDA OOM retries, etc.). On timeout, the dispatcher
-  /// returns [`crate::KreuzbergError::Plugin`] instead of blocking forever.
+  /// returns `Plugin` instead of blocking forever.
   ///
   /// `None` disables the timeout. The default (60 seconds) is conservative
   /// for common in-process inference; increase for large batches on slow
@@ -1857,8 +1856,8 @@ class ZipBombValidator {}
 
 /// Trait for in-process embedding backend plugins.
 ///
-/// Async to match the convention used by [`crate::plugins::OcrBackend`],
-/// [`crate::plugins::DocumentExtractor`], and [`crate::plugins::PostProcessor`].
+/// Async to match the convention used by `OcrBackend`,
+/// `DocumentExtractor`, and `PostProcessor`.
 /// Host-language bridges (PyO3, napi-rs, Rustler, extendr, magnus, ext-php-rs,
 /// C FFI, etc.) wrap their synchronous host callables in `spawn_blocking` or the
 /// equivalent to satisfy the async signature.
@@ -1873,7 +1872,7 @@ class ZipBombValidator {}
 /// # Contract
 ///
 /// - `embed(texts)` MUST return exactly `texts.len()` vectors, each of length
-///   `self.dimensions()`. The dispatcher in [`crate::embeddings::embed_texts`]
+///   `self.dimensions()`. The dispatcher in `embed_texts`
 ///   validates this before returning to downstream consumers; a non-conforming
 ///   backend surfaces as a `KreuzbergError::Validation`, not a panic.
 /// - `embed` may be called from any thread. Its future must be `Send`
@@ -1885,7 +1884,7 @@ class ZipBombValidator {}
 ///   afterwards. Later mutations of the backend's reported dimension are not
 ///   observed by kreuzberg — implementations that need to change dimension
 ///   must unregister and re-register.
-/// - `shutdown()` (inherited from [`crate::plugins::Plugin`]) may be invoked
+/// - `shutdown()` (inherited from `Plugin`) may be invoked
 ///   concurrently with an in-flight `embed()` call. Implementations must
 ///   tolerate this — e.g. by letting in-flight calls finish using resources
 ///   held via the `Arc<dyn EmbeddingBackend>` reference, and only releasing
@@ -1893,12 +1892,12 @@ class ZipBombValidator {}
 ///
 /// # Runtime
 ///
-/// The synchronous [`crate::embed_texts`] entry uses
+/// The synchronous `embed_texts` entry uses
 /// [`tokio::task::block_in_place`] to await the trait's async `embed`, which
 /// requires a multi-thread tokio runtime. Callers running inside a
 /// `current_thread` runtime (e.g. `#[tokio::test]` without `flavor = "multi_thread"`,
 /// or `tokio::runtime::Builder::new_current_thread()`) must use
-/// [`crate::embed_texts_async`] instead, which awaits directly without
+/// `embed_texts_async` instead, which awaits directly without
 /// `block_in_place`.
 class EmbeddingBackend {}
 
@@ -4651,23 +4650,6 @@ class TracingLayer {}
 /// for the Kreuzberg document extraction API.
 class ApiDoc {}
 
-/// Health check response.
-class HealthResponse {
-  /// Health status
-  final String status;
-
-  /// API version
-  final String version;
-
-  /// Plugin status (optional)
-  final String? plugins;
-  HealthResponse({
-    required this.status,
-    required this.version,
-    required this.plugins,
-  });
-}
-
 /// Server information response.
 class InfoResponse {
   /// API version
@@ -4683,72 +4665,6 @@ class InfoResponse {
 
 /// Extraction response (list of results).
 class ExtractResponse {}
-
-/// API server state.
-///
-/// Holds the default extraction configuration loaded from config file
-/// (via discovery or explicit path). Per-request configs override these defaults.
-class ApiState {
-  /// Default extraction configuration
-  final ExtractionConfig defaultConfig;
-
-  /// Tower service for extraction requests.
-  ///
-  /// Wrapped in `Arc<Mutex>` because `BoxCloneService` is `Send` but not `Sync`,
-  /// while `ApiState` must be `Clone + Sync` for Axum's state requirement.
-  /// The lock is held only long enough to clone the service.
-  final String extractionService;
-  ApiState({
-    required this.defaultConfig,
-    required this.extractionService,
-  });
-}
-
-/// Cache statistics response.
-class CacheStatsResponse {
-  /// Cache directory path
-  final String directory;
-
-  /// Total number of cache files
-  final int totalFiles;
-
-  /// Total cache size in MB
-  final double totalSizeMb;
-
-  /// Available disk space in MB
-  final double availableSpaceMb;
-
-  /// Age of oldest file in days
-  final double oldestFileAgeDays;
-
-  /// Age of newest file in days
-  final double newestFileAgeDays;
-  CacheStatsResponse({
-    required this.directory,
-    required this.totalFiles,
-    required this.totalSizeMb,
-    required this.availableSpaceMb,
-    required this.oldestFileAgeDays,
-    required this.newestFileAgeDays,
-  });
-}
-
-/// Cache clear response.
-class CacheClearResponse {
-  /// Cache directory path
-  final String directory;
-
-  /// Number of files removed
-  final int removedFiles;
-
-  /// Space freed in MB
-  final double freedMb;
-  CacheClearResponse({
-    required this.directory,
-    required this.removedFiles,
-    required this.freedMb,
-  });
-}
 
 /// Embedding request for generating embeddings from text.
 class EmbedRequest {
@@ -4826,13 +4742,6 @@ class ChunkResponse {
   });
 }
 
-/// Version response.
-class VersionResponse {
-  /// Kreuzberg version string
-  final String version;
-  VersionResponse(this.version);
-}
-
 /// MIME type detection response.
 class DetectResponse {
   /// Detected MIME type
@@ -4885,19 +4794,6 @@ class ManifestResponse {
     required this.totalSizeBytes,
     required this.modelCount,
     required this.models,
-  });
-}
-
-/// Cache warm request.
-class WarmRequest {
-  /// Download all embedding model presets
-  final bool allEmbeddings;
-
-  /// Specific embedding model preset to download
-  final String? embeddingModel;
-  WarmRequest({
-    required this.allEmbeddings,
-    required this.embeddingModel,
   });
 }
 
@@ -4962,82 +4858,6 @@ class DoclingCompatResponse {
   DoclingCompatResponse({
     required this.document,
     required this.status,
-  });
-}
-
-/// Request parameters for file extraction.
-class ExtractFileParams {
-  /// Path to the file to extract
-  final String path;
-
-  /// Optional MIME type hint (auto-detected if not provided)
-  final String? mimeType;
-
-  /// Extraction configuration (JSON object)
-  final String? config;
-
-  /// Password for encrypted PDFs
-  final String? pdfPassword;
-
-  /// Wire format for the response: "json" (default) or "toon"
-  final String? responseFormat;
-  ExtractFileParams({
-    required this.path,
-    required this.mimeType,
-    required this.config,
-    required this.pdfPassword,
-    required this.responseFormat,
-  });
-}
-
-/// Request parameters for bytes extraction.
-class ExtractBytesParams {
-  /// Base64-encoded file content
-  final String data;
-
-  /// Optional MIME type hint (auto-detected if not provided)
-  final String? mimeType;
-
-  /// Extraction configuration (JSON object)
-  final String? config;
-
-  /// Password for encrypted PDFs
-  final String? pdfPassword;
-
-  /// Wire format for the response: "json" (default) or "toon"
-  final String? responseFormat;
-  ExtractBytesParams({
-    required this.data,
-    required this.mimeType,
-    required this.config,
-    required this.pdfPassword,
-    required this.responseFormat,
-  });
-}
-
-/// Request parameters for batch file extraction.
-class BatchExtractFilesParams {
-  /// Paths to files to extract
-  final List<String> paths;
-
-  /// Extraction configuration (JSON object)
-  final String? config;
-
-  /// Password for encrypted PDFs
-  final String? pdfPassword;
-
-  /// Per-file extraction configuration overrides (parallel array to paths).
-  /// Each entry is either null (use default) or a FileExtractionConfig JSON object.
-  final List<String?>? fileConfigs;
-
-  /// Wire format for the response: "json" (default) or "toon"
-  final String? responseFormat;
-  BatchExtractFilesParams({
-    required this.paths,
-    required this.config,
-    required this.pdfPassword,
-    required this.fileConfigs,
-    required this.responseFormat,
   });
 }
 
@@ -5844,7 +5664,7 @@ final class Llm extends EmbeddingModelType {
 /// is used, since there is no preset to look a chunk-size ceiling up against — size your
 /// context window via `max_characters` directly.
 ///
-/// See [`crate::plugins::register_embedding_backend`].
+/// See `register_embedding_backend`.
 final class Plugin extends EmbeddingModelType {
   final String name;
   Plugin(this.name);
@@ -6340,7 +6160,7 @@ enum ImageKind {
 
 /// Result-shape selection for extraction results.
 ///
-/// Distinct from [`crate::OutputFormat`] (which controls rendering — Plain, Markdown,
+/// Distinct from `OutputFormat` (which controls rendering — Plain, Markdown,
 /// HTML, etc.). `ResultFormat` controls the *shape* of the result: a unified content
 /// blob vs. an element-based decomposition.
 enum ResultFormat {
@@ -6775,7 +6595,7 @@ sealed class KreuzbergError implements Exception {
 final class Io implements KreuzbergError {
   final String field0;
   @override
-  String get message => 'IO error: {0}';
+  String get message => 'IO error';
   Io(this.field0);
 }
 
@@ -6783,7 +6603,7 @@ final class Parsing implements KreuzbergError {
   final String message;
   final String source;
   @override
-  String get message => 'Parsing error: {message}';
+  String get message => 'Parsing error';
   Parsing({
     required this.message,
     required this.source,
@@ -6794,7 +6614,7 @@ final class Ocr implements KreuzbergError {
   final String message;
   final String source;
   @override
-  String get message => 'OCR error: {message}';
+  String get message => 'OCR error';
   Ocr({
     required this.message,
     required this.source,
@@ -6805,7 +6625,7 @@ final class Validation implements KreuzbergError {
   final String message;
   final String source;
   @override
-  String get message => 'Validation error: {message}';
+  String get message => 'Validation error';
   Validation({
     required this.message,
     required this.source,
@@ -6816,7 +6636,7 @@ final class Cache implements KreuzbergError {
   final String message;
   final String source;
   @override
-  String get message => 'Cache error: {message}';
+  String get message => 'Cache error';
   Cache({
     required this.message,
     required this.source,
@@ -6827,7 +6647,7 @@ final class ImageProcessing implements KreuzbergError {
   final String message;
   final String source;
   @override
-  String get message => 'Image processing error: {message}';
+  String get message => 'Image processing error';
   ImageProcessing({
     required this.message,
     required this.source,
@@ -6838,7 +6658,7 @@ final class Serialization implements KreuzbergError {
   final String message;
   final String source;
   @override
-  String get message => 'Serialization error: {message}';
+  String get message => 'Serialization error';
   Serialization({
     required this.message,
     required this.source,
@@ -6848,7 +6668,7 @@ final class Serialization implements KreuzbergError {
 final class MissingDependency implements KreuzbergError {
   final String field0;
   @override
-  String get message => 'Missing dependency: {0}';
+  String get message => 'Missing dependency';
   MissingDependency(this.field0);
 }
 
@@ -6856,7 +6676,7 @@ final class Plugin implements KreuzbergError {
   final String message;
   final String pluginName;
   @override
-  String get message => 'Plugin error in \'{plugin_name}\': {message}';
+  String get message => 'Plugin error in';
   Plugin({
     required this.message,
     required this.pluginName,
@@ -6866,14 +6686,14 @@ final class Plugin implements KreuzbergError {
 final class LockPoisoned implements KreuzbergError {
   final String field0;
   @override
-  String get message => 'Lock poisoned: {0}';
+  String get message => 'Lock poisoned';
   LockPoisoned(this.field0);
 }
 
 final class UnsupportedFormat implements KreuzbergError {
   final String field0;
   @override
-  String get message => 'Unsupported format: {0}';
+  String get message => 'Unsupported format';
   UnsupportedFormat(this.field0);
 }
 
@@ -6881,7 +6701,7 @@ final class Embedding implements KreuzbergError {
   final String message;
   final String source;
   @override
-  String get message => 'Embedding error: {message}';
+  String get message => 'Embedding error';
   Embedding({
     required this.message,
     required this.source,
@@ -6892,8 +6712,7 @@ final class Timeout implements KreuzbergError {
   final int elapsedMs;
   final int limitMs;
   @override
-  String get message =>
-      'Extraction timed out after {elapsed_ms}ms (limit: {limit_ms}ms)';
+  String get message => 'Extraction timed out after ms (limit: ms)';
   Timeout({
     required this.elapsedMs,
     required this.limitMs,
@@ -6910,7 +6729,7 @@ final class Security implements KreuzbergError {
   final String message;
   final String source;
   @override
-  String get message => 'Security violation: {message}';
+  String get message => 'Security violation';
   Security({
     required this.message,
     required this.source,
@@ -6920,7 +6739,7 @@ final class Security implements KreuzbergError {
 final class Other implements KreuzbergError {
   final String field0;
   @override
-  String get message => '{0}';
+  String get message => 'Other';
   Other(this.field0);
 }
 
@@ -6955,13 +6774,10 @@ class KreuzbergBridge {
   /// use kreuzberg::core::extractor::extract_bytes;
   /// use kreuzberg::core::config::ExtractionConfig;
   ///
-  /// # async fn example() -> kreuzberg::Result<()> {
   /// let config = ExtractionConfig::default();
   /// let bytes = b"Hello, world!";
   /// let result = extract_bytes(bytes, "text/plain", &config).await?;
   /// println!("Content: {}", result.content);
-  /// # Ok(())
-  /// # }
   /// ```
   /// throws anyhow::Error on failure
   static Future<ExtractionResult> extractBytes(
@@ -7000,12 +6816,9 @@ class KreuzbergBridge {
   /// use kreuzberg::core::extractor::extract_file;
   /// use kreuzberg::core::config::ExtractionConfig;
   ///
-  /// # async fn example() -> kreuzberg::Result<()> {
   /// let config = ExtractionConfig::default();
   /// let result = extract_file("document.pdf", None, &config).await?;
   /// println!("Content: {}", result.content);
-  /// # Ok(())
-  /// # }
   /// ```
   /// throws anyhow::Error on failure
   static Future<ExtractionResult> extractFile(
@@ -7033,7 +6846,6 @@ class KreuzbergBridge {
   /// let config = ExtractionConfig::default();
   /// let result = extract_file_sync("document.pdf", None, &config)?;
   /// println!("Content: {}", result.content);
-  /// # Ok::<(), kreuzberg::KreuzbergError>(())
   /// ```
   /// throws anyhow::Error on failure
   static ExtractionResult extractFileSync(
@@ -7059,7 +6871,6 @@ class KreuzbergBridge {
   /// let bytes = b"Hello, world!";
   /// let result = extract_bytes_sync(bytes, "text/plain", &config)?;
   /// println!("Content: {}", result.content);
-  /// # Ok::<(), kreuzberg::KreuzbergError>(())
   /// ```
   /// throws anyhow::Error on failure
   static ExtractionResult extractBytesSync(
@@ -7087,7 +6898,6 @@ class KreuzbergBridge {
   ///     BatchFileItem { path: "doc2.pdf".into(), config: None },
   /// ];
   /// let results = batch_extract_files_sync(items, &config)?;
-  /// # Ok::<(), kreuzberg::KreuzbergError>(())
   /// ```
   /// throws anyhow::Error on failure
   static List<ExtractionResult> batchExtractFilesSync(
@@ -7118,7 +6928,6 @@ class KreuzbergBridge {
   ///     },
   /// ];
   /// let results = batch_extract_bytes_sync(items, &config)?;
-  /// # Ok::<(), kreuzberg::KreuzbergError>(())
   /// ```
   /// throws anyhow::Error on failure
   static List<ExtractionResult> batchExtractBytesSync(
@@ -7162,7 +6971,6 @@ class KreuzbergBridge {
   /// use kreuzberg::core::config::{ExtractionConfig, BatchFileItem};
   /// use std::path::PathBuf;
   ///
-  /// # async fn example() -> kreuzberg::Result<()> {
   /// let config = ExtractionConfig::default();
   /// let items = vec![
   ///     BatchFileItem { path: "doc1.pdf".into(), config: None },
@@ -7170,8 +6978,6 @@ class KreuzbergBridge {
   /// ];
   /// let results = batch_extract_files(items, &config).await?;
   /// println!("Processed {} files", results.len());
-  /// # Ok(())
-  /// # }
   /// ```
   ///
   /// Per-file configuration overrides:
@@ -7181,7 +6987,6 @@ class KreuzbergBridge {
   /// use kreuzberg::core::config::{ExtractionConfig, BatchFileItem, FileExtractionConfig};
   /// use std::path::PathBuf;
   ///
-  /// # async fn example() -> kreuzberg::Result<()> {
   /// let config = ExtractionConfig::default();
   /// let items = vec![
   ///     BatchFileItem {
@@ -7191,8 +6996,6 @@ class KreuzbergBridge {
   ///     BatchFileItem { path: "notes.txt".into(), config: None },
   /// ];
   /// let results = batch_extract_files(items, &config).await?;
-  /// # Ok(())
-  /// # }
   /// ```
   /// throws anyhow::Error on failure
   static Future<List<ExtractionResult>> batchExtractFiles(
@@ -7229,7 +7032,6 @@ class KreuzbergBridge {
   /// use kreuzberg::core::extractor::batch_extract_bytes;
   /// use kreuzberg::core::config::{ExtractionConfig, BatchBytesItem};
   ///
-  /// # async fn example() -> kreuzberg::Result<()> {
   /// let config = ExtractionConfig::default();
   /// let items = vec![
   ///     BatchBytesItem { content: b"content 1".to_vec(), mime_type: "text/plain".to_string(), config: None },
@@ -7237,8 +7039,6 @@ class KreuzbergBridge {
   /// ];
   /// let results = batch_extract_bytes(items, &config).await?;
   /// println!("Processed {} items", results.len());
-  /// # Ok(())
-  /// # }
   /// ```
   ///
   /// Per-item configuration overrides:
@@ -7247,7 +7047,6 @@ class KreuzbergBridge {
   /// use kreuzberg::core::extractor::batch_extract_bytes;
   /// use kreuzberg::core::config::{ExtractionConfig, BatchBytesItem, FileExtractionConfig};
   ///
-  /// # async fn example() -> kreuzberg::Result<()> {
   /// let config = ExtractionConfig::default();
   /// let items = vec![
   ///     BatchBytesItem { content: b"content".to_vec(), mime_type: "text/plain".to_string(), config: None },
@@ -7258,8 +7057,6 @@ class KreuzbergBridge {
   ///     },
   /// ];
   /// let results = batch_extract_bytes(items, &config).await?;
-  /// # Ok(())
-  /// # }
   /// ```
   /// throws anyhow::Error on failure
   static Future<List<ExtractionResult>> batchExtractBytes(
@@ -7338,13 +7135,10 @@ class KreuzbergBridge {
   /// ```rust
   /// use kreuzberg::plugins::list_ocr_backends;
   ///
-  /// # tokio_test::block_on(async {
   /// let backends = list_ocr_backends()?;
   /// for name in backends {
   ///     println!("Registered OCR backend: {}", name);
   /// }
-  /// # Ok::<(), kreuzberg::KreuzbergError>(())
-  /// # });
   /// ```
   /// throws anyhow::Error on failure
   static List<String> listOcrBackends() {
@@ -7365,10 +7159,7 @@ class KreuzbergBridge {
   /// ```rust
   /// use kreuzberg::plugins::clear_ocr_backends;
   ///
-  /// # tokio_test::block_on(async {
   /// clear_ocr_backends()?;
-  /// # Ok::<(), kreuzberg::KreuzbergError>(())
-  /// # });
   /// ```
   /// throws anyhow::Error on failure
   static void clearOcrBackends() {
@@ -7390,13 +7181,10 @@ class KreuzbergBridge {
   /// ```rust
   /// use kreuzberg::plugins::list_post_processors;
   ///
-  /// # tokio_test::block_on(async {
   /// let processors = list_post_processors()?;
   /// for name in processors {
   ///     println!("Registered post-processor: {}", name);
   /// }
-  /// # Ok::<(), kreuzberg::KreuzbergError>(())
-  /// # });
   /// ```
   /// throws anyhow::Error on failure
   static List<String> listPostProcessors() {
@@ -7433,12 +7221,9 @@ class KreuzbergBridge {
   /// ```rust,no_run
   /// use kreuzberg::pdf::render_pdf_page_to_png;
   ///
-  /// # fn example() -> kreuzberg::pdf::error::Result<()> {
   /// let pdf_bytes = std::fs::read("document.pdf")?;
   /// let png = render_pdf_page_to_png(&pdf_bytes, 0, Some(150), None)?;
   /// std::fs::write("page_0.png", png)?;
-  /// # Ok(())
-  /// # }
   /// ```
   /// throws anyhow::Error on failure
   static Uint8List renderPdfPageToPng(
@@ -7460,7 +7245,7 @@ class KreuzbergBridge {
   /// Returns a 2D vector where each inner vector is the embedding for the corresponding text.
   /// throws anyhow::Error on failure
   static List<List<double>> embedTexts(
-      List<String> texts, EmbeddingConfig? config) {
+      List<String> texts, EmbeddingConfig config) {
     return rust_bridge.embedTexts(texts, config);
   }
 

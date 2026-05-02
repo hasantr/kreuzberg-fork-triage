@@ -80,13 +80,13 @@ pub type ExtractionConfig {
 /// Per-file extraction configuration overrides for batch processing.
 ///
 /// All fields are `Option<T>` — `null` means "use the batch-level default."
-/// This type is used with `crate.batch_extract_files` and
-/// `crate.batch_extract_bytes` to allow heterogeneous
+/// This type is used with `batch_extract_files` and
+/// `batch_extract_bytes` to allow heterogeneous
 /// extraction settings within a single batch.
 ///
 /// # Excluded Fields
 ///
-/// The following `super.ExtractionConfig` fields are batch-level only and
+/// The following `ExtractionConfig` fields are batch-level only and
 /// cannot be overridden per file:
 /// - `max_concurrent_extractions` — controls batch parallelism
 /// - `use_cache` — global caching policy
@@ -121,7 +121,7 @@ pub type FileExtractionConfig {
 
 /// Batch item for byte array extraction.
 ///
-/// Used with `crate.batch_extract_bytes` and `crate.batch_extract_bytes_sync`
+/// Used with `batch_extract_bytes` and `batch_extract_bytes_sync`
 /// to represent a single item in a batch extraction job.
 pub type BatchBytesItem {
   BatchBytesItem(
@@ -133,7 +133,7 @@ pub type BatchBytesItem {
 
 /// Batch item for file extraction.
 ///
-/// Used with `crate.batch_extract_files` and `crate.batch_extract_files_sync`
+/// Used with `batch_extract_files` and `batch_extract_files_sync`
 /// to represent a single file in a batch extraction job.
 pub type BatchFileItem {
   BatchFileItem(path: String, config: Option(FileExtractionConfig))
@@ -684,8 +684,8 @@ pub type ZipBombValidator {
 
 /// Trait for in-process embedding backend plugins.
 ///
-/// Async to match the convention used by `crate.plugins.OcrBackend`,
-/// `crate.plugins.DocumentExtractor`, and `crate.plugins.PostProcessor`.
+/// Async to match the convention used by `OcrBackend`,
+/// `DocumentExtractor`, and `PostProcessor`.
 /// Host-language bridges (PyO3, napi-rs, Rustler, extendr, magnus, ext-php-rs,
 /// C FFI, etc.) wrap their synchronous host callables in `spawn_blocking` or the
 /// equivalent to satisfy the async signature.
@@ -700,7 +700,7 @@ pub type ZipBombValidator {
 /// # Contract
 ///
 /// - `embed(texts)` MUST return exactly `texts.len()` vectors, each of length
-///   `self.dimensions()`. The dispatcher in `crate.embeddings.embed_texts`
+///   `self.dimensions()`. The dispatcher in `embed_texts`
 ///   validates this before returning to downstream consumers; a non-conforming
 ///   backend surfaces as a `KreuzbergError.Validation`, not a panic.
 /// - `embed` may be called from any thread. Its future must be `Send`
@@ -712,7 +712,7 @@ pub type ZipBombValidator {
 ///   afterwards. Later mutations of the backend's reported dimension are not
 ///   observed by kreuzberg — implementations that need to change dimension
 ///   must unregister and re-register.
-/// - `shutdown()` (inherited from `crate.plugins.Plugin`) may be invoked
+/// - `shutdown()` (inherited from `Plugin`) may be invoked
 ///   concurrently with an in-flight `embed()` call. Implementations must
 ///   tolerate this — e.g. by letting in-flight calls finish using resources
 ///   held via the `Arc<dyn EmbeddingBackend>` reference, and only releasing
@@ -720,12 +720,12 @@ pub type ZipBombValidator {
 ///
 /// # Runtime
 ///
-/// The synchronous `crate.embed_texts` entry uses
+/// The synchronous `embed_texts` entry uses
 /// `tokio.task.block_in_place` to await the trait's async `embed`, which
 /// requires a multi-thread tokio runtime. Callers running inside a
 /// `current_thread` runtime (e.g. `#[tokio.test]` without `flavor = "multi_thread"`,
 /// or `tokio.runtime.Builder.new_current_thread()`) must use
-/// `crate.embed_texts_async` instead, which awaits directly without
+/// `embed_texts_async` instead, which awaits directly without
 /// `block_in_place`.
 pub type EmbeddingBackend {
   EmbeddingBackend
@@ -1853,11 +1853,6 @@ pub type ApiDoc {
   ApiDoc
 }
 
-/// Health check response.
-pub type HealthResponse {
-  HealthResponse(status: String, version: String, plugins: Option(String))
-}
-
 /// Server information response.
 pub type InfoResponse {
   InfoResponse(version: String, rust_backend: Bool)
@@ -1866,31 +1861,6 @@ pub type InfoResponse {
 /// Extraction response (list of results).
 pub type ExtractResponse {
   ExtractResponse
-}
-
-/// API server state.
-///
-/// Holds the default extraction configuration loaded from config file
-/// (via discovery or explicit path). Per-request configs override these defaults.
-pub type ApiState {
-  ApiState(default_config: ExtractionConfig, extraction_service: String)
-}
-
-/// Cache statistics response.
-pub type CacheStatsResponse {
-  CacheStatsResponse(
-    directory: String,
-    total_files: Int,
-    total_size_mb: Float,
-    available_space_mb: Float,
-    oldest_file_age_days: Float,
-    newest_file_age_days: Float,
-  )
-}
-
-/// Cache clear response.
-pub type CacheClearResponse {
-  CacheClearResponse(directory: String, removed_files: Int, freed_mb: Float)
 }
 
 /// Embedding request for generating embeddings from text.
@@ -1924,11 +1894,6 @@ pub type ChunkResponse {
   )
 }
 
-/// Version response.
-pub type VersionResponse {
-  VersionResponse(version: String)
-}
-
 /// MIME type detection response.
 pub type DetectResponse {
   DetectResponse(mime_type: String, filename: Option(String))
@@ -1952,11 +1917,6 @@ pub type ManifestResponse {
     model_count: Int,
     models: List(ManifestEntryResponse),
   )
-}
-
-/// Cache warm request.
-pub type WarmRequest {
-  WarmRequest(all_embeddings: Bool, embedding_model: Option(String))
 }
 
 /// Cache warm response.
@@ -1989,39 +1949,6 @@ pub type OpenWebDocumentResponse {
 /// Returned by `POST /v1/convert/file` for docling-serve compatibility.
 pub type DoclingCompatResponse {
   DoclingCompatResponse(document: String, status: String)
-}
-
-/// Request parameters for file extraction.
-pub type ExtractFileParams {
-  ExtractFileParams(
-    path: String,
-    mime_type: Option(String),
-    config: Option(String),
-    pdf_password: Option(String),
-    response_format: Option(String),
-  )
-}
-
-/// Request parameters for bytes extraction.
-pub type ExtractBytesParams {
-  ExtractBytesParams(
-    data: String,
-    mime_type: Option(String),
-    config: Option(String),
-    pdf_password: Option(String),
-    response_format: Option(String),
-  )
-}
-
-/// Request parameters for batch file extraction.
-pub type BatchExtractFilesParams {
-  BatchExtractFilesParams(
-    paths: List(String),
-    config: Option(String),
-    pdf_password: Option(String),
-    file_configs: Option(List(Option(String))),
-    response_format: Option(String),
-  )
 }
 
 /// Request parameters for MIME type detection.
@@ -2595,7 +2522,7 @@ pub type ImageKind {
 
 /// Result-shape selection for extraction results.
 ///
-/// Distinct from `crate.OutputFormat` (which controls rendering — Plain, Markdown,
+/// Distinct from `OutputFormat` (which controls rendering — Plain, Markdown,
 /// HTML, etc.). `ResultFormat` controls the *shape* of the result: a unified content
 /// blob vs. an element-based decomposition.
 pub type ResultFormat {
@@ -3105,7 +3032,7 @@ pub fn detect_mime_type(
 @external(erlang, "Elixir.Kreuzberg.Native", "embed_texts")
 pub fn embed_texts(
   texts: List(String),
-  config: Option(EmbeddingConfig),
+  config: EmbeddingConfig,
 ) -> Result(List(List(Float)), KreuzbergError)
 
 /// Get an embedding preset by name.
@@ -3706,8 +3633,8 @@ pub fn validator_priority_response(
 ///
 /// Trait for in-process embedding backend plugins.
 ///
-/// Async to match the convention used by [`crate::plugins::OcrBackend`],
-/// [`crate::plugins::DocumentExtractor`], and [`crate::plugins::PostProcessor`].
+/// Async to match the convention used by `OcrBackend`,
+/// `DocumentExtractor`, and `PostProcessor`.
 /// Host-language bridges (PyO3, napi-rs, Rustler, extendr, magnus, ext-php-rs,
 /// C FFI, etc.) wrap their synchronous host callables in `spawn_blocking` or the
 /// equivalent to satisfy the async signature.
@@ -3722,7 +3649,7 @@ pub fn validator_priority_response(
 /// # Contract
 ///
 /// - `embed(texts)` MUST return exactly `texts.len()` vectors, each of length
-///   `self.dimensions()`. The dispatcher in [`crate::embeddings::embed_texts`]
+///   `self.dimensions()`. The dispatcher in `embed_texts`
 ///   validates this before returning to downstream consumers; a non-conforming
 ///   backend surfaces as a `KreuzbergError::Validation`, not a panic.
 /// - `embed` may be called from any thread. Its future must be `Send`
@@ -3734,7 +3661,7 @@ pub fn validator_priority_response(
 ///   afterwards. Later mutations of the backend's reported dimension are not
 ///   observed by kreuzberg — implementations that need to change dimension
 ///   must unregister and re-register.
-/// - `shutdown()` (inherited from [`crate::plugins::Plugin`]) may be invoked
+/// - `shutdown()` (inherited from `Plugin`) may be invoked
 ///   concurrently with an in-flight `embed()` call. Implementations must
 ///   tolerate this — e.g. by letting in-flight calls finish using resources
 ///   held via the `Arc<dyn EmbeddingBackend>` reference, and only releasing
@@ -3742,12 +3669,12 @@ pub fn validator_priority_response(
 ///
 /// # Runtime
 ///
-/// The synchronous [`crate::embed_texts`] entry uses
+/// The synchronous `embed_texts` entry uses
 /// [`tokio::task::block_in_place`] to await the trait's async `embed`, which
 /// requires a multi-thread tokio runtime. Callers running inside a
 /// `current_thread` runtime (e.g. `#[tokio::test]` without `flavor = "multi_thread"`,
 /// or `tokio::runtime::Builder::new_current_thread()`) must use
-/// [`crate::embed_texts_async`] instead, which awaits directly without
+/// `embed_texts_async` instead, which awaits directly without
 /// `block_in_place`.
 ///
 /// # Scope cap

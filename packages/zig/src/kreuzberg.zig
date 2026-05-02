@@ -141,13 +141,13 @@ pub const ExtractionConfig = struct {
 /// Per-file extraction configuration overrides for batch processing.
 ///
 /// All fields are `Option<T>` — `null` means "use the batch-level default."
-/// This type is used with `crate.batch_extract_files` and
-/// `crate.batch_extract_bytes` to allow heterogeneous
+/// This type is used with `batch_extract_files` and
+/// `batch_extract_bytes` to allow heterogeneous
 /// extraction settings within a single batch.
 ///
 /// # Excluded Fields
 ///
-/// The following `super.ExtractionConfig` fields are batch-level only and
+/// The following `ExtractionConfig` fields are batch-level only and
 /// cannot be overridden per file:
 /// - `max_concurrent_extractions` — controls batch parallelism
 /// - `use_cache` — global caching policy
@@ -180,7 +180,7 @@ pub const FileExtractionConfig = struct {
 
 /// Batch item for byte array extraction.
 ///
-/// Used with `crate.batch_extract_bytes` and `crate.batch_extract_bytes_sync`
+/// Used with `batch_extract_bytes` and `batch_extract_bytes_sync`
 /// to represent a single item in a batch extraction job.
 pub const BatchBytesItem = struct {
     content: []const u8,
@@ -190,7 +190,7 @@ pub const BatchBytesItem = struct {
 
 /// Batch item for file extraction.
 ///
-/// Used with `crate.batch_extract_files` and `crate.batch_extract_files_sync`
+/// Used with `batch_extract_files` and `batch_extract_files_sync`
 /// to represent a single file in a batch extraction job.
 pub const BatchFileItem = struct {
     path: [:0]const u8,
@@ -675,8 +675,8 @@ pub const ZipBombValidator = struct {};
 
 /// Trait for in-process embedding backend plugins.
 ///
-/// Async to match the convention used by `crate.plugins.OcrBackend`,
-/// `crate.plugins.DocumentExtractor`, and `crate.plugins.PostProcessor`.
+/// Async to match the convention used by `OcrBackend`,
+/// `DocumentExtractor`, and `PostProcessor`.
 /// Host-language bridges (PyO3, napi-rs, Rustler, extendr, magnus, ext-php-rs,
 /// C FFI, etc.) wrap their synchronous host callables in `spawn_blocking` or the
 /// equivalent to satisfy the async signature.
@@ -691,7 +691,7 @@ pub const ZipBombValidator = struct {};
 /// # Contract
 ///
 /// - `embed(texts)` MUST return exactly `texts.len()` vectors, each of length
-///   `self.dimensions()`. The dispatcher in `crate.embeddings.embed_texts`
+///   `self.dimensions()`. The dispatcher in `embed_texts`
 ///   validates this before returning to downstream consumers; a non-conforming
 ///   backend surfaces as a `KreuzbergError.Validation`, not a panic.
 /// - `embed` may be called from any thread. Its future must be `Send`
@@ -703,7 +703,7 @@ pub const ZipBombValidator = struct {};
 ///   afterwards. Later mutations of the backend's reported dimension are not
 ///   observed by kreuzberg — implementations that need to change dimension
 ///   must unregister and re-register.
-/// - `shutdown()` (inherited from `crate.plugins.Plugin`) may be invoked
+/// - `shutdown()` (inherited from `Plugin`) may be invoked
 ///   concurrently with an in-flight `embed()` call. Implementations must
 ///   tolerate this — e.g. by letting in-flight calls finish using resources
 ///   held via the `Arc<dyn EmbeddingBackend>` reference, and only releasing
@@ -711,12 +711,12 @@ pub const ZipBombValidator = struct {};
 ///
 /// # Runtime
 ///
-/// The synchronous `crate.embed_texts` entry uses
+/// The synchronous `embed_texts` entry uses
 /// `tokio.task.block_in_place` to await the trait's async `embed`, which
 /// requires a multi-thread tokio runtime. Callers running inside a
 /// `current_thread` runtime (e.g. `#[tokio.test]` without `flavor = "multi_thread"`,
 /// or `tokio.runtime.Builder.new_current_thread()`) must use
-/// `crate.embed_texts_async` instead, which awaits directly without
+/// `embed_texts_async` instead, which awaits directly without
 /// `block_in_place`.
 pub const EmbeddingBackend = struct {};
 
@@ -1745,13 +1745,6 @@ pub const TracingLayer = struct {};
 /// for the Kreuzberg document extraction API.
 pub const ApiDoc = struct {};
 
-/// Health check response.
-pub const HealthResponse = struct {
-    status: [:0]const u8,
-    version: [:0]const u8,
-    plugins: ?[:0]const u8,
-};
-
 /// Server information response.
 pub const InfoResponse = struct {
     version: [:0]const u8,
@@ -1760,32 +1753,6 @@ pub const InfoResponse = struct {
 
 /// Extraction response (list of results).
 pub const ExtractResponse = struct {};
-
-/// API server state.
-///
-/// Holds the default extraction configuration loaded from config file
-/// (via discovery or explicit path). Per-request configs override these defaults.
-pub const ApiState = struct {
-    default_config: ExtractionConfig,
-    extraction_service: [:0]const u8,
-};
-
-/// Cache statistics response.
-pub const CacheStatsResponse = struct {
-    directory: [:0]const u8,
-    total_files: u64,
-    total_size_mb: f64,
-    available_space_mb: f64,
-    oldest_file_age_days: f64,
-    newest_file_age_days: f64,
-};
-
-/// Cache clear response.
-pub const CacheClearResponse = struct {
-    directory: [:0]const u8,
-    removed_files: u64,
-    freed_mb: f64,
-};
 
 /// Embedding request for generating embeddings from text.
 pub const EmbedRequest = struct {
@@ -1817,11 +1784,6 @@ pub const ChunkResponse = struct {
     chunker_type: [:0]const u8,
 };
 
-/// Version response.
-pub const VersionResponse = struct {
-    version: [:0]const u8,
-};
-
 /// MIME type detection response.
 pub const DetectResponse = struct {
     mime_type: [:0]const u8,
@@ -1842,12 +1804,6 @@ pub const ManifestResponse = struct {
     total_size_bytes: u64,
     model_count: u64,
     models: []const ManifestEntryResponse,
-};
-
-/// Cache warm request.
-pub const WarmRequest = struct {
-    all_embeddings: bool,
-    embedding_model: ?[:0]const u8,
 };
 
 /// Cache warm response.
@@ -1878,33 +1834,6 @@ pub const OpenWebDocumentResponse = struct {
 pub const DoclingCompatResponse = struct {
     document: [:0]const u8,
     status: [:0]const u8,
-};
-
-/// Request parameters for file extraction.
-pub const ExtractFileParams = struct {
-    path: [:0]const u8,
-    mime_type: ?[:0]const u8,
-    config: ?[:0]const u8,
-    pdf_password: ?[:0]const u8,
-    response_format: ?[:0]const u8,
-};
-
-/// Request parameters for bytes extraction.
-pub const ExtractBytesParams = struct {
-    data: [:0]const u8,
-    mime_type: ?[:0]const u8,
-    config: ?[:0]const u8,
-    pdf_password: ?[:0]const u8,
-    response_format: ?[:0]const u8,
-};
-
-/// Request parameters for batch file extraction.
-pub const BatchExtractFilesParams = struct {
-    paths: []const [:0]const u8,
-    config: ?[:0]const u8,
-    pdf_password: ?[:0]const u8,
-    file_configs: ?[]const ?[:0]const u8,
-    response_format: ?[:0]const u8,
 };
 
 /// Request parameters for MIME type detection.
@@ -2495,7 +2424,7 @@ pub const ImageKind = enum {
 
 /// Result-shape selection for extraction results.
 ///
-/// Distinct from `crate.OutputFormat` (which controls rendering — Plain, Markdown,
+/// Distinct from `OutputFormat` (which controls rendering — Plain, Markdown,
 /// HTML, etc.). `ResultFormat` controls the *shape* of the result: a unified content
 /// blob vs. an element-based decomposition.
 pub const ResultFormat = enum {
@@ -3002,7 +2931,7 @@ pub fn detect_mime_type(path: []const u8, check_exists: bool) (KreuzbergError ||
 /// Embed a list of texts using the configured embedding model.
 ///
 /// Returns a 2D vector where each inner vector is the embedding for the corresponding text.
-pub fn embed_texts(texts: []const u8, config: ?EmbeddingConfig) (KreuzbergError || error{OutOfMemory})![]u8 {
+pub fn embed_texts(texts: []const u8, config: EmbeddingConfig) (KreuzbergError || error{OutOfMemory})![]u8 {
     // Vec/Map parameters are passed as JSON strings across the FFI boundary.
     const texts_z: [*:0]u8 = try std.fmt.allocPrintZ(
         std.heap.c_allocator,
@@ -3086,25 +3015,6 @@ pub const IOcrBackend = extern struct {
     /// # Example
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, OcrBackend};
-    /// # use kreuzberg::{Result, OcrConfig};
-    /// # use async_trait::async_trait;
-    /// # use std::borrow::Cow;
-    /// # use std::path::Path;
-    /// # use kreuzberg::types::{ExtractionResult, Metadata};
-    /// # struct MyOcr;
-    /// # impl Plugin for MyOcr {
-    /// #     fn name(&self) -> &str { "my-ocr" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # use kreuzberg::plugins::OcrBackendType;
-    /// # #[async_trait]
-    /// # impl OcrBackend for MyOcr {
-    /// #     fn supports_language(&self, _: &str) -> bool { true }
-    /// #     fn backend_type(&self) -> OcrBackendType { OcrBackendType::Custom }
-    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
     /// async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
     ///     // Validate image format
     ///     if image_bytes.is_empty() {
@@ -3123,7 +3033,6 @@ pub const IOcrBackend = extern struct {
     ///         ..Default::default()
     ///     })
     /// }
-    /// # }
     /// ```
     process_image: ?*const fn (user_data: ?*anyopaque, image_bytes_ptr: [*c]const u8, image_bytes_len: usize, config: [*c]const u8, out_result: ?*?[*c]u8, out_error: ?*?[*c]u8) callconv(.C) i32 = null,
 
@@ -3155,28 +3064,9 @@ pub const IOcrBackend = extern struct {
     /// # Example
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, OcrBackend};
-    /// # use kreuzberg::Result;
-    /// # use async_trait::async_trait;
-    /// # use std::path::Path;
-    /// # struct MyOcr { languages: Vec<String> }
-    /// # impl Plugin for MyOcr {
-    /// #     fn name(&self) -> &str { "my-ocr" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # use kreuzberg::plugins::OcrBackendType;
-    /// # use kreuzberg::{ExtractionResult, OcrConfig};
-    /// # #[async_trait]
-    /// # impl OcrBackend for MyOcr {
-    /// #     fn backend_type(&self) -> OcrBackendType { OcrBackendType::Custom }
-    /// #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
-    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
     /// fn supports_language(&self, lang: &str) -> bool {
     ///     self.languages.contains(&lang.to_string())
     /// }
-    /// # }
     /// ```
     supports_language: ?*const fn (user_data: ?*anyopaque, lang: [*c]const u8, out_result: ?*?[*c]u8) callconv(.C) i32 = null,
 
@@ -3189,27 +3079,9 @@ pub const IOcrBackend = extern struct {
     /// # Example
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, OcrBackend, OcrBackendType};
-    /// # use kreuzberg::Result;
-    /// # use async_trait::async_trait;
-    /// # use std::path::Path;
-    /// # struct TesseractBackend;
-    /// # impl Plugin for TesseractBackend {
-    /// #     fn name(&self) -> &str { "tesseract" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # use kreuzberg::{ExtractionResult, OcrConfig};
-    /// # #[async_trait]
-    /// # impl OcrBackend for TesseractBackend {
-    /// #     fn supports_language(&self, _: &str) -> bool { true }
-    /// #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
-    /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
     /// fn backend_type(&self) -> OcrBackendType {
     ///     OcrBackendType::Tesseract
     /// }
-    /// # }
     /// ```
     backend_type: ?*const fn (user_data: ?*anyopaque, out_result: ?*?[*c]u8) callconv(.C) [*c]const u8 = null,
 
@@ -3269,7 +3141,7 @@ pub fn unregister_ocr_backend(name: [*c]const u8, out_error: ?*?[*c]u8) i32 {
 ///
 /// # Usage
 /// ```zig
-/// const vtable = make_{snake}_vtable(MyType, &my_instance);
+/// const vtable = make_ocr_backend_vtable(MyType, &my_instance);
 /// _ = register_ocr_backend("my-impl", vtable, &my_instance, &out_error);
 /// ```
 pub fn make_ocr_backend_vtable(comptime T: type, instance: *T) IOcrBackend {
@@ -3447,19 +3319,6 @@ pub const IPostProcessor = extern struct {
     /// # Example - Language Detection
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-    /// # use async_trait::async_trait;
-    /// # struct LanguageDetector;
-    /// # impl Plugin for LanguageDetector {
-    /// #     fn name(&self) -> &str { "language-detector" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl PostProcessor for LanguageDetector {
-    /// #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Early }
     /// async fn process(&self, result: &mut ExtractionResult, config: &ExtractionConfig)
     ///     -> Result<()> {
     ///     // Detect language (simplified - use real detection library in practice)
@@ -3470,25 +3329,11 @@ pub const IPostProcessor = extern struct {
     ///
     ///     Ok(())
     /// }
-    /// # }
     /// ```
     ///
     /// # Example - Text Cleaning
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-    /// # use async_trait::async_trait;
-    /// # struct TextCleaner;
-    /// # impl Plugin for TextCleaner {
-    /// #     fn name(&self) -> &str { "text-cleaner" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl PostProcessor for TextCleaner {
-    /// #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Middle }
     /// async fn process(&self, result: &mut ExtractionResult, config: &ExtractionConfig)
     ///     -> Result<()> {
     ///     // Remove excessive whitespace
@@ -3500,7 +3345,6 @@ pub const IPostProcessor = extern struct {
     ///
     ///     Ok(())
     /// }
-    /// # }
     /// ```
     process: ?*const fn (user_data: ?*anyopaque, result: [*c]const u8, config: [*c]const u8, out_error: ?*?[*c]u8) callconv(.C) i32 = null,
 
@@ -3515,23 +3359,9 @@ pub const IPostProcessor = extern struct {
     /// # Example
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-    /// # use async_trait::async_trait;
-    /// # struct MyProcessor;
-    /// # impl Plugin for MyProcessor {
-    /// #     fn name(&self) -> &str { "my-processor" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl PostProcessor for MyProcessor {
-    /// #     async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
     /// fn processing_stage(&self) -> ProcessingStage {
     ///     ProcessingStage::Early  // Run before other processors
     /// }
-    /// # }
     /// ```
     processing_stage: ?*const fn (user_data: ?*anyopaque, out_result: ?*?[*c]u8) callconv(.C) [*c]const u8 = null,
 
@@ -3552,25 +3382,10 @@ pub const IPostProcessor = extern struct {
     /// # Example
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-    /// # use async_trait::async_trait;
-    /// # struct PdfOnlyProcessor;
-    /// # impl Plugin for PdfOnlyProcessor {
-    /// #     fn name(&self) -> &str { "pdf-only" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl PostProcessor for PdfOnlyProcessor {
-    /// #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Middle }
-    /// #     async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
     /// /// Only process PDF documents
     /// fn should_process(&self, result: &ExtractionResult, config: &ExtractionConfig) -> bool {
     ///     result.mime_type == "application/pdf"
     /// }
-    /// # }
     /// ```
     should_process: ?*const fn (user_data: ?*anyopaque, _result: [*c]const u8, _config: [*c]const u8, out_result: ?*?[*c]u8) callconv(.C) i32 = null,
 
@@ -3625,7 +3440,7 @@ pub fn unregister_post_processor(name: [*c]const u8, out_error: ?*?[*c]u8) i32 {
 ///
 /// # Usage
 /// ```zig
-/// const vtable = make_{snake}_vtable(MyType, &my_instance);
+/// const vtable = make_post_processor_vtable(MyType, &my_instance);
 /// _ = register_post_processor("my-impl", vtable, &my_instance, &out_error);
 /// ```
 pub fn make_post_processor_vtable(comptime T: type, instance: *T) IPostProcessor {
@@ -3756,18 +3571,6 @@ pub const IValidator = extern struct {
     /// # Example - Content Length Validation
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, Validator};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-    /// # use async_trait::async_trait;
-    /// # struct ContentLengthValidator { min: usize, max: usize }
-    /// # impl Plugin for ContentLengthValidator {
-    /// #     fn name(&self) -> &str { "length-validator" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl Validator for ContentLengthValidator {
     /// async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
     ///     -> Result<()> {
     ///     let length = result.content.len();
@@ -3788,24 +3591,11 @@ pub const IValidator = extern struct {
     ///
     ///     Ok(())
     /// }
-    /// # }
     /// ```
     ///
     /// # Example - Quality Score Validation
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, Validator};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-    /// # use async_trait::async_trait;
-    /// # struct QualityValidator { min_score: f64 }
-    /// # impl Plugin for QualityValidator {
-    /// #     fn name(&self) -> &str { "quality-validator" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl Validator for QualityValidator {
     /// async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
     ///     -> Result<()> {
     ///     // Check if quality_score exists in metadata
@@ -3824,24 +3614,11 @@ pub const IValidator = extern struct {
     ///
     ///     Ok(())
     /// }
-    /// # }
     /// ```
     ///
     /// # Example - Security Validation
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, Validator};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-    /// # use async_trait::async_trait;
-    /// # struct SecurityValidator { blocked_patterns: Vec<String> }
-    /// # impl Plugin for SecurityValidator {
-    /// #     fn name(&self) -> &str { "security-validator" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl Validator for SecurityValidator {
     /// async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
     ///     -> Result<()> {
     ///     // Check for blocked patterns
@@ -3856,7 +3633,6 @@ pub const IValidator = extern struct {
     ///
     ///     Ok(())
     /// }
-    /// # }
     /// ```
     validate: ?*const fn (user_data: ?*anyopaque, result: [*c]const u8, config: [*c]const u8, out_error: ?*?[*c]u8) callconv(.C) i32 = null,
 
@@ -3877,24 +3653,10 @@ pub const IValidator = extern struct {
     /// # Example
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, Validator};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-    /// # use async_trait::async_trait;
-    /// # struct PdfValidator;
-    /// # impl Plugin for PdfValidator {
-    /// #     fn name(&self) -> &str { "pdf-validator" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl Validator for PdfValidator {
-    /// #     async fn validate(&self, _: &ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
     /// /// Only validate PDF documents
     /// fn should_validate(&self, result: &ExtractionResult, config: &ExtractionConfig) -> bool {
     ///     result.mime_type == "application/pdf"
     /// }
-    /// # }
     /// ```
     should_validate: ?*const fn (user_data: ?*anyopaque, _result: [*c]const u8, _config: [*c]const u8, out_result: ?*?[*c]u8) callconv(.C) i32 = null,
 
@@ -3912,24 +3674,10 @@ pub const IValidator = extern struct {
     /// # Example
     ///
     /// ```rust
-    /// # use kreuzberg::plugins::{Plugin, Validator};
-    /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-    /// # use async_trait::async_trait;
-    /// # struct FastValidator;
-    /// # impl Plugin for FastValidator {
-    /// #     fn name(&self) -> &str { "fast-validator" }
-    /// #     fn version(&self) -> String { "1.0.0".to_string() }
-    /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-    /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-    /// # }
-    /// # #[async_trait]
-    /// # impl Validator for FastValidator {
-    /// #     async fn validate(&self, _: &ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
     /// /// Run this validator first (it's fast)
     /// fn priority(&self) -> i32 {
     ///     100
     /// }
-    /// # }
     /// ```
     priority: ?*const fn (user_data: ?*anyopaque, out_result: ?*?[*c]u8) callconv(.C) i32 = null,
 
@@ -3964,7 +3712,7 @@ pub fn unregister_validator(name: [*c]const u8, out_error: ?*?[*c]u8) i32 {
 ///
 /// # Usage
 /// ```zig
-/// const vtable = make_{snake}_vtable(MyType, &my_instance);
+/// const vtable = make_validator_vtable(MyType, &my_instance);
 /// _ = register_validator("my-impl", vtable, &my_instance, &out_error);
 /// ```
 pub fn make_validator_vtable(comptime T: type, instance: *T) IValidator {
@@ -4064,7 +3812,7 @@ pub const IEmbeddingBackend = extern struct {
     ///
     /// # Errors
     ///
-    /// Implementations should return [`crate::KreuzbergError::Plugin`] for
+    /// Implementations should return `Plugin` for
     /// backend-specific failures. The dispatcher layers its own validation
     /// (length, per-vector dimension) on top.
     embed: ?*const fn (user_data: ?*anyopaque, texts: [*c]const u8, out_result: ?*?[*c]u8, out_error: ?*?[*c]u8) callconv(.C) i32 = null,
@@ -4100,7 +3848,7 @@ pub fn unregister_embedding_backend(name: [*c]const u8, out_error: ?*?[*c]u8) i3
 ///
 /// # Usage
 /// ```zig
-/// const vtable = make_{snake}_vtable(MyType, &my_instance);
+/// const vtable = make_embedding_backend_vtable(MyType, &my_instance);
 /// _ = register_embedding_backend("my-impl", vtable, &my_instance, &out_error);
 /// ```
 pub fn make_embedding_backend_vtable(comptime T: type, instance: *T) IEmbeddingBackend {

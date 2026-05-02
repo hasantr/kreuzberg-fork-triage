@@ -222,8 +222,8 @@ pub use embeddings::EmbeddingPreset;
 ///
 /// Returns a 2D vector where each inner vector is the embedding for the corresponding text.
 #[cfg(feature = "embeddings")]
-pub fn embed_texts(texts: Vec<String>, config: Option<core::config::EmbeddingConfig>) -> crate::Result<Vec<Vec<f32>>> {
-    embeddings::embed_texts(&texts, &config.unwrap_or_default())
+pub fn embed_texts(texts: Vec<String>, config: &core::config::EmbeddingConfig) -> crate::Result<Vec<Vec<f32>>> {
+    embeddings::embed_texts(&texts, config)
 }
 
 #[cfg(all(feature = "embeddings", feature = "tokio-runtime"))]

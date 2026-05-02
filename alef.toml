@@ -1,5 +1,5 @@
 [workspace]
-alef_version = "0.14.1"
+alef_version = "0.14.2"
 languages = [
   "python",
   "node",
@@ -448,6 +448,37 @@ types = [
   # alef-extract resolves to one definition while codegen emits accessors for fields of another,
   # causing E0609 build errors across bindings. Excluded globally until consolidated.
   "CacheStats",
+  # HTTP server / MCP types — internal, not part of public surface; binding
+  # codegen produces broken `inner: val.x` wrapping for these.
+  "ApiState",
+  "CacheClearResponse",
+  "CacheStatsResponse",
+  "CacheWarmRequest",
+  "CacheWarmResponse",
+  "ChunkingRequest",
+  "ChunkingResponse",
+  "ConfigResponse",
+  "ExtensionsResponse",
+  "ExtractionRequest",
+  "ExtractionResponse",
+  "HealthResponse",
+  "MetricsResponse",
+  "MimeTypesResponse",
+  "OcrRequest",
+  "OcrResponse",
+  "PluginsResponse",
+  "VersionResponse",
+  "BatchExtractFilesParams",
+  "BatchExtractBytesParams",
+  "ExtractFileParams",
+  "ExtractBytesParams",
+  "EmbedTextsParams",
+  "DetectMimeParams",
+  "DetectMimeBytesParams",
+  "GetExtensionsParams",
+  "RenderPdfParams",
+  "ListExtractorsParams",
+  "WarmRequest",
   # Internal types — not part of public API
   "DocumentStructureBuilder",
   "InternalDocument",

@@ -14,18 +14,14 @@ typedef struct KREUZBERGAccelerationConfig KREUZBERGAccelerationConfig;
 typedef struct KREUZBERGAnchorProperties KREUZBERGAnchorProperties;
 typedef struct KREUZBERGAnnotationKind KREUZBERGAnnotationKind;
 typedef struct KREUZBERGApiDoc KREUZBERGApiDoc;
-typedef struct KREUZBERGApiState KREUZBERGApiState;
 typedef struct KREUZBERGArchiveEntry KREUZBERGArchiveEntry;
 typedef struct KREUZBERGArchiveMetadata KREUZBERGArchiveMetadata;
 typedef struct KREUZBERGBBox KREUZBERGBBox;
 typedef struct KREUZBERGBatchBytesItem KREUZBERGBatchBytesItem;
-typedef struct KREUZBERGBatchExtractFilesParams KREUZBERGBatchExtractFilesParams;
 typedef struct KREUZBERGBatchFileItem KREUZBERGBatchFileItem;
 typedef struct KREUZBERGBibtexMetadata KREUZBERGBibtexMetadata;
 typedef struct KREUZBERGBlockType KREUZBERGBlockType;
 typedef struct KREUZBERGByteBufferPool KREUZBERGByteBufferPool;
-typedef struct KREUZBERGCacheClearResponse KREUZBERGCacheClearResponse;
-typedef struct KREUZBERGCacheStatsResponse KREUZBERGCacheStatsResponse;
 typedef struct KREUZBERGCacheWarmParams KREUZBERGCacheWarmParams;
 typedef struct KREUZBERGChunk KREUZBERGChunk;
 typedef struct KREUZBERGChunkMetadata KREUZBERGChunkMetadata;
@@ -82,8 +78,6 @@ typedef struct KREUZBERGExcelMetadata KREUZBERGExcelMetadata;
 typedef struct KREUZBERGExcelSheet KREUZBERGExcelSheet;
 typedef struct KREUZBERGExcelWorkbook KREUZBERGExcelWorkbook;
 typedef struct KREUZBERGExecutionProviderType KREUZBERGExecutionProviderType;
-typedef struct KREUZBERGExtractBytesParams KREUZBERGExtractBytesParams;
-typedef struct KREUZBERGExtractFileParams KREUZBERGExtractFileParams;
 typedef struct KREUZBERGExtractResponse KREUZBERGExtractResponse;
 typedef struct KREUZBERGExtractStructuredParams KREUZBERGExtractStructuredParams;
 typedef struct KREUZBERGExtractedImage KREUZBERGExtractedImage;
@@ -102,7 +96,6 @@ typedef struct KREUZBERGHeaderFooter KREUZBERGHeaderFooter;
 typedef struct KREUZBERGHeaderMetadata KREUZBERGHeaderMetadata;
 typedef struct KREUZBERGHeadingContext KREUZBERGHeadingContext;
 typedef struct KREUZBERGHeadingLevel KREUZBERGHeadingLevel;
-typedef struct KREUZBERGHealthResponse KREUZBERGHealthResponse;
 typedef struct KREUZBERGHierarchicalBlock KREUZBERGHierarchicalBlock;
 typedef struct KREUZBERGHierarchyConfig KREUZBERGHierarchyConfig;
 typedef struct KREUZBERGHtmlExtractionResult KREUZBERGHtmlExtractionResult;
@@ -224,8 +217,6 @@ typedef struct KREUZBERGTreeSitterProcessConfig KREUZBERGTreeSitterProcessConfig
 typedef struct KREUZBERGUri KREUZBERGUri;
 typedef struct KREUZBERGUriKind KREUZBERGUriKind;
 typedef struct KREUZBERGValidator KREUZBERGValidator;
-typedef struct KREUZBERGVersionResponse KREUZBERGVersionResponse;
-typedef struct KREUZBERGWarmRequest KREUZBERGWarmRequest;
 typedef struct KREUZBERGWarmResponse KREUZBERGWarmResponse;
 typedef struct KREUZBERGXlsxAppProperties KREUZBERGXlsxAppProperties;
 typedef struct KREUZBERGXmlExtractionResult KREUZBERGXmlExtractionResult;
@@ -286,25 +277,6 @@ typedef struct KREUZBERGKreuzbergOcrBackendVTable {
    * # Example
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, OcrBackend};
-   * # use kreuzberg::{Result, OcrConfig};
-   * # use async_trait::async_trait;
-   * # use std::borrow::Cow;
-   * # use std::path::Path;
-   * # use kreuzberg::types::{ExtractionResult, Metadata};
-   * # struct MyOcr;
-   * # impl Plugin for MyOcr {
-   * #     fn name(&self) -> &str { "my-ocr" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # use kreuzberg::plugins::OcrBackendType;
-   * # #[async_trait]
-   * # impl OcrBackend for MyOcr {
-   * #     fn supports_language(&self, _: &str) -> bool { true }
-   * #     fn backend_type(&self) -> OcrBackendType { OcrBackendType::Custom }
-   * #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
    * async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
    * // Validate image format
    * if image_bytes.is_empty() {
@@ -323,7 +295,6 @@ typedef struct KREUZBERGKreuzbergOcrBackendVTable {
    * ..Default::default()
    * })
    * }
-   * # }
    * ```
    */
   int32_t (*process_image)(const void *user_data,
@@ -365,28 +336,9 @@ typedef struct KREUZBERGKreuzbergOcrBackendVTable {
    * # Example
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, OcrBackend};
-   * # use kreuzberg::Result;
-   * # use async_trait::async_trait;
-   * # use std::path::Path;
-   * # struct MyOcr { languages: Vec<String> }
-   * # impl Plugin for MyOcr {
-   * #     fn name(&self) -> &str { "my-ocr" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # use kreuzberg::plugins::OcrBackendType;
-   * # use kreuzberg::{ExtractionResult, OcrConfig};
-   * # #[async_trait]
-   * # impl OcrBackend for MyOcr {
-   * #     fn backend_type(&self) -> OcrBackendType { OcrBackendType::Custom }
-   * #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
-   * #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
    * fn supports_language(&self, lang: &str) -> bool {
    * self.languages.contains(&lang.to_string())
    * }
-   * # }
    * ```
    */
   int32_t (*supports_language)(const void *user_data,
@@ -401,27 +353,9 @@ typedef struct KREUZBERGKreuzbergOcrBackendVTable {
    * # Example
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, OcrBackend, OcrBackendType};
-   * # use kreuzberg::Result;
-   * # use async_trait::async_trait;
-   * # use std::path::Path;
-   * # struct TesseractBackend;
-   * # impl Plugin for TesseractBackend {
-   * #     fn name(&self) -> &str { "tesseract" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # use kreuzberg::{ExtractionResult, OcrConfig};
-   * # #[async_trait]
-   * # impl OcrBackend for TesseractBackend {
-   * #     fn supports_language(&self, _: &str) -> bool { true }
-   * #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
-   * #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
    * fn backend_type(&self) -> OcrBackendType {
    * OcrBackendType::Tesseract
    * }
-   * # }
    * ```
    */
   int32_t (*backend_type)(const void *user_data,
@@ -527,19 +461,6 @@ typedef struct KREUZBERGKreuzbergPostProcessorVTable {
    * # Example - Language Detection
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-   * # use async_trait::async_trait;
-   * # struct LanguageDetector;
-   * # impl Plugin for LanguageDetector {
-   * #     fn name(&self) -> &str { "language-detector" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl PostProcessor for LanguageDetector {
-   * #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Early }
    * async fn process(&self, result: &mut ExtractionResult, config: &ExtractionConfig)
    * -> Result<()> {
    * // Detect language (simplified - use real detection library in practice)
@@ -550,25 +471,11 @@ typedef struct KREUZBERGKreuzbergPostProcessorVTable {
    *
    * Ok(())
    * }
-   * # }
    * ```
    *
    * # Example - Text Cleaning
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-   * # use async_trait::async_trait;
-   * # struct TextCleaner;
-   * # impl Plugin for TextCleaner {
-   * #     fn name(&self) -> &str { "text-cleaner" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl PostProcessor for TextCleaner {
-   * #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Middle }
    * async fn process(&self, result: &mut ExtractionResult, config: &ExtractionConfig)
    * -> Result<()> {
    * // Remove excessive whitespace
@@ -580,7 +487,6 @@ typedef struct KREUZBERGKreuzbergPostProcessorVTable {
    *
    * Ok(())
    * }
-   * # }
    * ```
    */
   int32_t (*process)(const void *user_data,
@@ -599,23 +505,9 @@ typedef struct KREUZBERGKreuzbergPostProcessorVTable {
    * # Example
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-   * # use async_trait::async_trait;
-   * # struct MyProcessor;
-   * # impl Plugin for MyProcessor {
-   * #     fn name(&self) -> &str { "my-processor" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl PostProcessor for MyProcessor {
-   * #     async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
    * fn processing_stage(&self) -> ProcessingStage {
    * ProcessingStage::Early  // Run before other processors
    * }
-   * # }
    * ```
    */
   int32_t (*processing_stage)(const void *user_data,
@@ -638,25 +530,10 @@ typedef struct KREUZBERGKreuzbergPostProcessorVTable {
    * # Example
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-   * # use async_trait::async_trait;
-   * # struct PdfOnlyProcessor;
-   * # impl Plugin for PdfOnlyProcessor {
-   * #     fn name(&self) -> &str { "pdf-only" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl PostProcessor for PdfOnlyProcessor {
-   * #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Middle }
-   * #     async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
    * Only process PDF documents
    * fn should_process(&self, result: &ExtractionResult, config: &ExtractionConfig) -> bool {
    * result.mime_type == "application/pdf"
    * }
-   * # }
    * ```
    */
   int32_t (*should_process)(const void *user_data,
@@ -745,18 +622,6 @@ typedef struct KREUZBERGKreuzbergValidatorVTable {
    * # Example - Content Length Validation
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, Validator};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-   * # use async_trait::async_trait;
-   * # struct ContentLengthValidator { min: usize, max: usize }
-   * # impl Plugin for ContentLengthValidator {
-   * #     fn name(&self) -> &str { "length-validator" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl Validator for ContentLengthValidator {
    * async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
    * -> Result<()> {
    * let length = result.content.len();
@@ -777,24 +642,11 @@ typedef struct KREUZBERGKreuzbergValidatorVTable {
    *
    * Ok(())
    * }
-   * # }
    * ```
    *
    * # Example - Quality Score Validation
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, Validator};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-   * # use async_trait::async_trait;
-   * # struct QualityValidator { min_score: f64 }
-   * # impl Plugin for QualityValidator {
-   * #     fn name(&self) -> &str { "quality-validator" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl Validator for QualityValidator {
    * async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
    * -> Result<()> {
    * // Check if quality_score exists in metadata
@@ -813,24 +665,11 @@ typedef struct KREUZBERGKreuzbergValidatorVTable {
    *
    * Ok(())
    * }
-   * # }
    * ```
    *
    * # Example - Security Validation
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, Validator};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-   * # use async_trait::async_trait;
-   * # struct SecurityValidator { blocked_patterns: Vec<String> }
-   * # impl Plugin for SecurityValidator {
-   * #     fn name(&self) -> &str { "security-validator" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl Validator for SecurityValidator {
    * async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
    * -> Result<()> {
    * // Check for blocked patterns
@@ -845,7 +684,6 @@ typedef struct KREUZBERGKreuzbergValidatorVTable {
    *
    * Ok(())
    * }
-   * # }
    * ```
    */
   int32_t (*validate)(const void *user_data,
@@ -870,24 +708,10 @@ typedef struct KREUZBERGKreuzbergValidatorVTable {
    * # Example
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, Validator};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-   * # use async_trait::async_trait;
-   * # struct PdfValidator;
-   * # impl Plugin for PdfValidator {
-   * #     fn name(&self) -> &str { "pdf-validator" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl Validator for PdfValidator {
-   * #     async fn validate(&self, _: &ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
    * Only validate PDF documents
    * fn should_validate(&self, result: &ExtractionResult, config: &ExtractionConfig) -> bool {
    * result.mime_type == "application/pdf"
    * }
-   * # }
    * ```
    */
   int32_t (*should_validate)(const void *user_data,
@@ -908,24 +732,10 @@ typedef struct KREUZBERGKreuzbergValidatorVTable {
    * # Example
    *
    * ```rust
-   * # use kreuzberg::plugins::{Plugin, Validator};
-   * # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-   * # use async_trait::async_trait;
-   * # struct FastValidator;
-   * # impl Plugin for FastValidator {
-   * #     fn name(&self) -> &str { "fast-validator" }
-   * #     fn version(&self) -> String { "1.0.0".to_string() }
-   * #     fn initialize(&self) -> Result<()> { Ok(()) }
-   * #     fn shutdown(&self) -> Result<()> { Ok(()) }
-   * # }
-   * # #[async_trait]
-   * # impl Validator for FastValidator {
-   * #     async fn validate(&self, _: &ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
    * Run this validator first (it's fast)
    * fn priority(&self) -> i32 {
    * 100
    * }
-   * # }
    * ```
    */
   int32_t (*priority)(const void *user_data);
@@ -975,7 +785,7 @@ typedef struct KREUZBERGKreuzbergEmbeddingBackendVTable {
    *
    * # Errors
    *
-   * Implementations should return [`crate::KreuzbergError::Plugin`] for
+   * Implementations should return `Plugin` for
    * backend-specific failures. The dispatcher layers its own validation
    * (length, per-vector dimension) on top.
    */
@@ -8675,43 +8485,6 @@ void kreuzberg_tracing_layer_free(KREUZBERGTracingLayer *ptr);
 void kreuzberg_api_doc_free(KREUZBERGApiDoc *ptr);
 
 /**
- * Create a `HealthResponse` from a JSON string. Returns null on failure.
- * # Safety
- * JSON string must be valid UTF-8 and null-terminated.
- * Returned handle must be freed with `kreuzberg_health_response_free`.
- */
-KREUZBERGHealthResponse *kreuzberg_health_response_from_json(const char *json);
-
-/**
- * Serialize a `HealthResponse` to a JSON string. Returns null on failure.
- * # Safety
- * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
- * The returned string must be freed with `kreuzberg_free_string`.
- */
-char *kreuzberg_health_response_to_json(const KREUZBERGHealthResponse *ptr);
-
-/**
- * Free a `HealthResponse` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_health_response_free(KREUZBERGHealthResponse *ptr);
-
-/**
- * Get the `status` field from a `HealthResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_health_response_status(const KREUZBERGHealthResponse *ptr);
-
-/**
- * Get the `version` field from a `HealthResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_health_response_version(const KREUZBERGHealthResponse *ptr);
-
-/**
  * Create a `InfoResponse` from a JSON string. Returns null on failure.
  * # Safety
  * JSON string must be valid UTF-8 and null-terminated.
@@ -8754,129 +8527,6 @@ int32_t kreuzberg_info_response_rust_backend(const KREUZBERGInfoResponse *ptr);
  * Pointer must have been returned by this library, or be null.
  */
 void kreuzberg_extract_response_free(KREUZBERGExtractResponse *ptr);
-
-/**
- * Free a `ApiState` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_api_state_free(KREUZBERGApiState *ptr);
-
-/**
- * Get the `default_config` field from a `ApiState`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-KREUZBERGExtractionConfig *kreuzberg_api_state_default_config(const KREUZBERGApiState *ptr);
-
-/**
- * Create a `CacheStatsResponse` from a JSON string. Returns null on failure.
- * # Safety
- * JSON string must be valid UTF-8 and null-terminated.
- * Returned handle must be freed with `kreuzberg_cache_stats_response_free`.
- */
-KREUZBERGCacheStatsResponse *kreuzberg_cache_stats_response_from_json(const char *json);
-
-/**
- * Serialize a `CacheStatsResponse` to a JSON string. Returns null on failure.
- * # Safety
- * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
- * The returned string must be freed with `kreuzberg_free_string`.
- */
-char *kreuzberg_cache_stats_response_to_json(const KREUZBERGCacheStatsResponse *ptr);
-
-/**
- * Free a `CacheStatsResponse` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_cache_stats_response_free(KREUZBERGCacheStatsResponse *ptr);
-
-/**
- * Get the `directory` field from a `CacheStatsResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_cache_stats_response_directory(const KREUZBERGCacheStatsResponse *ptr);
-
-/**
- * Get the `total_files` field from a `CacheStatsResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-uintptr_t kreuzberg_cache_stats_response_total_files(const KREUZBERGCacheStatsResponse *ptr);
-
-/**
- * Get the `total_size_mb` field from a `CacheStatsResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-double kreuzberg_cache_stats_response_total_size_mb(const KREUZBERGCacheStatsResponse *ptr);
-
-/**
- * Get the `available_space_mb` field from a `CacheStatsResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-double kreuzberg_cache_stats_response_available_space_mb(const KREUZBERGCacheStatsResponse *ptr);
-
-/**
- * Get the `oldest_file_age_days` field from a `CacheStatsResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-double kreuzberg_cache_stats_response_oldest_file_age_days(const KREUZBERGCacheStatsResponse *ptr);
-
-/**
- * Get the `newest_file_age_days` field from a `CacheStatsResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-double kreuzberg_cache_stats_response_newest_file_age_days(const KREUZBERGCacheStatsResponse *ptr);
-
-/**
- * Create a `CacheClearResponse` from a JSON string. Returns null on failure.
- * # Safety
- * JSON string must be valid UTF-8 and null-terminated.
- * Returned handle must be freed with `kreuzberg_cache_clear_response_free`.
- */
-KREUZBERGCacheClearResponse *kreuzberg_cache_clear_response_from_json(const char *json);
-
-/**
- * Serialize a `CacheClearResponse` to a JSON string. Returns null on failure.
- * # Safety
- * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
- * The returned string must be freed with `kreuzberg_free_string`.
- */
-char *kreuzberg_cache_clear_response_to_json(const KREUZBERGCacheClearResponse *ptr);
-
-/**
- * Free a `CacheClearResponse` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_cache_clear_response_free(KREUZBERGCacheClearResponse *ptr);
-
-/**
- * Get the `directory` field from a `CacheClearResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_cache_clear_response_directory(const KREUZBERGCacheClearResponse *ptr);
-
-/**
- * Get the `removed_files` field from a `CacheClearResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-uintptr_t kreuzberg_cache_clear_response_removed_files(const KREUZBERGCacheClearResponse *ptr);
-
-/**
- * Get the `freed_mb` field from a `CacheClearResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-double kreuzberg_cache_clear_response_freed_mb(const KREUZBERGCacheClearResponse *ptr);
 
 /**
  * Create a `EmbedRequest` from a JSON string. Returns null on failure.
@@ -9048,36 +8698,6 @@ uintptr_t kreuzberg_chunk_response_input_size_bytes(const KREUZBERGChunkResponse
 char *kreuzberg_chunk_response_chunker_type(const KREUZBERGChunkResponse *ptr);
 
 /**
- * Create a `VersionResponse` from a JSON string. Returns null on failure.
- * # Safety
- * JSON string must be valid UTF-8 and null-terminated.
- * Returned handle must be freed with `kreuzberg_version_response_free`.
- */
-KREUZBERGVersionResponse *kreuzberg_version_response_from_json(const char *json);
-
-/**
- * Serialize a `VersionResponse` to a JSON string. Returns null on failure.
- * # Safety
- * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
- * The returned string must be freed with `kreuzberg_free_string`.
- */
-char *kreuzberg_version_response_to_json(const KREUZBERGVersionResponse *ptr);
-
-/**
- * Free a `VersionResponse` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_version_response_free(KREUZBERGVersionResponse *ptr);
-
-/**
- * Get the `version` field from a `VersionResponse`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_version_response_version(const KREUZBERGVersionResponse *ptr);
-
-/**
  * Create a `DetectResponse` from a JSON string. Returns null on failure.
  * # Safety
  * JSON string must be valid UTF-8 and null-terminated.
@@ -9215,43 +8835,6 @@ uintptr_t kreuzberg_manifest_response_model_count(const KREUZBERGManifestRespons
  * Pointer must be a valid handle returned by this library.
  */
 char *kreuzberg_manifest_response_models(const KREUZBERGManifestResponse *ptr);
-
-/**
- * Create a `WarmRequest` from a JSON string. Returns null on failure.
- * # Safety
- * JSON string must be valid UTF-8 and null-terminated.
- * Returned handle must be freed with `kreuzberg_warm_request_free`.
- */
-KREUZBERGWarmRequest *kreuzberg_warm_request_from_json(const char *json);
-
-/**
- * Serialize a `WarmRequest` to a JSON string. Returns null on failure.
- * # Safety
- * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
- * The returned string must be freed with `kreuzberg_free_string`.
- */
-char *kreuzberg_warm_request_to_json(const KREUZBERGWarmRequest *ptr);
-
-/**
- * Free a `WarmRequest` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_warm_request_free(KREUZBERGWarmRequest *ptr);
-
-/**
- * Get the `all_embeddings` field from a `WarmRequest`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-int32_t kreuzberg_warm_request_all_embeddings(const KREUZBERGWarmRequest *ptr);
-
-/**
- * Get the `embedding_model` field from a `WarmRequest`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_warm_request_embedding_model(const KREUZBERGWarmRequest *ptr);
 
 /**
  * Create a `WarmResponse` from a JSON string. Returns null on failure.
@@ -9400,180 +8983,6 @@ void kreuzberg_docling_compat_response_free(KREUZBERGDoclingCompatResponse *ptr)
  * Pointer must be a valid handle returned by this library.
  */
 char *kreuzberg_docling_compat_response_status(const KREUZBERGDoclingCompatResponse *ptr);
-
-/**
- * Create a `ExtractFileParams` from a JSON string. Returns null on failure.
- * # Safety
- * JSON string must be valid UTF-8 and null-terminated.
- * Returned handle must be freed with `kreuzberg_extract_file_params_free`.
- */
-KREUZBERGExtractFileParams *kreuzberg_extract_file_params_from_json(const char *json);
-
-/**
- * Serialize a `ExtractFileParams` to a JSON string. Returns null on failure.
- * # Safety
- * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
- * The returned string must be freed with `kreuzberg_free_string`.
- */
-char *kreuzberg_extract_file_params_to_json(const KREUZBERGExtractFileParams *ptr);
-
-/**
- * Free a `ExtractFileParams` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_extract_file_params_free(KREUZBERGExtractFileParams *ptr);
-
-/**
- * Get the `path` field from a `ExtractFileParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_file_params_path(const KREUZBERGExtractFileParams *ptr);
-
-/**
- * Get the `mime_type` field from a `ExtractFileParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_file_params_mime_type(const KREUZBERGExtractFileParams *ptr);
-
-/**
- * Get the `config` field from a `ExtractFileParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_file_params_config(const KREUZBERGExtractFileParams *ptr);
-
-/**
- * Get the `pdf_password` field from a `ExtractFileParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_file_params_pdf_password(const KREUZBERGExtractFileParams *ptr);
-
-/**
- * Get the `response_format` field from a `ExtractFileParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_file_params_response_format(const KREUZBERGExtractFileParams *ptr);
-
-/**
- * Create a `ExtractBytesParams` from a JSON string. Returns null on failure.
- * # Safety
- * JSON string must be valid UTF-8 and null-terminated.
- * Returned handle must be freed with `kreuzberg_extract_bytes_params_free`.
- */
-KREUZBERGExtractBytesParams *kreuzberg_extract_bytes_params_from_json(const char *json);
-
-/**
- * Serialize a `ExtractBytesParams` to a JSON string. Returns null on failure.
- * # Safety
- * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
- * The returned string must be freed with `kreuzberg_free_string`.
- */
-char *kreuzberg_extract_bytes_params_to_json(const KREUZBERGExtractBytesParams *ptr);
-
-/**
- * Free a `ExtractBytesParams` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_extract_bytes_params_free(KREUZBERGExtractBytesParams *ptr);
-
-/**
- * Get the `data` field from a `ExtractBytesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_bytes_params_data(const KREUZBERGExtractBytesParams *ptr);
-
-/**
- * Get the `mime_type` field from a `ExtractBytesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_bytes_params_mime_type(const KREUZBERGExtractBytesParams *ptr);
-
-/**
- * Get the `config` field from a `ExtractBytesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_bytes_params_config(const KREUZBERGExtractBytesParams *ptr);
-
-/**
- * Get the `pdf_password` field from a `ExtractBytesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_bytes_params_pdf_password(const KREUZBERGExtractBytesParams *ptr);
-
-/**
- * Get the `response_format` field from a `ExtractBytesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_extract_bytes_params_response_format(const KREUZBERGExtractBytesParams *ptr);
-
-/**
- * Create a `BatchExtractFilesParams` from a JSON string. Returns null on failure.
- * # Safety
- * JSON string must be valid UTF-8 and null-terminated.
- * Returned handle must be freed with `kreuzberg_batch_extract_files_params_free`.
- */
-KREUZBERGBatchExtractFilesParams *kreuzberg_batch_extract_files_params_from_json(const char *json);
-
-/**
- * Serialize a `BatchExtractFilesParams` to a JSON string. Returns null on failure.
- * # Safety
- * `ptr` must be a valid, non-null pointer returned by a `kreuzberg` function.
- * The returned string must be freed with `kreuzberg_free_string`.
- */
-char *kreuzberg_batch_extract_files_params_to_json(const KREUZBERGBatchExtractFilesParams *ptr);
-
-/**
- * Free a `BatchExtractFilesParams` handle.
- * # Safety
- * Pointer must have been returned by this library, or be null.
- */
-void kreuzberg_batch_extract_files_params_free(KREUZBERGBatchExtractFilesParams *ptr);
-
-/**
- * Get the `paths` field from a `BatchExtractFilesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_batch_extract_files_params_paths(const KREUZBERGBatchExtractFilesParams *ptr);
-
-/**
- * Get the `config` field from a `BatchExtractFilesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_batch_extract_files_params_config(const KREUZBERGBatchExtractFilesParams *ptr);
-
-/**
- * Get the `pdf_password` field from a `BatchExtractFilesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_batch_extract_files_params_pdf_password(const KREUZBERGBatchExtractFilesParams *ptr);
-
-/**
- * Get the `file_configs` field from a `BatchExtractFilesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_batch_extract_files_params_file_configs(const KREUZBERGBatchExtractFilesParams *ptr);
-
-/**
- * Get the `response_format` field from a `BatchExtractFilesParams`.
- * # Safety
- * Pointer must be a valid handle returned by this library.
- */
-char *kreuzberg_batch_extract_files_params_response_format(const KREUZBERGBatchExtractFilesParams *ptr);
 
 /**
  * Create a `DetectMimeTypeParams` from a JSON string. Returns null on failure.
@@ -11741,13 +11150,10 @@ int32_t kreuzberg_layout_class_from_str(const char *name);
  * use kreuzberg::core::extractor::extract_bytes;
  * use kreuzberg::core::config::ExtractionConfig;
  *
- * # async fn example() -> kreuzberg::Result<()> {
  * let config = ExtractionConfig::default();
  * let bytes = b"Hello, world!";
  * let result = extract_bytes(bytes, "text/plain", &config).await?;
  * println!("Content: {}", result.content);
- * # Ok(())
- * # }
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -11790,12 +11196,9 @@ KREUZBERGExtractionResult *kreuzberg_extract_bytes(const uint8_t *content,
  * use kreuzberg::core::extractor::extract_file;
  * use kreuzberg::core::config::ExtractionConfig;
  *
- * # async fn example() -> kreuzberg::Result<()> {
  * let config = ExtractionConfig::default();
  * let result = extract_file("document.pdf", None, &config).await?;
  * println!("Content: {}", result.content);
- * # Ok(())
- * # }
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -11826,7 +11229,6 @@ KREUZBERGExtractionResult *kreuzberg_extract_file(const char *path,
  * let config = ExtractionConfig::default();
  * let result = extract_file_sync("document.pdf", None, &config)?;
  * println!("Content: {}", result.content);
- * # Ok::<(), kreuzberg::KreuzbergError>(())
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -11855,7 +11257,6 @@ KREUZBERGExtractionResult *kreuzberg_extract_file_sync(const char *path,
  * let bytes = b"Hello, world!";
  * let result = extract_bytes_sync(bytes, "text/plain", &config)?;
  * println!("Content: {}", result.content);
- * # Ok::<(), kreuzberg::KreuzbergError>(())
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -11887,7 +11288,6 @@ KREUZBERGExtractionResult *kreuzberg_extract_bytes_sync(const uint8_t *content,
  *     BatchFileItem { path: "doc2.pdf".into(), config: None },
  * ];
  * let results = batch_extract_files_sync(items, &config)?;
- * # Ok::<(), kreuzberg::KreuzbergError>(())
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -11920,7 +11320,6 @@ char *kreuzberg_batch_extract_files_sync(const char *items,
  *     },
  * ];
  * let results = batch_extract_bytes_sync(items, &config)?;
- * # Ok::<(), kreuzberg::KreuzbergError>(())
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -11966,7 +11365,6 @@ char *kreuzberg_batch_extract_bytes_sync(const char *items,
  * use kreuzberg::core::config::{ExtractionConfig, BatchFileItem};
  * use std::path::PathBuf;
  *
- * # async fn example() -> kreuzberg::Result<()> {
  * let config = ExtractionConfig::default();
  * let items = vec![
  *     BatchFileItem { path: "doc1.pdf".into(), config: None },
@@ -11974,8 +11372,6 @@ char *kreuzberg_batch_extract_bytes_sync(const char *items,
  * ];
  * let results = batch_extract_files(items, &config).await?;
  * println!("Processed {} files", results.len());
- * # Ok(())
- * # }
  * ```
  *
  * Per-file configuration overrides:
@@ -11985,7 +11381,6 @@ char *kreuzberg_batch_extract_bytes_sync(const char *items,
  * use kreuzberg::core::config::{ExtractionConfig, BatchFileItem, FileExtractionConfig};
  * use std::path::PathBuf;
  *
- * # async fn example() -> kreuzberg::Result<()> {
  * let config = ExtractionConfig::default();
  * let items = vec![
  *     BatchFileItem {
@@ -11995,8 +11390,6 @@ char *kreuzberg_batch_extract_bytes_sync(const char *items,
  *     BatchFileItem { path: "notes.txt".into(), config: None },
  * ];
  * let results = batch_extract_files(items, &config).await?;
- * # Ok(())
- * # }
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -12035,7 +11428,6 @@ char *kreuzberg_batch_extract_files(const char *items,
  * use kreuzberg::core::extractor::batch_extract_bytes;
  * use kreuzberg::core::config::{ExtractionConfig, BatchBytesItem};
  *
- * # async fn example() -> kreuzberg::Result<()> {
  * let config = ExtractionConfig::default();
  * let items = vec![
  *     BatchBytesItem { content: b"content 1".to_vec(), mime_type: "text/plain".to_string(), config: None },
@@ -12043,8 +11435,6 @@ char *kreuzberg_batch_extract_files(const char *items,
  * ];
  * let results = batch_extract_bytes(items, &config).await?;
  * println!("Processed {} items", results.len());
- * # Ok(())
- * # }
  * ```
  *
  * Per-item configuration overrides:
@@ -12053,7 +11443,6 @@ char *kreuzberg_batch_extract_files(const char *items,
  * use kreuzberg::core::extractor::batch_extract_bytes;
  * use kreuzberg::core::config::{ExtractionConfig, BatchBytesItem, FileExtractionConfig};
  *
- * # async fn example() -> kreuzberg::Result<()> {
  * let config = ExtractionConfig::default();
  * let items = vec![
  *     BatchBytesItem { content: b"content".to_vec(), mime_type: "text/plain".to_string(), config: None },
@@ -12064,8 +11453,6 @@ char *kreuzberg_batch_extract_files(const char *items,
  *     },
  * ];
  * let results = batch_extract_bytes(items, &config).await?;
- * # Ok(())
- * # }
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -12153,13 +11540,10 @@ char *kreuzberg_list_document_extractors(void);
  * ```rust
  * use kreuzberg::plugins::list_ocr_backends;
  *
- * # tokio_test::block_on(async {
  * let backends = list_ocr_backends()?;
  * for name in backends {
  *     println!("Registered OCR backend: {}", name);
  * }
- * # Ok::<(), kreuzberg::KreuzbergError>(())
- * # });
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -12182,10 +11566,7 @@ char *kreuzberg_list_ocr_backends(void);
  * ```rust
  * use kreuzberg::plugins::clear_ocr_backends;
  *
- * # tokio_test::block_on(async {
  * clear_ocr_backends()?;
- * # Ok::<(), kreuzberg::KreuzbergError>(())
- * # });
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.
@@ -12209,13 +11590,10 @@ int32_t kreuzberg_clear_ocr_backends(void);
  * ```rust
  * use kreuzberg::plugins::list_post_processors;
  *
- * # tokio_test::block_on(async {
  * let processors = list_post_processors()?;
  * for name in processors {
  *     println!("Registered post-processor: {}", name);
  * }
- * # Ok::<(), kreuzberg::KreuzbergError>(())
- * # });
  * ```
  * # Safety
  * Caller must ensure all pointer arguments are valid or null.

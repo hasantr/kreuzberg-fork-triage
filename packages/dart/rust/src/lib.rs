@@ -1241,13 +1241,6 @@ pub struct TracingLayer {}
 #[frb(mirror(ApiDoc))]
 pub struct ApiDoc {}
 
-#[frb(mirror(HealthResponse))]
-pub struct HealthResponse {
-    pub status: String,
-    pub version: String,
-    pub plugins: Option<String>,
-}
-
 #[frb(mirror(InfoResponse))]
 pub struct InfoResponse {
     pub version: String,
@@ -1256,29 +1249,6 @@ pub struct InfoResponse {
 
 #[frb(mirror(ExtractResponse))]
 pub struct ExtractResponse {}
-
-#[frb(mirror(ApiState))]
-pub struct ApiState {
-    pub default_config: ExtractionConfig,
-    pub extraction_service: String,
-}
-
-#[frb(mirror(CacheStatsResponse))]
-pub struct CacheStatsResponse {
-    pub directory: String,
-    pub total_files: i64,
-    pub total_size_mb: f64,
-    pub available_space_mb: f64,
-    pub oldest_file_age_days: f64,
-    pub newest_file_age_days: f64,
-}
-
-#[frb(mirror(CacheClearResponse))]
-pub struct CacheClearResponse {
-    pub directory: String,
-    pub removed_files: i64,
-    pub freed_mb: f64,
-}
 
 #[frb(mirror(EmbedRequest))]
 pub struct EmbedRequest {
@@ -1310,11 +1280,6 @@ pub struct ChunkResponse {
     pub chunker_type: String,
 }
 
-#[frb(mirror(VersionResponse))]
-pub struct VersionResponse {
-    pub version: String,
-}
-
 #[frb(mirror(DetectResponse))]
 pub struct DetectResponse {
     pub mime_type: String,
@@ -1335,12 +1300,6 @@ pub struct ManifestResponse {
     pub total_size_bytes: i64,
     pub model_count: i64,
     pub models: Vec<ManifestEntryResponse>,
-}
-
-#[frb(mirror(WarmRequest))]
-pub struct WarmRequest {
-    pub all_embeddings: bool,
-    pub embedding_model: Option<String>,
 }
 
 #[frb(mirror(WarmResponse))]
@@ -1367,33 +1326,6 @@ pub struct OpenWebDocumentResponse {
 pub struct DoclingCompatResponse {
     pub document: String,
     pub status: String,
-}
-
-#[frb(mirror(ExtractFileParams))]
-pub struct ExtractFileParams {
-    pub path: String,
-    pub mime_type: Option<String>,
-    pub config: Option<String>,
-    pub pdf_password: Option<String>,
-    pub response_format: Option<String>,
-}
-
-#[frb(mirror(ExtractBytesParams))]
-pub struct ExtractBytesParams {
-    pub data: String,
-    pub mime_type: Option<String>,
-    pub config: Option<String>,
-    pub pdf_password: Option<String>,
-    pub response_format: Option<String>,
-}
-
-#[frb(mirror(BatchExtractFilesParams))]
-pub struct BatchExtractFilesParams {
-    pub paths: Vec<String>,
-    pub config: Option<String>,
-    pub pdf_password: Option<String>,
-    pub file_configs: Option<Vec<Option<String>>>,
-    pub response_format: Option<String>,
 }
 
 #[frb(mirror(DetectMimeTypeParams))]
@@ -2432,8 +2364,8 @@ pub fn detect_mime_type(path: String, check_exists: bool) -> Result<String, Stri
 /// Embed a list of texts using the configured embedding model.
 ///
 /// Returns a 2D vector where each inner vector is the embedding for the corresponding text.
-pub fn embed_texts(texts: Vec<String>, config: Option<kreuzberg::EmbeddingConfig>) -> Result<Vec<Vec<f64>>, String> {
-    kreuzberg::embed_texts(texts, config)
+pub fn embed_texts(texts: Vec<String>, config: kreuzberg::EmbeddingConfig) -> Result<Vec<Vec<f64>>, String> {
+    kreuzberg::embed_texts(texts, &config)
         .map(|v| {
             v.into_iter()
                 .map(|row| row.into_iter().map(|x| x as f64).collect::<Vec<_>>())

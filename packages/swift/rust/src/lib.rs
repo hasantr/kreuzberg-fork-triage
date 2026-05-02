@@ -1825,13 +1825,6 @@ mod ffi {
     }
 
     extern "Rust" {
-        type HealthResponse;
-        fn status(&self) -> String;
-        fn version(&self) -> String;
-        fn plugins(&self) -> Option<String>;
-    }
-
-    extern "Rust" {
         type InfoResponse;
         fn version(&self) -> String;
         fn rust_backend(&self) -> bool;
@@ -1839,29 +1832,6 @@ mod ffi {
 
     extern "Rust" {
         type ExtractResponse;
-    }
-
-    extern "Rust" {
-        type ApiState;
-        fn default_config(&self) -> ExtractionConfig;
-        fn extraction_service(&self) -> String;
-    }
-
-    extern "Rust" {
-        type CacheStatsResponse;
-        fn directory(&self) -> String;
-        fn total_files(&self) -> usize;
-        fn total_size_mb(&self) -> f64;
-        fn available_space_mb(&self) -> f64;
-        fn oldest_file_age_days(&self) -> f64;
-        fn newest_file_age_days(&self) -> f64;
-    }
-
-    extern "Rust" {
-        type CacheClearResponse;
-        fn directory(&self) -> String;
-        fn removed_files(&self) -> usize;
-        fn freed_mb(&self) -> f64;
     }
 
     extern "Rust" {
@@ -1895,11 +1865,6 @@ mod ffi {
     }
 
     extern "Rust" {
-        type VersionResponse;
-        fn version(&self) -> String;
-    }
-
-    extern "Rust" {
         type DetectResponse;
         fn mime_type(&self) -> String;
         fn filename(&self) -> Option<String>;
@@ -1919,14 +1884,6 @@ mod ffi {
         fn total_size_bytes(&self) -> u64;
         fn model_count(&self) -> usize;
         fn models(&self) -> Vec<ManifestEntryResponse>;
-    }
-
-    extern "Rust" {
-        type WarmRequest;
-        #[swift_bridge(init)]
-        fn new(all_embeddings: bool, embedding_model: Option<String>) -> WarmRequest;
-        fn all_embeddings(&self) -> bool;
-        fn embedding_model(&self) -> Option<String>;
     }
 
     extern "Rust" {
@@ -1953,33 +1910,6 @@ mod ffi {
         type DoclingCompatResponse;
         fn document(&self) -> String;
         fn status(&self) -> String;
-    }
-
-    extern "Rust" {
-        type ExtractFileParams;
-        fn path(&self) -> String;
-        fn mime_type(&self) -> Option<String>;
-        fn config(&self) -> Option<String>;
-        fn pdf_password(&self) -> Option<String>;
-        fn response_format(&self) -> Option<String>;
-    }
-
-    extern "Rust" {
-        type ExtractBytesParams;
-        fn data(&self) -> String;
-        fn mime_type(&self) -> Option<String>;
-        fn config(&self) -> Option<String>;
-        fn pdf_password(&self) -> Option<String>;
-        fn response_format(&self) -> Option<String>;
-    }
-
-    extern "Rust" {
-        type BatchExtractFilesParams;
-        fn paths(&self) -> Vec<String>;
-        fn config(&self) -> Option<String>;
-        fn pdf_password(&self) -> Option<String>;
-        fn file_configs(&self) -> String;
-        fn response_format(&self) -> Option<String>;
     }
 
     extern "Rust" {
@@ -2478,7 +2408,7 @@ mod ffi {
         #[swift_bridge(swift_name = "detectMimeType")]
         fn detect_mime_type(path: String, check_exists: bool) -> Result<String, String>;
         #[swift_bridge(swift_name = "embedTexts")]
-        fn embed_texts(texts: Vec<String>, config: Option<EmbeddingConfig>) -> Result<String, String>;
+        fn embed_texts(texts: Vec<String>, config: EmbeddingConfig) -> Result<String, String>;
         #[swift_bridge(swift_name = "getEmbeddingPreset")]
         fn get_embedding_preset(name: String) -> String;
         #[swift_bridge(swift_name = "listEmbeddingPresets")]
@@ -8585,20 +8515,6 @@ pub struct TracingLayer(pub kreuzberg::service::layers::tracing::TracingLayer);
 
 pub struct ApiDoc(pub kreuzberg::api::openapi::ApiDoc);
 
-pub struct HealthResponse(pub kreuzberg::api::HealthResponse);
-
-impl HealthResponse {
-    pub fn status(&self) -> String {
-        serde_json::to_string(&self.0.status).unwrap_or_default()
-    }
-    pub fn version(&self) -> String {
-        serde_json::to_string(&self.0.version).unwrap_or_default()
-    }
-    pub fn plugins(&self) -> Option<String> {
-        self.0.plugins.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-}
-
 pub struct InfoResponse(pub kreuzberg::api::InfoResponse);
 
 impl InfoResponse {
@@ -8614,75 +8530,6 @@ impl InfoResponse {
 }
 
 pub struct ExtractResponse(pub kreuzberg::api::ExtractResponse);
-
-pub struct ApiState(pub kreuzberg::api::ApiState);
-
-impl ApiState {
-    pub fn default_config(&self) -> ExtractionConfig {
-        ExtractionConfig((*self.0.default_config).clone())
-    }
-    pub fn extraction_service(&self) -> String {
-        format!("{:?}", &self.0.extraction_service)
-    }
-}
-
-pub struct CacheStatsResponse(pub kreuzberg::api::CacheStatsResponse);
-
-impl CacheStatsResponse {
-    pub fn directory(&self) -> String {
-        serde_json::to_string(&self.0.directory).unwrap_or_default()
-    }
-    pub fn total_files(&self) -> usize {
-        ::serde_json::to_value(&self.0.total_files)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn total_size_mb(&self) -> f64 {
-        ::serde_json::to_value(&self.0.total_size_mb)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn available_space_mb(&self) -> f64 {
-        ::serde_json::to_value(&self.0.available_space_mb)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn oldest_file_age_days(&self) -> f64 {
-        ::serde_json::to_value(&self.0.oldest_file_age_days)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn newest_file_age_days(&self) -> f64 {
-        ::serde_json::to_value(&self.0.newest_file_age_days)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-}
-
-pub struct CacheClearResponse(pub kreuzberg::api::CacheClearResponse);
-
-impl CacheClearResponse {
-    pub fn directory(&self) -> String {
-        serde_json::to_string(&self.0.directory).unwrap_or_default()
-    }
-    pub fn removed_files(&self) -> usize {
-        ::serde_json::to_value(&self.0.removed_files)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn freed_mb(&self) -> f64 {
-        ::serde_json::to_value(&self.0.freed_mb)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-}
 
 pub struct EmbedRequest(pub kreuzberg::api::EmbedRequest);
 
@@ -8764,14 +8611,6 @@ impl ChunkResponse {
     }
 }
 
-pub struct VersionResponse(pub kreuzberg::api::VersionResponse);
-
-impl VersionResponse {
-    pub fn version(&self) -> String {
-        serde_json::to_string(&self.0.version).unwrap_or_default()
-    }
-}
-
 pub struct DetectResponse(pub kreuzberg::api::DetectResponse);
 
 impl DetectResponse {
@@ -8830,35 +8669,6 @@ impl ManifestResponse {
     }
 }
 
-pub struct WarmRequest(pub kreuzberg::api::WarmRequest);
-
-impl WarmRequest {
-    pub fn new(all_embeddings: bool, embedding_model: Option<String>) -> WarmRequest {
-        let mut __target: kreuzberg::api::WarmRequest = ::std::default::Default::default();
-        __target.all_embeddings = all_embeddings;
-        if let Some(s) = embedding_model {
-            if let Ok(v) = ::serde_json::from_str::<::serde_json::Value>(&s) {
-                if let Ok(t) = ::serde_json::from_value(v) {
-                    __target.embedding_model = Some(t);
-                }
-            }
-        }
-        WarmRequest(__target)
-    }
-    pub fn all_embeddings(&self) -> bool {
-        ::serde_json::to_value(&self.0.all_embeddings)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn embedding_model(&self) -> Option<String> {
-        self.0
-            .embedding_model
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-}
-
 pub struct WarmResponse(pub kreuzberg::api::WarmResponse);
 
 impl WarmResponse {
@@ -8912,78 +8722,6 @@ impl DoclingCompatResponse {
     }
     pub fn status(&self) -> String {
         serde_json::to_string(&self.0.status).unwrap_or_default()
-    }
-}
-
-pub struct ExtractFileParams(pub kreuzberg::mcp::ExtractFileParams);
-
-impl ExtractFileParams {
-    pub fn path(&self) -> String {
-        serde_json::to_string(&self.0.path).unwrap_or_default()
-    }
-    pub fn mime_type(&self) -> Option<String> {
-        self.0.mime_type.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn config(&self) -> Option<String> {
-        self.0.config.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn pdf_password(&self) -> Option<String> {
-        self.0.pdf_password.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn response_format(&self) -> Option<String> {
-        self.0
-            .response_format
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-}
-
-pub struct ExtractBytesParams(pub kreuzberg::mcp::ExtractBytesParams);
-
-impl ExtractBytesParams {
-    pub fn data(&self) -> String {
-        serde_json::to_string(&self.0.data).unwrap_or_default()
-    }
-    pub fn mime_type(&self) -> Option<String> {
-        self.0.mime_type.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn config(&self) -> Option<String> {
-        self.0.config.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn pdf_password(&self) -> Option<String> {
-        self.0.pdf_password.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn response_format(&self) -> Option<String> {
-        self.0
-            .response_format
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
-    }
-}
-
-pub struct BatchExtractFilesParams(pub kreuzberg::mcp::BatchExtractFilesParams);
-
-impl BatchExtractFilesParams {
-    pub fn paths(&self) -> Vec<String> {
-        ::serde_json::to_value(&self.0.paths)
-            .ok()
-            .and_then(|j| ::serde_json::from_value(j).ok())
-            .unwrap_or_default()
-    }
-    pub fn config(&self) -> Option<String> {
-        self.0.config.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn pdf_password(&self) -> Option<String> {
-        self.0.pdf_password.as_ref().and_then(|v| serde_json::to_string(v).ok())
-    }
-    pub fn file_configs(&self) -> String {
-        serde_json::to_string(&self.0.file_configs).expect("serializable file_configs")
-    }
-    pub fn response_format(&self) -> Option<String> {
-        self.0
-            .response_format
-            .as_ref()
-            .and_then(|v| serde_json::to_string(v).ok())
     }
 }
 
@@ -10770,8 +10508,8 @@ pub fn detect_mime_type(path: String, check_exists: bool) -> Result<String, Stri
         .map(|s| s.to_string())
 }
 
-pub fn embed_texts(texts: Vec<String>, config: Option<EmbeddingConfig>) -> Result<String, String> {
-    kreuzberg::embed_texts(texts, config.map(|w| w.0))
+pub fn embed_texts(texts: Vec<String>, config: EmbeddingConfig) -> Result<String, String> {
+    kreuzberg::embed_texts(texts, &config.0)
         .map_err(|e| e.to_string())
         .map(|v| serde_json::to_string(&v).expect("serializable return"))
 }

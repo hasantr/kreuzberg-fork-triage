@@ -322,8 +322,8 @@ It can be loaded from TOML, YAML, or JSON files, or created programmatically.
 | `acceleration`               | `Option<AccelerationConfig>`         | `None`                  | Hardware acceleration configuration for ONNX Runtime models. Controls execution provider selection for layout detection and embedding models. When `None`, uses platform defaults (CoreML on macOS, CUDA on Linux, CPU on Windows).                                                                                                                                                                                                                                                                        |
 | `cache_namespace`            | `Option<String>`                     | `None`                  | Cache namespace for tenant isolation. When set, cache entries are stored under `{cache_dir}/{namespace}/`. Must be alphanumeric, hyphens, or underscores only (max 64 chars). Different namespaces have isolated cache spaces on the same filesystem.                                                                                                                                                                                                                                                      |
 | `cache_ttl_secs`             | `Option<u64>`                        | `None`                  | Per-request cache TTL in seconds. Overrides the global `max_age_days` for this specific extraction. When `0`, caching is completely skipped (no read or write). When `None`, the global TTL applies.                                                                                                                                                                                                                                                                                                       |
-| `email`                      | `Option<EmailConfig>`                | `None`                  | Email extraction configuration (None = use defaults). Currently supports configuring the fallback codepage for MSG files that do not specify one. See `crate.core.config.EmailConfig` for details.                                                                                                                                                                                                                                                                                                         |
-| `concurrency`                | `Option<String>`                     | `None`                  | Concurrency limits for constrained environments (None = use defaults). Controls Rayon thread pool size, ONNX Runtime intra-op threads, and (when `max_concurrent_extractions` is unset) the batch concurrency semaphore. See `crate.core.config.ConcurrencyConfig` for details.                                                                                                                                                                                                                            |
+| `email`                      | `Option<EmailConfig>`                | `None`                  | Email extraction configuration (None = use defaults). Currently supports configuring the fallback codepage for MSG files that do not specify one. See `EmailConfig` for details.                                                                                                                                                                                                                                                                                                                           |
+| `concurrency`                | `Option<String>`                     | `None`                  | Concurrency limits for constrained environments (None = use defaults). Controls Rayon thread pool size, ONNX Runtime intra-op threads, and (when `max_concurrent_extractions` is unset) the batch concurrency semaphore. See `ConcurrencyConfig` for details.                                                                                                                                                                                                                                              |
 | `max_archive_depth`          | `usize`                              | —                       | Maximum recursion depth for archive extraction (default: 3). Set to 0 to disable recursive extraction (legacy behavior).                                                                                                                                                                                                                                                                                                                                                                                   |
 | `tree_sitter`                | `Option<TreeSitterConfig>`           | `None`                  | Tree-sitter language pack configuration (None = tree-sitter disabled). When set, enables code file extraction using tree-sitter parsers. Controls grammar download behavior and code analysis options.                                                                                                                                                                                                                                                                                                     |
 | `structured_extraction`      | `Option<StructuredExtractionConfig>` | `None`                  | Structured extraction via LLM (None = disabled). When set, the extracted document content is sent to an LLM with the provided JSON schema. The structured response is stored in `ExtractionResult.structured_output`.                                                                                                                                                                                                                                                                                      |
@@ -336,13 +336,13 @@ It can be loaded from TOML, YAML, or JSON files, or created programmatically.
 Per-file extraction configuration overrides for batch processing.
 
 All fields are `Option<T>` — `None` means "use the batch-level default."
-This type is used with `crate.batch_extract_files` and
-`crate.batch_extract_bytes` to allow heterogeneous
+This type is used with `batch_extract_files` and
+`batch_extract_bytes` to allow heterogeneous
 extraction settings within a single batch.
 
 # Excluded Fields
 
-The following `super.ExtractionConfig` fields are batch-level only and
+The following `ExtractionConfig` fields are batch-level only and
 cannot be overridden per file:
 
 - `max_concurrent_extractions` — controls batch parallelism
@@ -657,15 +657,15 @@ Embedding configuration for text chunks.
 Configures embedding generation using ONNX models via the vendored embedding engine.
 Requires the `embeddings` feature to be enabled.
 
-| Field                     | Type                         | Default                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ------------------------- | ---------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `model`                   | `EmbeddingModelType`         | `EmbeddingModelType::Preset` | The embedding model to use (defaults to "balanced" preset if not specified)                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `normalize`               | `bool`                       | `true`                       | Whether to normalize embedding vectors (recommended for cosine similarity)                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `batch_size`              | `usize`                      | `32`                         | Batch size for embedding generation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| `show_download_progress`  | `bool`                       | `false`                      | Show model download progress                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `cache_dir`               | `Option<PathBuf>`            | `None`                       | Custom cache directory for model files Defaults to `~/.cache/kreuzberg/embeddings/` if not specified. Allows full customization of model download location.                                                                                                                                                                                                                                                                                                                                                                                       |
-| `acceleration`            | `Option<AccelerationConfig>` | `None`                       | Hardware acceleration for the embedding ONNX model. When set, controls which execution provider (CPU, CUDA, CoreML, TensorRT) is used for inference. Defaults to `None` (auto-select per platform).                                                                                                                                                                                                                                                                                                                                               |
-| `max_embed_duration_secs` | `Option<u64>`                | `Default::default()`         | Maximum wall-clock duration (in seconds) for a single `embed()` call when using `EmbeddingModelType.Plugin`. Applies only to the in-process plugin path — protects against hung host-language backends (e.g. a Python callback deadlocked on the GIL, a model stuck on CUDA OOM retries, etc.). On timeout, the dispatcher returns `crate.KreuzbergError.Plugin` instead of blocking forever. `None` disables the timeout. The default (60 seconds) is conservative for common in-process inference; increase for large batches on slow hardware. |
+| Field                     | Type                         | Default                      | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------------- | ---------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `model`                   | `EmbeddingModelType`         | `EmbeddingModelType::Preset` | The embedding model to use (defaults to "balanced" preset if not specified)                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `normalize`               | `bool`                       | `true`                       | Whether to normalize embedding vectors (recommended for cosine similarity)                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `batch_size`              | `usize`                      | `32`                         | Batch size for embedding generation                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `show_download_progress`  | `bool`                       | `false`                      | Show model download progress                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `cache_dir`               | `Option<PathBuf>`            | `None`                       | Custom cache directory for model files Defaults to `~/.cache/kreuzberg/embeddings/` if not specified. Allows full customization of model download location.                                                                                                                                                                                                                                                                                                                                                                  |
+| `acceleration`            | `Option<AccelerationConfig>` | `None`                       | Hardware acceleration for the embedding ONNX model. When set, controls which execution provider (CPU, CUDA, CoreML, TensorRT) is used for inference. Defaults to `None` (auto-select per platform).                                                                                                                                                                                                                                                                                                                          |
+| `max_embed_duration_secs` | `Option<u64>`                | `Default::default()`         | Maximum wall-clock duration (in seconds) for a single `embed()` call when using `EmbeddingModelType.Plugin`. Applies only to the in-process plugin path — protects against hung host-language backends (e.g. a Python callback deadlocked on the GIL, a model stuck on CUDA OOM retries, etc.). On timeout, the dispatcher returns `Plugin` instead of blocking forever. `None` disables the timeout. The default (60 seconds) is conservative for common in-process inference; increase for large batches on slow hardware. |
 
 ---
 
@@ -1101,17 +1101,6 @@ with confidence scores and spatial positions.
 A `tower.Layer` that wraps each extraction in a semantic tracing span.
 
 _Opaque type — fields are not directly accessible._
-
----
-
-#### WarmRequest
-
-Cache warm request.
-
-| Field             | Type             | Default              | Description                                 |
-| ----------------- | ---------------- | -------------------- | ------------------------------------------- |
-| `all_embeddings`  | `bool`           | —                    | Download all embedding model presets        |
-| `embedding_model` | `Option<String>` | `Default::default()` | Specific embedding model preset to download |
 
 ---
 
@@ -1792,7 +1781,7 @@ Rotation information for an OCR element.
 
 Batch item for byte array extraction.
 
-Used with `crate.batch_extract_bytes` and `crate.batch_extract_bytes_sync`
+Used with `batch_extract_bytes` and `batch_extract_bytes_sync`
 to represent a single item in a batch extraction job.
 
 | Field       | Type                           | Default | Description                                                       |
@@ -1807,7 +1796,7 @@ to represent a single item in a batch extraction job.
 
 Batch item for file extraction.
 
-Used with `crate.batch_extract_files` and `crate.batch_extract_files_sync`
+Used with `batch_extract_files` and `batch_extract_files_sync`
 to represent a single file in a batch extraction job.
 
 | Field    | Type                           | Default | Description                                                       |
@@ -1922,8 +1911,8 @@ _Opaque type — fields are not directly accessible._
 
 Trait for in-process embedding backend plugins.
 
-Async to match the convention used by `crate.plugins.OcrBackend`,
-`crate.plugins.DocumentExtractor`, and `crate.plugins.PostProcessor`.
+Async to match the convention used by `OcrBackend`,
+`DocumentExtractor`, and `PostProcessor`.
 Host-language bridges (PyO3, napi-rs, Rustler, extendr, magnus, ext-php-rs,
 C FFI, etc.) wrap their synchronous host callables in `spawn_blocking` or the
 equivalent to satisfy the async signature.
@@ -1938,7 +1927,7 @@ itself must serialize access internally (e.g. via `Mutex<Inner>`).
 # Contract
 
 - `embed(texts)` MUST return exactly `texts.len()` vectors, each of length
-  `self.dimensions()`. The dispatcher in `crate.embeddings.embed_texts`
+  `self.dimensions()`. The dispatcher in `embed_texts`
   validates this before returning to downstream consumers; a non-conforming
   backend surfaces as a `KreuzbergError.Validation`, not a panic.
 - `embed` may be called from any thread. Its future must be `Send`
@@ -1950,7 +1939,7 @@ itself must serialize access internally (e.g. via `Mutex<Inner>`).
   afterwards. Later mutations of the backend's reported dimension are not
   observed by kreuzberg — implementations that need to change dimension
   must unregister and re-register.
-- `shutdown()` (inherited from `crate.plugins.Plugin`) may be invoked
+- `shutdown()` (inherited from `Plugin`) may be invoked
   concurrently with an in-flight `embed()` call. Implementations must
   tolerate this — e.g. by letting in-flight calls finish using resources
   held via the `Arc<dyn EmbeddingBackend>` reference, and only releasing
@@ -1958,12 +1947,12 @@ itself must serialize access internally (e.g. via `Mutex<Inner>`).
 
 # Runtime
 
-The synchronous `crate.embed_texts` entry uses
+The synchronous `embed_texts` entry uses
 `tokio.task.block_in_place` to await the trait's async `embed`, which
 requires a multi-thread tokio runtime. Callers running inside a
 `current_thread` runtime (e.g. `#[tokio.test]` without `flavor = "multi_thread"`,
 or `tokio.runtime.Builder.new_current_thread()`) must use
-`crate.embed_texts_async` instead, which awaits directly without
+`embed_texts_async` instead, which awaits directly without
 `block_in_place`.
 
 _Opaque type — fields are not directly accessible._
@@ -2554,18 +2543,6 @@ _Opaque type — fields are not directly accessible._
 
 ---
 
-#### HealthResponse
-
-Health check response.
-
-| Field     | Type             | Default | Description              |
-| --------- | ---------------- | ------- | ------------------------ |
-| `status`  | `String`         | —       | Health status            |
-| `version` | `String`         | —       | API version              |
-| `plugins` | `Option<String>` | `None`  | Plugin status (optional) |
-
----
-
 #### InfoResponse
 
 Server information response.
@@ -2582,47 +2559,6 @@ Server information response.
 Extraction response (list of results).
 
 _Opaque type — fields are not directly accessible._
-
----
-
-#### ApiState
-
-API server state.
-
-Holds the default extraction configuration loaded from config file
-(via discovery or explicit path). Per-request configs override these defaults.
-
-| Field                | Type               | Default | Description                                                                                                                                                                                                                                      |
-| -------------------- | ------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `default_config`     | `ExtractionConfig` | —       | Default extraction configuration                                                                                                                                                                                                                 |
-| `extraction_service` | `String`           | —       | Tower service for extraction requests. Wrapped in `Arc<Mutex>` because `BoxCloneService` is `Send` but not `Sync`, while `ApiState` must be `Clone + Sync` for Axum's state requirement. The lock is held only long enough to clone the service. |
-
----
-
-#### CacheStatsResponse
-
-Cache statistics response.
-
-| Field                  | Type     | Default | Description                 |
-| ---------------------- | -------- | ------- | --------------------------- |
-| `directory`            | `String` | —       | Cache directory path        |
-| `total_files`          | `usize`  | —       | Total number of cache files |
-| `total_size_mb`        | `f64`    | —       | Total cache size in MB      |
-| `available_space_mb`   | `f64`    | —       | Available disk space in MB  |
-| `oldest_file_age_days` | `f64`    | —       | Age of oldest file in days  |
-| `newest_file_age_days` | `f64`    | —       | Age of newest file in days  |
-
----
-
-#### CacheClearResponse
-
-Cache clear response.
-
-| Field           | Type     | Default | Description             |
-| --------------- | -------- | ------- | ----------------------- |
-| `directory`     | `String` | —       | Cache directory path    |
-| `removed_files` | `usize`  | —       | Number of files removed |
-| `freed_mb`      | `f64`    | —       | Space freed in MB       |
 
 ---
 
@@ -2673,16 +2609,6 @@ Chunk response with chunks and metadata.
 | `config`           | `String`      | —       | Configuration used for chunking |
 | `input_size_bytes` | `usize`       | —       | Input text size in bytes        |
 | `chunker_type`     | `String`      | —       | Chunker type used for chunking  |
-
----
-
-#### VersionResponse
-
-Version response.
-
-| Field     | Type     | Default | Description              |
-| --------- | -------- | ------- | ------------------------ |
-| `version` | `String` | —       | Kreuzberg version string |
 
 ---
 
@@ -2757,48 +2683,6 @@ Returned by `POST /v1/convert/file` for docling-serve compatibility.
 | ---------- | -------- | ------- | -------------------------- |
 | `document` | `String` | —       | Converted document content |
 | `status`   | `String` | —       | Processing status          |
-
----
-
-#### ExtractFileParams
-
-Request parameters for file extraction.
-
-| Field             | Type                        | Default | Description                                              |
-| ----------------- | --------------------------- | ------- | -------------------------------------------------------- |
-| `path`            | `String`                    | —       | Path to the file to extract                              |
-| `mime_type`       | `Option<String>`            | `None`  | Optional MIME type hint (auto-detected if not provided)  |
-| `config`          | `Option<serde_json::Value>` | `None`  | Extraction configuration (JSON object)                   |
-| `pdf_password`    | `Option<String>`            | `None`  | Password for encrypted PDFs                              |
-| `response_format` | `Option<String>`            | `None`  | Wire format for the response: "json" (default) or "toon" |
-
----
-
-#### ExtractBytesParams
-
-Request parameters for bytes extraction.
-
-| Field             | Type                        | Default | Description                                              |
-| ----------------- | --------------------------- | ------- | -------------------------------------------------------- |
-| `data`            | `String`                    | —       | Base64-encoded file content                              |
-| `mime_type`       | `Option<String>`            | `None`  | Optional MIME type hint (auto-detected if not provided)  |
-| `config`          | `Option<serde_json::Value>` | `None`  | Extraction configuration (JSON object)                   |
-| `pdf_password`    | `Option<String>`            | `None`  | Password for encrypted PDFs                              |
-| `response_format` | `Option<String>`            | `None`  | Wire format for the response: "json" (default) or "toon" |
-
----
-
-#### BatchExtractFilesParams
-
-Request parameters for batch file extraction.
-
-| Field             | Type                             | Default | Description                                                                                                                                           |
-| ----------------- | -------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `paths`           | `Vec<String>`                    | —       | Paths to files to extract                                                                                                                             |
-| `config`          | `Option<serde_json::Value>`      | `None`  | Extraction configuration (JSON object)                                                                                                                |
-| `pdf_password`    | `Option<String>`                 | `None`  | Password for encrypted PDFs                                                                                                                           |
-| `file_configs`    | `Vec<Option<serde_json::Value>>` | `None`  | Per-file extraction configuration overrides (parallel array to paths). Each entry is either null (use default) or a FileExtractionConfig JSON object. |
-| `response_format` | `Option<String>`                 | `None`  | Wire format for the response: "json" (default) or "toon"                                                                                              |
 
 ---
 

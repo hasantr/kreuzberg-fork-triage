@@ -59,13 +59,13 @@ public typealias ExtractionConfig = RustBridge.ExtractionConfig
 /// Per-file extraction configuration overrides for batch processing.
 ///
 /// All fields are `Option<T>` — `None` means "use the batch-level default."
-/// This type is used with [`crate::batch_extract_files`] and
-/// [`crate::batch_extract_bytes`] to allow heterogeneous
+/// This type is used with `batch_extract_files` and
+/// `batch_extract_bytes` to allow heterogeneous
 /// extraction settings within a single batch.
 ///
 /// # Excluded Fields
 ///
-/// The following [`super::ExtractionConfig`] fields are batch-level only and
+/// The following `ExtractionConfig` fields are batch-level only and
 /// cannot be overridden per file:
 /// - `max_concurrent_extractions` — controls batch parallelism
 /// - `use_cache` — global caching policy
@@ -87,13 +87,13 @@ public typealias FileExtractionConfig = RustBridge.FileExtractionConfig
 
 /// Batch item for byte array extraction.
 ///
-/// Used with [`crate::batch_extract_bytes`] and [`crate::batch_extract_bytes_sync`]
+/// Used with `batch_extract_bytes` and `batch_extract_bytes_sync`
 /// to represent a single item in a batch extraction job.
 public typealias BatchBytesItem = RustBridge.BatchBytesItem
 
 /// Batch item for file extraction.
 ///
-/// Used with [`crate::batch_extract_files`] and [`crate::batch_extract_files_sync`]
+/// Used with `batch_extract_files` and `batch_extract_files_sync`
 /// to represent a single file in a batch extraction job.
 public typealias BatchFileItem = RustBridge.BatchFileItem
 
@@ -218,7 +218,6 @@ public typealias PostProcessorConfig = RustBridge.PostProcessorConfig
 ///
 /// Use `..Default::default()` when constructing to allow for future field additions:
 /// ```rust
-/// # use kreuzberg::ChunkingConfig;
 /// let config = ChunkingConfig {
 ///     max_characters: 500,
 ///     ..Default::default()
@@ -372,8 +371,8 @@ public typealias ZipBombValidator = RustBridge.ZipBombValidator
 
 /// Trait for in-process embedding backend plugins.
 ///
-/// Async to match the convention used by [`crate::plugins::OcrBackend`],
-/// [`crate::plugins::DocumentExtractor`], and [`crate::plugins::PostProcessor`].
+/// Async to match the convention used by `OcrBackend`,
+/// `DocumentExtractor`, and `PostProcessor`.
 /// Host-language bridges (PyO3, napi-rs, Rustler, extendr, magnus, ext-php-rs,
 /// C FFI, etc.) wrap their synchronous host callables in `spawn_blocking` or the
 /// equivalent to satisfy the async signature.
@@ -388,7 +387,7 @@ public typealias ZipBombValidator = RustBridge.ZipBombValidator
 /// # Contract
 ///
 /// - `embed(texts)` MUST return exactly `texts.len()` vectors, each of length
-///   `self.dimensions()`. The dispatcher in [`crate::embeddings::embed_texts`]
+///   `self.dimensions()`. The dispatcher in `embed_texts`
 ///   validates this before returning to downstream consumers; a non-conforming
 ///   backend surfaces as a `KreuzbergError::Validation`, not a panic.
 /// - `embed` may be called from any thread. Its future must be `Send`
@@ -400,7 +399,7 @@ public typealias ZipBombValidator = RustBridge.ZipBombValidator
 ///   afterwards. Later mutations of the backend's reported dimension are not
 ///   observed by kreuzberg — implementations that need to change dimension
 ///   must unregister and re-register.
-/// - `shutdown()` (inherited from [`crate::plugins::Plugin`]) may be invoked
+/// - `shutdown()` (inherited from `Plugin`) may be invoked
 ///   concurrently with an in-flight `embed()` call. Implementations must
 ///   tolerate this — e.g. by letting in-flight calls finish using resources
 ///   held via the `Arc<dyn EmbeddingBackend>` reference, and only releasing
@@ -408,12 +407,12 @@ public typealias ZipBombValidator = RustBridge.ZipBombValidator
 ///
 /// # Runtime
 ///
-/// The synchronous [`crate::embed_texts`] entry uses
+/// The synchronous `embed_texts` entry uses
 /// [`tokio::task::block_in_place`] to await the trait's async `embed`, which
 /// requires a multi-thread tokio runtime. Callers running inside a
 /// `current_thread` runtime (e.g. `#[tokio::test]` without `flavor = "multi_thread"`,
 /// or `tokio::runtime::Builder::new_current_thread()`) must use
-/// [`crate::embed_texts_async`] instead, which awaits directly without
+/// `embed_texts_async` instead, which awaits directly without
 /// `block_in_place`.
 public struct EmbeddingBackend {
 }
@@ -1127,26 +1126,11 @@ public typealias TracingLayer = RustBridge.TracingLayer
 /// for the Kreuzberg document extraction API.
 public typealias ApiDoc = RustBridge.ApiDoc
 
-/// Health check response.
-public typealias HealthResponse = RustBridge.HealthResponse
-
 /// Server information response.
 public typealias InfoResponse = RustBridge.InfoResponse
 
 /// Extraction response (list of results).
 public typealias ExtractResponse = RustBridge.ExtractResponse
-
-/// API server state.
-///
-/// Holds the default extraction configuration loaded from config file
-/// (via discovery or explicit path). Per-request configs override these defaults.
-public typealias ApiState = RustBridge.ApiState
-
-/// Cache statistics response.
-public typealias CacheStatsResponse = RustBridge.CacheStatsResponse
-
-/// Cache clear response.
-public typealias CacheClearResponse = RustBridge.CacheClearResponse
 
 /// Embedding request for generating embeddings from text.
 public typealias EmbedRequest = RustBridge.EmbedRequest
@@ -1160,9 +1144,6 @@ public typealias ChunkRequest = RustBridge.ChunkRequest
 /// Chunk response with chunks and metadata.
 public typealias ChunkResponse = RustBridge.ChunkResponse
 
-/// Version response.
-public typealias VersionResponse = RustBridge.VersionResponse
-
 /// MIME type detection response.
 public typealias DetectResponse = RustBridge.DetectResponse
 
@@ -1171,9 +1152,6 @@ public typealias ManifestEntryResponse = RustBridge.ManifestEntryResponse
 
 /// Model manifest response.
 public typealias ManifestResponse = RustBridge.ManifestResponse
-
-/// Cache warm request.
-public typealias WarmRequest = RustBridge.WarmRequest
 
 /// Cache warm response.
 public typealias WarmResponse = RustBridge.WarmResponse
@@ -1190,15 +1168,6 @@ public typealias OpenWebDocumentResponse = RustBridge.OpenWebDocumentResponse
 ///
 /// Returned by `POST /v1/convert/file` for docling-serve compatibility.
 public typealias DoclingCompatResponse = RustBridge.DoclingCompatResponse
-
-/// Request parameters for file extraction.
-public typealias ExtractFileParams = RustBridge.ExtractFileParams
-
-/// Request parameters for bytes extraction.
-public typealias ExtractBytesParams = RustBridge.ExtractBytesParams
-
-/// Request parameters for batch file extraction.
-public typealias BatchExtractFilesParams = RustBridge.BatchExtractFilesParams
 
 /// Request parameters for MIME type detection.
 public typealias DetectMimeTypeParams = RustBridge.DetectMimeTypeParams
@@ -1433,7 +1402,7 @@ public typealias ImageKind = RustBridge.ImageKind
 
 /// Result-shape selection for extraction results.
 ///
-/// Distinct from [`crate::OutputFormat`] (which controls rendering — Plain, Markdown,
+/// Distinct from `OutputFormat` (which controls rendering — Plain, Markdown,
 /// HTML, etc.). `ResultFormat` controls the *shape* of the result: a unified content
 /// blob vs. an element-based decomposition.
 public typealias ResultFormat = RustBridge.ResultFormat

@@ -57,25 +57,6 @@ abstract class OcrBackend {
   /// # Example
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, OcrBackend};
-  /// # use kreuzberg::{Result, OcrConfig};
-  /// # use async_trait::async_trait;
-  /// # use std::borrow::Cow;
-  /// # use std::path::Path;
-  /// # use kreuzberg::types::{ExtractionResult, Metadata};
-  /// # struct MyOcr;
-  /// # impl Plugin for MyOcr {
-  /// #     fn name(&self) -> &str { "my-ocr" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # use kreuzberg::plugins::OcrBackendType;
-  /// # #[async_trait]
-  /// # impl OcrBackend for MyOcr {
-  /// #     fn supports_language(&self, _: &str) -> bool { true }
-  /// #     fn backend_type(&self) -> OcrBackendType { OcrBackendType::Custom }
-  /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
   /// async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
   ///     // Validate image format
   ///     if image_bytes.is_empty() {
@@ -94,7 +75,6 @@ abstract class OcrBackend {
   ///         ..Default::default()
   ///     })
   /// }
-  /// # }
   /// ```
   /// throws anyhow::Error on failure
   Future<ExtractionResult> processImage(Uint8List imageBytes, OcrConfig config);
@@ -128,28 +108,9 @@ abstract class OcrBackend {
   /// # Example
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, OcrBackend};
-  /// # use kreuzberg::Result;
-  /// # use async_trait::async_trait;
-  /// # use std::path::Path;
-  /// # struct MyOcr { languages: Vec<String> }
-  /// # impl Plugin for MyOcr {
-  /// #     fn name(&self) -> &str { "my-ocr" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # use kreuzberg::plugins::OcrBackendType;
-  /// # use kreuzberg::{ExtractionResult, OcrConfig};
-  /// # #[async_trait]
-  /// # impl OcrBackend for MyOcr {
-  /// #     fn backend_type(&self) -> OcrBackendType { OcrBackendType::Custom }
-  /// #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
-  /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
   /// fn supports_language(&self, lang: &str) -> bool {
   ///     self.languages.contains(&lang.to_string())
   /// }
-  /// # }
   /// ```
   Future<bool> supportsLanguage(String lang);
 
@@ -162,27 +123,9 @@ abstract class OcrBackend {
   /// # Example
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, OcrBackend, OcrBackendType};
-  /// # use kreuzberg::Result;
-  /// # use async_trait::async_trait;
-  /// # use std::path::Path;
-  /// # struct TesseractBackend;
-  /// # impl Plugin for TesseractBackend {
-  /// #     fn name(&self) -> &str { "tesseract" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # use kreuzberg::{ExtractionResult, OcrConfig};
-  /// # #[async_trait]
-  /// # impl OcrBackend for TesseractBackend {
-  /// #     fn supports_language(&self, _: &str) -> bool { true }
-  /// #     async fn process_image(&self, _: &[u8], _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
-  /// #     async fn process_image_file(&self, _: &Path, _: &OcrConfig) -> Result<ExtractionResult> { todo!() }
   /// fn backend_type(&self) -> OcrBackendType {
   ///     OcrBackendType::Tesseract
   /// }
-  /// # }
   /// ```
   Future<OcrBackendType> backendType();
 
@@ -269,19 +212,6 @@ abstract class PostProcessor {
   /// # Example - Language Detection
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-  /// # use async_trait::async_trait;
-  /// # struct LanguageDetector;
-  /// # impl Plugin for LanguageDetector {
-  /// #     fn name(&self) -> &str { "language-detector" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl PostProcessor for LanguageDetector {
-  /// #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Early }
   /// async fn process(&self, result: &mut ExtractionResult, config: &ExtractionConfig)
   ///     -> Result<()> {
   ///     // Detect language (simplified - use real detection library in practice)
@@ -292,25 +222,11 @@ abstract class PostProcessor {
   ///
   ///     Ok(())
   /// }
-  /// # }
   /// ```
   ///
   /// # Example - Text Cleaning
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-  /// # use async_trait::async_trait;
-  /// # struct TextCleaner;
-  /// # impl Plugin for TextCleaner {
-  /// #     fn name(&self) -> &str { "text-cleaner" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl PostProcessor for TextCleaner {
-  /// #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Middle }
   /// async fn process(&self, result: &mut ExtractionResult, config: &ExtractionConfig)
   ///     -> Result<()> {
   ///     // Remove excessive whitespace
@@ -322,7 +238,6 @@ abstract class PostProcessor {
   ///
   ///     Ok(())
   /// }
-  /// # }
   /// ```
   /// throws anyhow::Error on failure
   Future<void> process(ExtractionResult result, ExtractionConfig config);
@@ -338,23 +253,9 @@ abstract class PostProcessor {
   /// # Example
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-  /// # use async_trait::async_trait;
-  /// # struct MyProcessor;
-  /// # impl Plugin for MyProcessor {
-  /// #     fn name(&self) -> &str { "my-processor" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl PostProcessor for MyProcessor {
-  /// #     async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
   /// fn processing_stage(&self) -> ProcessingStage {
   ///     ProcessingStage::Early  // Run before other processors
   /// }
-  /// # }
   /// ```
   Future<ProcessingStage> processingStage();
 
@@ -375,25 +276,10 @@ abstract class PostProcessor {
   /// # Example
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, PostProcessor, ProcessingStage};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-  /// # use async_trait::async_trait;
-  /// # struct PdfOnlyProcessor;
-  /// # impl Plugin for PdfOnlyProcessor {
-  /// #     fn name(&self) -> &str { "pdf-only" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl PostProcessor for PdfOnlyProcessor {
-  /// #     fn processing_stage(&self) -> ProcessingStage { ProcessingStage::Middle }
-  /// #     async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
   /// /// Only process PDF documents
   /// fn should_process(&self, result: &ExtractionResult, config: &ExtractionConfig) -> bool {
   ///     result.mime_type == "application/pdf"
   /// }
-  /// # }
   /// ```
   Future<bool> shouldProcess(ExtractionResult result, ExtractionConfig config);
 
@@ -461,18 +347,6 @@ abstract class Validator {
   /// # Example - Content Length Validation
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, Validator};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-  /// # use async_trait::async_trait;
-  /// # struct ContentLengthValidator { min: usize, max: usize }
-  /// # impl Plugin for ContentLengthValidator {
-  /// #     fn name(&self) -> &str { "length-validator" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl Validator for ContentLengthValidator {
   /// async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
   ///     -> Result<()> {
   ///     let length = result.content.len();
@@ -493,24 +367,11 @@ abstract class Validator {
   ///
   ///     Ok(())
   /// }
-  /// # }
   /// ```
   ///
   /// # Example - Quality Score Validation
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, Validator};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-  /// # use async_trait::async_trait;
-  /// # struct QualityValidator { min_score: f64 }
-  /// # impl Plugin for QualityValidator {
-  /// #     fn name(&self) -> &str { "quality-validator" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl Validator for QualityValidator {
   /// async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
   ///     -> Result<()> {
   ///     // Check if quality_score exists in metadata
@@ -529,24 +390,11 @@ abstract class Validator {
   ///
   ///     Ok(())
   /// }
-  /// # }
   /// ```
   ///
   /// # Example - Security Validation
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, Validator};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig, KreuzbergError};
-  /// # use async_trait::async_trait;
-  /// # struct SecurityValidator { blocked_patterns: Vec<String> }
-  /// # impl Plugin for SecurityValidator {
-  /// #     fn name(&self) -> &str { "security-validator" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl Validator for SecurityValidator {
   /// async fn validate(&self, result: &ExtractionResult, config: &ExtractionConfig)
   ///     -> Result<()> {
   ///     // Check for blocked patterns
@@ -561,7 +409,6 @@ abstract class Validator {
   ///
   ///     Ok(())
   /// }
-  /// # }
   /// ```
   /// throws anyhow::Error on failure
   Future<void> validate(ExtractionResult result, ExtractionConfig config);
@@ -583,24 +430,10 @@ abstract class Validator {
   /// # Example
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, Validator};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-  /// # use async_trait::async_trait;
-  /// # struct PdfValidator;
-  /// # impl Plugin for PdfValidator {
-  /// #     fn name(&self) -> &str { "pdf-validator" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl Validator for PdfValidator {
-  /// #     async fn validate(&self, _: &ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
   /// /// Only validate PDF documents
   /// fn should_validate(&self, result: &ExtractionResult, config: &ExtractionConfig) -> bool {
   ///     result.mime_type == "application/pdf"
   /// }
-  /// # }
   /// ```
   Future<bool> shouldValidate(ExtractionResult result, ExtractionConfig config);
 
@@ -618,24 +451,10 @@ abstract class Validator {
   /// # Example
   ///
   /// ```rust
-  /// # use kreuzberg::plugins::{Plugin, Validator};
-  /// # use kreuzberg::{Result, ExtractionResult, ExtractionConfig};
-  /// # use async_trait::async_trait;
-  /// # struct FastValidator;
-  /// # impl Plugin for FastValidator {
-  /// #     fn name(&self) -> &str { "fast-validator" }
-  /// #     fn version(&self) -> String { "1.0.0".to_string() }
-  /// #     fn initialize(&self) -> Result<()> { Ok(()) }
-  /// #     fn shutdown(&self) -> Result<()> { Ok(()) }
-  /// # }
-  /// # #[async_trait]
-  /// # impl Validator for FastValidator {
-  /// #     async fn validate(&self, _: &ExtractionResult, _: &ExtractionConfig) -> Result<()> { Ok(()) }
   /// /// Run this validator first (it's fast)
   /// fn priority(&self) -> i32 {
   ///     100
   /// }
-  /// # }
   /// ```
   Future<int> priority();
 }
@@ -665,7 +484,7 @@ abstract class EmbeddingBackend {
   ///
   /// # Errors
   ///
-  /// Implementations should return [`crate::KreuzbergError::Plugin`] for
+  /// Implementations should return `Plugin` for
   /// backend-specific failures. The dispatcher layers its own validation
   /// (length, per-vector dimension) on top.
   /// throws anyhow::Error on failure

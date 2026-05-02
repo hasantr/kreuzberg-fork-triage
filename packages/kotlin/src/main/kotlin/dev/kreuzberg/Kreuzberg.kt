@@ -137,28 +137,19 @@ typealias StringBufferPool = dev.kreuzberg.StringBufferPool
 typealias ByteBufferPool = dev.kreuzberg.ByteBufferPool
 typealias TracingLayer = dev.kreuzberg.TracingLayer
 typealias ApiDoc = dev.kreuzberg.ApiDoc
-typealias HealthResponse = dev.kreuzberg.HealthResponse
 typealias InfoResponse = dev.kreuzberg.InfoResponse
 typealias ExtractResponse = dev.kreuzberg.ExtractResponse
-typealias ApiState = dev.kreuzberg.ApiState
-typealias CacheStatsResponse = dev.kreuzberg.CacheStatsResponse
-typealias CacheClearResponse = dev.kreuzberg.CacheClearResponse
 typealias EmbedRequest = dev.kreuzberg.EmbedRequest
 typealias EmbedResponse = dev.kreuzberg.EmbedResponse
 typealias ChunkRequest = dev.kreuzberg.ChunkRequest
 typealias ChunkResponse = dev.kreuzberg.ChunkResponse
-typealias VersionResponse = dev.kreuzberg.VersionResponse
 typealias DetectResponse = dev.kreuzberg.DetectResponse
 typealias ManifestEntryResponse = dev.kreuzberg.ManifestEntryResponse
 typealias ManifestResponse = dev.kreuzberg.ManifestResponse
-typealias WarmRequest = dev.kreuzberg.WarmRequest
 typealias WarmResponse = dev.kreuzberg.WarmResponse
 typealias StructuredExtractionResponse = dev.kreuzberg.StructuredExtractionResponse
 typealias OpenWebDocumentResponse = dev.kreuzberg.OpenWebDocumentResponse
 typealias DoclingCompatResponse = dev.kreuzberg.DoclingCompatResponse
-typealias ExtractFileParams = dev.kreuzberg.ExtractFileParams
-typealias ExtractBytesParams = dev.kreuzberg.ExtractBytesParams
-typealias BatchExtractFilesParams = dev.kreuzberg.BatchExtractFilesParams
 typealias DetectMimeTypeParams = dev.kreuzberg.DetectMimeTypeParams
 typealias CacheWarmParams = dev.kreuzberg.CacheWarmParams
 typealias EmbedTextParams = dev.kreuzberg.EmbedTextParams
@@ -540,7 +531,7 @@ object Kreuzberg {
      */
     fun embedTexts(
         texts: List<String>,
-        config: EmbeddingConfig?,
+        config: EmbeddingConfig,
     ): List<List<Float>> = Bridge.embedTexts(texts, config)
 
     /**
