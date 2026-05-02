@@ -14,7 +14,7 @@ use super::super::{
     splitter::{SemanticLevel, Splitter},
 };
 
-use super::{ChunkCharIndex, fallback::GRAPHEME_SEGMENTER};
+use super::fallback::GRAPHEME_SEGMENTER;
 
 /// Default plain-text splitter. Recursively splits chunks into the largest
 /// semantic units that fit within the chunk size. Also will attempt to merge
@@ -76,43 +76,6 @@ where
     ) -> impl Iterator<Item = &'text str> + 'splitter {
         Splitter::<_>::chunks(self, text)
     }
-
-    /// Returns an iterator over chunks of the text and their byte offsets.
-    /// Each chunk will be up to the `chunk_capacity`.
-    ///
-    /// See [`TextSplitter::chunks`] for more information.
-    ///
-    /// ```text
-    /// let splitter = TextSplitter::new(10);
-    /// let chunks = splitter.chunk_indices("Some text\n\nfrom a\ndocument").collect::<Vec<_>>();
-    /// ```
-    pub fn chunk_indices<'splitter, 'text: 'splitter>(
-        &'splitter self,
-        text: &'text str,
-    ) -> impl Iterator<Item = (usize, &'text str)> + 'splitter {
-        Splitter::<_>::chunk_indices(self, text)
-    }
-
-    /// Returns an iterator over chunks of the text with their byte and character offsets.
-    /// Each chunk will be up to the `chunk_capacity`.
-    ///
-    /// See [`TextSplitter::chunks`] for more information.
-    ///
-    /// This will be more expensive than just byte offsets, and for most usage in Rust, just
-    /// having byte offsets is sufficient. But when interfacing with other languages or systems
-    /// that require character offsets, this will track the character offsets for you,
-    /// accounting for any trimming that may have occurred.
-    ///
-    /// ```text
-    /// let splitter = TextSplitter::new(10);
-    /// let chunks = splitter.chunk_char_indices("Some text\n\nfrom a\ndocument").collect::<Vec<_>>();
-    /// ```
-    pub fn chunk_char_indices<'splitter, 'text: 'splitter>(
-        &'splitter self,
-        text: &'text str,
-    ) -> impl Iterator<Item = ChunkCharIndex<'text>> + 'splitter {
-        Splitter::<_>::chunk_char_indices(self, text)
-    }
 }
 
 impl<Sizer> Splitter<Sizer> for TextSplitter<Sizer>
@@ -168,7 +131,6 @@ mod tests {
 
     use fake::{Fake, Faker};
 
-    use super::super::ChunkCharIndex;
     use super::super::splitter::SemanticSplitRanges;
 
     use super::*;
@@ -267,72 +229,12 @@ mod tests {
     }
 
     #[test]
-    fn trim_char_indices() {
-        let text = " a b ";
-        let chunks = TextSplitter::new(1).chunk_indices(text).collect::<Vec<_>>();
-
-        assert_eq!(vec![(1, "a"), (3, "b")], chunks);
-    }
-
-    #[test]
-    fn chunk_char_indices() {
-        let text = " a b ";
-        let chunks = TextSplitter::new(1).chunk_char_indices(text).collect::<Vec<_>>();
-
-        assert_eq!(
-            vec![
-                ChunkCharIndex {
-                    chunk: "a",
-                    byte_offset: 1,
-                    char_offset: 1
-                },
-                ChunkCharIndex {
-                    chunk: "b",
-                    byte_offset: 3,
-                    char_offset: 3,
-                },
-            ],
-            chunks
-        );
-    }
-
-    #[test]
     fn graphemes_fallback_to_chars() {
         let text = "a̐éö̲\r\n";
         let chunks = TextSplitter::new(ChunkConfig::new(1).with_trim(false))
             .chunks(text)
             .collect::<Vec<_>>();
         assert_eq!(vec!["a", "\u{310}", "é", "ö", "\u{332}", "\r", "\n"], chunks);
-    }
-
-    #[test]
-    fn trim_grapheme_indices() {
-        let text = "\r\na̐éö̲\r\n";
-        let chunks = TextSplitter::new(3).chunk_indices(text).collect::<Vec<_>>();
-
-        assert_eq!(vec![(2, "a̐é"), (7, "ö̲")], chunks);
-    }
-
-    #[test]
-    fn grapheme_char_indices() {
-        let text = "\r\na̐éö̲\r\n";
-        let chunks = TextSplitter::new(3).chunk_char_indices(text).collect::<Vec<_>>();
-
-        assert_eq!(
-            vec![
-                ChunkCharIndex {
-                    chunk: "a̐é",
-                    byte_offset: 2,
-                    char_offset: 2
-                },
-                ChunkCharIndex {
-                    chunk: "ö̲",
-                    byte_offset: 7,
-                    char_offset: 5
-                }
-            ],
-            chunks
-        );
     }
 
     #[test]
@@ -365,13 +267,6 @@ mod tests {
     }
 
     #[test]
-    fn trim_word_indices() {
-        let text = "Some text from a document";
-        let chunks = TextSplitter::new(10).chunk_indices(text).collect::<Vec<_>>();
-        assert_eq!(vec![(0, "Some text"), (10, "from a"), (17, "document")], chunks);
-    }
-
-    #[test]
     fn chunk_by_sentences() {
         let text = "Mr. Fox jumped. [...] The dog was too lazy.";
         let chunks = TextSplitter::new(ChunkConfig::new(21).with_trim(false))
@@ -387,20 +282,6 @@ mod tests {
             .chunks(text)
             .collect::<Vec<_>>();
         assert_eq!(vec!["Mr. Fox jumped. ", "[...] ", "The dog was too ", "lazy."], chunks);
-    }
-
-    #[test]
-    fn trim_sentence_indices() {
-        let text = "Some text. From a document.";
-        let chunks = TextSplitter::new(10).chunk_indices(text).collect::<Vec<_>>();
-        assert_eq!(vec![(0, "Some text."), (11, "From a"), (18, "document.")], chunks);
-    }
-
-    #[test]
-    fn trim_paragraph_indices() {
-        let text = "Some text\n\nfrom a\ndocument";
-        let chunks = TextSplitter::new(10).chunk_indices(text).collect::<Vec<_>>();
-        assert_eq!(vec![(0, "Some text"), (11, "from a"), (18, "document")], chunks);
     }
 
     #[test]

@@ -36,6 +36,7 @@ pub(crate) const LEGACY_POWERPOINT_MIME_TYPE: &str = "application/vnd.ms-powerpo
 pub(crate) const PST_MIME_TYPE: &str = "application/vnd.ms-outlook-pst";
 pub(crate) const JSON_MIME_TYPE: &str = "application/json";
 pub(crate) const XML_MIME_TYPE: &str = "application/xml";
+#[cfg(feature = "tree-sitter")]
 pub(crate) const SOURCE_CODE_MIME_TYPE: &str = "text/x-source-code";
 
 pub(crate) const EXCEL_MIME_TYPE: &str = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";

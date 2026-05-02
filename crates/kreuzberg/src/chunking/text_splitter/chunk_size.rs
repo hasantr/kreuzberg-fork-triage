@@ -75,25 +75,6 @@ impl ChunkCapacity {
         }
     }
 
-    /// The `desired` size is the target size for the chunk. In most cases, this
-    /// will also serve as the maximum size of the chunk. It is always possible
-    /// that a chunk may be returned that is less than the `desired` value, as
-    /// adding the next piece of text may have made it larger than the `desired`
-    /// capacity.
-    #[must_use]
-    pub fn desired(&self) -> usize {
-        self.desired
-    }
-
-    /// The `max` size is the maximum possible chunk size that can be generated.
-    /// By setting this to a larger value than `desired`, it means that the chunk
-    /// should be as close to `desired` as possible, but can be larger if it means
-    /// staying at a larger semantic level.
-    #[must_use]
-    pub fn max(&self) -> usize {
-        self.max
-    }
-
     /// If you need to ensure a fixed size, set `desired` and `max` to the same
     /// value. For example, if you are trying to maximize the context window for an
     /// embedding.
@@ -309,16 +290,6 @@ impl<Sizer> ChunkConfig<Sizer>
 where
     Sizer: ChunkSizer,
 {
-    /// Retrieve a reference to the chunk capacity for this configuration.
-    pub fn capacity(&self) -> &ChunkCapacity {
-        &self.capacity
-    }
-
-    /// Retrieve the amount of overlap between chunks.
-    pub fn overlap(&self) -> usize {
-        self.overlap
-    }
-
     /// Set the amount of overlap between chunks.
     ///
     /// # Errors
@@ -331,11 +302,6 @@ where
             self.overlap = overlap;
             Ok(self)
         }
-    }
-
-    /// Retrieve a reference to the chunk sizer for this configuration.
-    pub fn sizer(&self) -> &Sizer {
-        &self.sizer
     }
 
     /// Set a custom chunk sizer to use for determining the size of each chunk
@@ -351,11 +317,6 @@ where
             sizer,
             trim: self.trim,
         }
-    }
-
-    /// Whether chunkd should have whitespace trimmed from the beginning and end or not.
-    pub fn trim(&self) -> bool {
-        self.trim
     }
 
     /// Specify whether chunks should have whitespace trimmed from the
@@ -610,13 +571,13 @@ mod tests {
         let config = ChunkConfig::new(10);
         assert_eq!(config.capacity, 10.into());
         assert_eq!(config.sizer, Characters);
-        assert!(config.trim());
+        assert!(config.trim);
     }
 
     #[test]
     fn disable_trimming() {
         let config = ChunkConfig::new(10).with_trim(false);
-        assert!(!config.trim());
+        assert!(!config.trim);
     }
 
     #[test]
@@ -633,21 +594,21 @@ mod tests {
         let config = ChunkConfig::new(10).with_sizer(BasicSizer);
         assert_eq!(config.capacity, 10.into());
         assert_eq!(config.sizer, BasicSizer);
-        assert!(config.trim());
+        assert!(config.trim);
     }
 
     #[test]
     fn chunk_capacity_max_and_desired_equal() {
         let capacity = ChunkCapacity::new(10);
-        assert_eq!(capacity.desired(), 10);
-        assert_eq!(capacity.max(), 10);
+        assert_eq!(capacity.desired, 10);
+        assert_eq!(capacity.max, 10);
     }
 
     #[test]
     fn chunk_capacity_can_adjust_max() {
         let capacity = ChunkCapacity::new(10).with_max(20).unwrap();
-        assert_eq!(capacity.desired(), 10);
-        assert_eq!(capacity.max(), 20);
+        assert_eq!(capacity.desired, 10);
+        assert_eq!(capacity.max, 20);
     }
 
     #[test]
@@ -658,14 +619,14 @@ mod tests {
             err.to_string(),
             "Max chunk size must be greater than or equal to the desired chunk size"
         );
-        assert_eq!(capacity.desired(), 10);
-        assert_eq!(capacity.max(), 10);
+        assert_eq!(capacity.desired, 10);
+        assert_eq!(capacity.max, 10);
     }
 
     #[test]
     fn set_chunk_overlap() {
         let config = ChunkConfig::new(10).with_overlap(5).unwrap();
-        assert_eq!(config.overlap(), 5);
+        assert_eq!(config.overlap, 5);
     }
 
     #[test]
@@ -691,52 +652,52 @@ mod tests {
     #[test]
     fn chunk_size_reference() {
         let config = ChunkConfig::new(1).with_sizer(&Characters);
-        config.sizer().size("chunk");
+        config.sizer.size("chunk");
     }
 
     #[test]
     fn chunk_size_cow() {
         let sizer: Cow<'_, Characters> = Cow::Owned(Characters);
         let config = ChunkConfig::new(1).with_sizer(sizer);
-        config.sizer().size("chunk");
+        config.sizer.size("chunk");
 
         let sizer = Cow::Borrowed(&Characters);
         let config = ChunkConfig::new(1).with_sizer(sizer);
-        config.sizer().size("chunk");
+        config.sizer.size("chunk");
     }
 
     #[test]
     fn chunk_size_arc() {
         let sizer = Arc::new(Characters);
         let config = ChunkConfig::new(1).with_sizer(sizer);
-        config.sizer().size("chunk");
+        config.sizer.size("chunk");
     }
 
     #[test]
     fn chunk_size_ref() {
         let sizer = RefCell::new(Characters);
         let config = ChunkConfig::new(1).with_sizer(sizer.borrow());
-        config.sizer().size("chunk");
+        config.sizer.size("chunk");
     }
 
     #[test]
     fn chunk_size_ref_mut() {
         let sizer = RefCell::new(Characters);
         let config = ChunkConfig::new(1).with_sizer(sizer.borrow_mut());
-        config.sizer().size("chunk");
+        config.sizer.size("chunk");
     }
 
     #[test]
     fn chunk_size_box() {
         let sizer = Box::new(Characters);
         let config = ChunkConfig::new(1).with_sizer(sizer);
-        config.sizer().size("chunk");
+        config.sizer.size("chunk");
     }
 
     #[test]
     fn chunk_size_rc() {
         let sizer = Rc::new(Characters);
         let config = ChunkConfig::new(1).with_sizer(sizer);
-        config.sizer().size("chunk");
+        config.sizer.size("chunk");
     }
 }

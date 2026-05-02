@@ -3,9 +3,12 @@
 //! This module provides parallel extraction capabilities for processing
 //! multiple files or byte arrays concurrently with automatic resource management.
 
+#[cfg(feature = "tokio-runtime")]
+use crate::core::config::BatchBytesItem;
+#[cfg(feature = "tokio-runtime")]
+use crate::core::config::BatchFileItem;
 use crate::core::config::ExtractionConfig;
 use crate::core::config::extraction::FileExtractionConfig;
-use crate::core::config::{BatchBytesItem, BatchFileItem};
 use crate::types::ExtractionResult;
 use crate::{KreuzbergError, Result};
 use std::future::Future;

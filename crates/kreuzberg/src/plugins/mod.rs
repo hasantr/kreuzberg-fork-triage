@@ -198,4 +198,5 @@ pub use renderer::Renderer;
 pub use traits::Plugin;
 pub use validator::{Validator, clear_validators, list_validators, register_validator, unregister_validator};
 
+#[cfg(any(feature = "embeddings", feature = "api", feature = "mcp"))]
 pub(crate) use registry::get_embedding_backend_registry;

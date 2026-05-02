@@ -117,6 +117,7 @@ pub const ERROR_TYPE: &str = "kreuzberg.error.type";
 /// Sanitize a file path to return only the filename (no directory).
 ///
 /// Prevents PII from appearing in traces.
+#[cfg(any(feature = "otel", feature = "tower-service"))]
 pub(crate) fn sanitize_filename(path: &std::path::Path) -> &str {
     path.file_name().and_then(|n| n.to_str()).unwrap_or("unknown")
 }
@@ -194,7 +195,7 @@ pub mod metrics {
     pub const CONCURRENT_EXTRACTIONS: &str = "kreuzberg.extraction.concurrent";
 }
 
-#[cfg(test)]
+#[cfg(all(test, any(feature = "otel", feature = "tower-service")))]
 mod tests {
     use super::*;
     use std::path::Path;

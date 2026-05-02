@@ -5,7 +5,7 @@ use axum::{Json, extract::State, response::IntoResponse};
 
 use tower::Service;
 
-use crate::{batch_extract_bytes, cache, BatchBytesItem, service::ExtractionRequest};
+use crate::{BatchBytesItem, batch_extract_bytes, cache, service::ExtractionRequest};
 
 use super::{
     error::{ApiError, JsonApi, MultipartApi},

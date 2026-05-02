@@ -4,8 +4,10 @@
 //! for use in non-async contexts. Uses a global Tokio runtime for optimal performance.
 
 use crate::Result;
+use crate::core::config::BatchBytesItem;
+#[cfg(feature = "tokio-runtime")]
+use crate::core::config::BatchFileItem;
 use crate::core::config::ExtractionConfig;
-use crate::core::config::{BatchBytesItem, BatchFileItem};
 use crate::types::ExtractionResult;
 
 #[cfg(feature = "tokio-runtime")]

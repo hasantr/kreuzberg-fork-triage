@@ -24,6 +24,7 @@ pub(crate) use string_utils::safe_decode;
 #[cfg(any(feature = "xml", feature = "office"))]
 pub(crate) use xml_utils::xml_tag_name;
 
+#[cfg(any(feature = "pdf", feature = "quality", feature = "office"))]
 use std::borrow::Cow;
 
 /// Escape `&`, `<`, and `>` in text destined for markdown/HTML output.
@@ -34,6 +35,7 @@ use std::borrow::Cow;
 ///
 /// Uses a single-pass scan: if no special characters are found, returns a
 /// borrowed `Cow` with no allocation.
+#[cfg(feature = "pdf")]
 #[inline]
 pub(crate) fn escape_html_entities(text: &str) -> Cow<'_, str> {
     let needs_amp = text.contains('&');
@@ -58,6 +60,7 @@ pub(crate) fn escape_html_entities(text: &str) -> Cow<'_, str> {
 
 /// Normalizes whitespace by collapsing multiple whitespace characters into single spaces.
 /// Returns Cow::Borrowed if no normalization needed.
+#[cfg(any(feature = "quality", feature = "office"))]
 #[inline]
 pub(crate) fn normalize_whitespace(s: &str) -> Cow<'_, str> {
     // Check if normalization is needed
