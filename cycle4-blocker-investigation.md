@@ -15,12 +15,12 @@ hand-edited drift in the kreuzberg repo.
 
 Kotlin calls Java methods that no longer exist or have wrong return types:
 
-| Kotlin (Kreuzberg.kt) | Actual Java (Kreuzberg.java)                  | Issue                  |
-| --------------------- | --------------------------------------------- | ---------------------- |
-| `Bridge.batchExtractFileSync` (L331)  | `batchExtractFilesSync` (L116)          | Stale singular name    |
-| `Bridge.batchExtractFile` (L381)      | `batchExtractFiles` (L165)              | Stale singular name    |
-| `Bridge.listExtractors` (L451)        | `listDocumentExtractors` (L244)         | Old non-renamed name   |
-| `Bridge.getEmbeddingPreset → String?` (L551) | `getEmbeddingPreset → EmbeddingPreset` (L353) | Wrong return type      |
+| Kotlin (Kreuzberg.kt)                        | Actual Java (Kreuzberg.java)                  | Issue                |
+| -------------------------------------------- | --------------------------------------------- | -------------------- |
+| `Bridge.batchExtractFileSync` (L331)         | `batchExtractFilesSync` (L116)                | Stale singular name  |
+| `Bridge.batchExtractFile` (L381)             | `batchExtractFiles` (L165)                    | Stale singular name  |
+| `Bridge.listExtractors` (L451)               | `listDocumentExtractors` (L244)               | Old non-renamed name |
+| `Bridge.getEmbeddingPreset → String?` (L551) | `getEmbeddingPreset → EmbeddingPreset` (L353) | Wrong return type    |
 
 **Root cause**
 
@@ -111,7 +111,7 @@ bundle exec ruby -r kreuzberg -e 'puts (Kreuzberg.methods - Module.methods).sort
 Expected: 27 canonical fn names (extract_file, extract_bytes, ..., embed_texts,
 get_embedding_preset, list_embedding_presets).
 
-**Fix location** None in alef. If the cycle-4 audit needs to *prove* surface
+**Fix location** None in alef. If the cycle-4 audit needs to _prove_ surface
 parity, the audit script should run the verification recipe instead of
 counting lines in `kreuzberg.rb`.
 
@@ -128,7 +128,7 @@ counting lines in `kreuzberg.rb`.
 
 **Investigation**
 
-extendr-api's design: at *cargo build time*, the `extendr_module!` macro emits a sibling
+extendr-api's design: at _cargo build time_, the `extendr_module!` macro emits a sibling
 file `R/extendr-wrappers.R` containing R-side function declarations, plus auto-registers
 the symbols via `useDynLib`. After running `rextendr::document()` (or `R CMD INSTALL`):
 
@@ -190,14 +190,14 @@ the documented happy path. **No change recommended.**
 
 ## Next-cycle action items (for alef v0.14.3 + alef v0.14.4)
 
-| # | Backend                    | Action                                                                                    | Severity  |
-| - | -------------------------- | ----------------------------------------------------------------------------------------- | --------- |
-| 1 | alef-backend-kotlin        | Fix rename mapping for `batch_extract_files[_sync]` and `list_document_extractors`.       | Blocker   |
-| 2 | alef-backend-kotlin        | Propagate Java return types: `getEmbeddingPreset` must return `EmbeddingPreset?`.         | Blocker   |
-| 3 | alef new crate template    | Add `crates/kreuzberg-swift` swift-bridge crate (mirrors kreuzberg-php).                  | Blocker   |
-| 4 | alef-backend-swift         | Emit `public func` shims wrapping `RustBridge.<fn>` for all 27 fns + error translation.   | Blocker   |
-| 5 | alef-backend-extendr       | Emit `packages/r/R/extendr-wrappers.R` and complete `NAMESPACE` with `export(...)` lines. | Blocker   |
-| 6 | cycle-4 audit script       | Replace line-count checks for Ruby/R with runtime ls("package:kreuzberg")/Kreuzberg.methods checks. | Quality |
+| #   | Backend                 | Action                                                                                              | Severity |
+| --- | ----------------------- | --------------------------------------------------------------------------------------------------- | -------- |
+| 1   | alef-backend-kotlin     | Fix rename mapping for `batch_extract_files[_sync]` and `list_document_extractors`.                 | Blocker  |
+| 2   | alef-backend-kotlin     | Propagate Java return types: `getEmbeddingPreset` must return `EmbeddingPreset?`.                   | Blocker  |
+| 3   | alef new crate template | Add `crates/kreuzberg-swift` swift-bridge crate (mirrors kreuzberg-php).                            | Blocker  |
+| 4   | alef-backend-swift      | Emit `public func` shims wrapping `RustBridge.<fn>` for all 27 fns + error translation.             | Blocker  |
+| 5   | alef-backend-extendr    | Emit `packages/r/R/extendr-wrappers.R` and complete `NAMESPACE` with `export(...)` lines.           | Blocker  |
+| 6   | cycle-4 audit script    | Replace line-count checks for Ruby/R with runtime ls("package:kreuzberg")/Kreuzberg.methods checks. | Quality  |
 
 No kreuzberg repo changes are needed for cycle 4. Working tree left clean for the
 sibling agent's regen pass.
