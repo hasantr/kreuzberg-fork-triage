@@ -2,10 +2,10 @@
 
 package dev.kreuzberg.kt
 
+import dev.kreuzberg.Kreuzberg as Bridge
+import java.nio.file.Path
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.nio.file.Path
-import dev.kreuzberg.Kreuzberg as Bridge
 
 typealias AccelerationConfig = dev.kreuzberg.AccelerationConfig
 typealias ContentFilterConfig = dev.kreuzberg.ContentFilterConfig
@@ -241,14 +241,11 @@ object Kreuzberg {
      * Returns `KreuzbergError.Validation` if MIME type is invalid.
      * Returns `KreuzbergError.UnsupportedFormat` if MIME type is not supported.
      */
-    suspend fun extractBytes(
-        content: ByteArray,
-        mimeType: String,
-        config: ExtractionConfig,
-    ): ExtractionResult =
-        withContext(Dispatchers.IO) {
+    suspend fun extractBytes(content: ByteArray, mimeType: String, config: ExtractionConfig): ExtractionResult {
+        return withContext(Dispatchers.IO) {
             Bridge.extractBytes(content, mimeType, config)
         }
+    }
 
     /**
      * Extract content from a file.
@@ -270,14 +267,11 @@ object Kreuzberg {
      * Returns `KreuzbergError.Io` if the file doesn't exist (NotFound) or for other file I/O errors.
      * Returns `KreuzbergError.UnsupportedFormat` if MIME type is not supported.
      */
-    suspend fun extractFile(
-        path: Path,
-        mimeType: String?,
-        config: ExtractionConfig,
-    ): ExtractionResult =
-        withContext(Dispatchers.IO) {
+    suspend fun extractFile(path: Path, mimeType: String?, config: ExtractionConfig): ExtractionResult {
+        return withContext(Dispatchers.IO) {
             Bridge.extractFile(path, mimeType, config)
         }
+    }
 
     /**
      * Synchronous wrapper for `extract_file`.
@@ -291,11 +285,9 @@ object Kreuzberg {
      * This function is only available with the `tokio-runtime` feature. For WASM targets,
      * use a truly synchronous extraction approach instead.
      */
-    fun extractFileSync(
-        path: Path,
-        mimeType: String?,
-        config: ExtractionConfig,
-    ): ExtractionResult = Bridge.extractFileSync(path, mimeType, config)
+    fun extractFileSync(path: Path, mimeType: String?, config: ExtractionConfig): ExtractionResult {
+        return Bridge.extractFileSync(path, mimeType, config)
+    }
 
     /**
      * Synchronous wrapper for `extract_bytes`.
@@ -306,11 +298,9 @@ object Kreuzberg {
      * With the `tokio-runtime` feature, this blocks the current thread using the global
      * Tokio runtime. Without it (WASM), this calls a truly synchronous implementation.
      */
-    fun extractBytesSync(
-        content: ByteArray,
-        mimeType: String,
-        config: ExtractionConfig,
-    ): ExtractionResult = Bridge.extractBytesSync(content, mimeType, config)
+    fun extractBytesSync(content: ByteArray, mimeType: String, config: ExtractionConfig): ExtractionResult {
+        return Bridge.extractBytesSync(content, mimeType, config)
+    }
 
     /**
      * Synchronous wrapper for `batch_extract_files`.
@@ -318,10 +308,9 @@ object Kreuzberg {
      * Uses the global Tokio runtime for optimal performance.
      * Only available with `tokio-runtime` (WASM has no filesystem).
      */
-    fun batchExtractFilesSync(
-        items: List<BatchFileItem>,
-        config: ExtractionConfig,
-    ): List<ExtractionResult> = Bridge.batchExtractFilesSync(items, config)
+    fun batchExtractFilesSync(items: List<BatchFileItem>, config: ExtractionConfig): List<ExtractionResult> {
+        return Bridge.batchExtractFilesSync(items, config)
+    }
 
     /**
      * Synchronous wrapper for `batch_extract_bytes`.
@@ -331,10 +320,9 @@ object Kreuzberg {
      * Tokio runtime. Without it (WASM), this calls a truly synchronous implementation
      * that iterates through items and calls `extract_bytes_sync()`.
      */
-    fun batchExtractBytesSync(
-        items: List<BatchBytesItem>,
-        config: ExtractionConfig,
-    ): List<ExtractionResult> = Bridge.batchExtractBytesSync(items, config)
+    fun batchExtractBytesSync(items: List<BatchBytesItem>, config: ExtractionConfig): List<ExtractionResult> {
+        return Bridge.batchExtractBytesSync(items, config)
+    }
 
     /**
      * Extract content from multiple files concurrently.
@@ -366,13 +354,11 @@ object Kreuzberg {
      *
      * Per-file configuration overrides:
      */
-    suspend fun batchExtractFiles(
-        items: List<BatchFileItem>,
-        config: ExtractionConfig,
-    ): List<ExtractionResult> =
-        withContext(Dispatchers.IO) {
+    suspend fun batchExtractFiles(items: List<BatchFileItem>, config: ExtractionConfig): List<ExtractionResult> {
+        return withContext(Dispatchers.IO) {
             Bridge.batchExtractFiles(items, config)
         }
+    }
 
     /**
      * Extract content from multiple byte arrays concurrently.
@@ -398,13 +384,11 @@ object Kreuzberg {
      *
      * Per-item configuration overrides:
      */
-    suspend fun batchExtractBytes(
-        items: List<BatchBytesItem>,
-        config: ExtractionConfig,
-    ): List<ExtractionResult> =
-        withContext(Dispatchers.IO) {
+    suspend fun batchExtractBytes(items: List<BatchBytesItem>, config: ExtractionConfig): List<ExtractionResult> {
+        return withContext(Dispatchers.IO) {
             Bridge.batchExtractBytes(items, config)
         }
+    }
 
     /**
      * Detect MIME type from raw file bytes.
@@ -423,7 +407,9 @@ object Kreuzberg {
      *
      * Returns `KreuzbergError.UnsupportedFormat` if MIME type cannot be determined.
      */
-    fun detectMimeTypeFromBytes(content: ByteArray): String = Bridge.detectMimeTypeFromBytes(content)
+    fun detectMimeTypeFromBytes(content: ByteArray): String {
+        return Bridge.detectMimeTypeFromBytes(content)
+    }
 
     /**
      * Get file extensions for a given MIME type.
@@ -434,12 +420,16 @@ object Kreuzberg {
      *
      * A vector of file extensions (without leading dot) for the MIME type.
      */
-    fun getExtensionsForMime(mimeType: String): List<String> = Bridge.getExtensionsForMime(mimeType)
+    fun getExtensionsForMime(mimeType: String): List<String> {
+        return Bridge.getExtensionsForMime(mimeType)
+    }
 
     /**
      * List names of all registered document extractors.
      */
-    fun listDocumentExtractors(): List<String> = Bridge.listDocumentExtractors()
+    fun listDocumentExtractors(): List<String> {
+        return Bridge.listDocumentExtractors()
+    }
 
     /**
      * List all registered OCR backends.
@@ -450,7 +440,9 @@ object Kreuzberg {
      *
      * A vector of OCR backend names.
      */
-    fun listOcrBackends(): List<String> = Bridge.listOcrBackends()
+    fun listOcrBackends(): List<String> {
+        return Bridge.listOcrBackends()
+    }
 
     /**
      * Clear all OCR backends from the global registry.
@@ -462,7 +454,7 @@ object Kreuzberg {
      * - `Ok(())` if all backends were cleared successfully
      * - `Err(...)` if any shutdown method failed
      */
-    fun clearOcrBackends() {
+    fun clearOcrBackends(): Unit {
         Bridge.clearOcrBackends()
     }
 
@@ -477,24 +469,28 @@ object Kreuzberg {
      * - `Ok(Vec<String>)` - Vector of post-processor names
      * - `Err(...)` if the registry lock is poisoned
      */
-    fun listPostProcessors(): List<String> = Bridge.listPostProcessors()
+    fun listPostProcessors(): List<String> {
+        return Bridge.listPostProcessors()
+    }
 
     /**
      * Remove all registered post-processors.
      */
-    fun clearPostProcessors() {
+    fun clearPostProcessors(): Unit {
         Bridge.clearPostProcessors()
     }
 
     /**
      * List names of all registered validators.
      */
-    fun listValidators(): List<String> = Bridge.listValidators()
+    fun listValidators(): List<String> {
+        return Bridge.listValidators()
+    }
 
     /**
      * Remove all registered validators.
      */
-    fun clearValidators() {
+    fun clearValidators(): Unit {
         Bridge.clearValidators()
     }
 
@@ -513,13 +509,11 @@ object Kreuzberg {
      * - `KreuzbergError.Embedding` if the preset name is unknown, model download fails,
      *   or the blocking inference task panics
      */
-    suspend fun embedTextsAsync(
-        texts: List<String>,
-        config: EmbeddingConfig,
-    ): List<List<Float>> =
-        withContext(Dispatchers.IO) {
+    suspend fun embedTextsAsync(texts: List<String>, config: EmbeddingConfig): List<List<Float>> {
+        return withContext(Dispatchers.IO) {
             Bridge.embedTextsAsync(texts, config)
         }
+    }
 
     /**
      * Render a single PDF page to a PNG-encoded byte buffer.
@@ -529,12 +523,9 @@ object Kreuzberg {
      * Returns an error if the PDF is invalid, the page index is out of bounds,
      * or if the page fails to render.
      */
-    fun renderPdfPageToPng(
-        pdfBytes: ByteArray,
-        pageIndex: Long,
-        dpi: Int?,
-        password: String?,
-    ): ByteArray = Bridge.renderPdfPageToPng(pdfBytes, pageIndex, dpi, password)
+    fun renderPdfPageToPng(pdfBytes: ByteArray, pageIndex: Long, dpi: Int?, password: String?): ByteArray {
+        return Bridge.renderPdfPageToPng(pdfBytes, pageIndex, dpi, password)
+    }
 
     /**
      * Detect the MIME type of a file at the given path.
@@ -542,20 +533,18 @@ object Kreuzberg {
      * Uses the file extension and optionally the file content to determine the MIME type.
      * Set `check_exists` to `true` to verify the file exists before detection.
      */
-    fun detectMimeType(
-        path: String,
-        checkExists: Boolean,
-    ): String = Bridge.detectMimeType(path, checkExists)
+    fun detectMimeType(path: String, checkExists: Boolean): String {
+        return Bridge.detectMimeType(path, checkExists)
+    }
 
     /**
      * Embed a list of texts using the configured embedding model.
      *
      * Returns a 2D vector where each inner vector is the embedding for the corresponding text.
      */
-    fun embedTexts(
-        texts: List<String>,
-        config: EmbeddingConfig,
-    ): List<List<Float>> = Bridge.embedTexts(texts, config)
+    fun embedTexts(texts: List<String>, config: EmbeddingConfig): List<List<Float>> {
+        return Bridge.embedTexts(texts, config)
+    }
 
     /**
      * Get an embedding preset by name.
@@ -563,12 +552,17 @@ object Kreuzberg {
      * Returns `null` if no preset with the given name exists. Returns an owned
      * clone so the value is safe to pass across FFI boundaries.
      */
-    fun getEmbeddingPreset(name: String): EmbeddingPreset? = Bridge.getEmbeddingPreset(name)
+    fun getEmbeddingPreset(name: String): EmbeddingPreset? {
+        return Bridge.getEmbeddingPreset(name)
+    }
 
     /**
      * List the names of all available embedding presets.
      *
      * Returns owned `String`s so the values are safe to pass across FFI boundaries.
      */
-    fun listEmbeddingPresets(): List<String> = Bridge.listEmbeddingPresets()
+    fun listEmbeddingPresets(): List<String> {
+        return Bridge.listEmbeddingPresets()
+    }
+
 }

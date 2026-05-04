@@ -1075,7 +1075,7 @@ e2e = "cd e2e/r && Rscript -e \"devtools::load_all('../../packages/r'); testthat
 
 [crates.test.wasm]
 precondition = "command -v wasm-pack >/dev/null 2>&1"
-before = "wasm-pack build crates/kreuzberg-wasm --release --target bundler && cd e2e/wasm && npm install"
+before = "wasm-pack build crates/kreuzberg-wasm --release --target web && cd e2e/wasm && npm install"
 e2e = "cd e2e/wasm && npm test"
 
 [crates.test.rust]
@@ -2168,25 +2168,25 @@ trait_name = "OcrBackend"
 super_trait = "kreuzberg::plugins::Plugin"
 registry_getter = "kreuzberg::plugins::registry::get_ocr_backend_registry"
 register_fn = "register_ocr_backend"
-exclude_languages = ["elixir"]
+exclude_languages = ["elixir", "r"]
 
 [[crates.trait_bridges]]
 trait_name = "PostProcessor"
 super_trait = "kreuzberg::plugins::Plugin"
 registry_getter = "kreuzberg::plugins::registry::get_post_processor_registry"
 register_fn = "register_post_processor"
-exclude_languages = ["elixir"]
+exclude_languages = ["elixir", "r"]
 
 [[crates.trait_bridges]]
 trait_name = "Validator"
 super_trait = "kreuzberg::plugins::Plugin"
 registry_getter = "kreuzberg::plugins::registry::get_validator_registry"
 register_fn = "register_validator"
-exclude_languages = ["elixir"]
+exclude_languages = ["elixir", "r"]
 
 [[crates.trait_bridges]]
 trait_name = "EmbeddingBackend"
 super_trait = "kreuzberg::plugins::Plugin"
 registry_getter = "kreuzberg::plugins::registry::get_embedding_backend_registry"
 register_fn = "register_embedding_backend"
-exclude_languages = ["elixir"]
+exclude_languages = ["elixir", "r"]
