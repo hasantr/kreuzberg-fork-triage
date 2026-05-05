@@ -46,6 +46,10 @@ mod additional_serde {
         let result = map.into_iter().map(|(k, v)| (Cow::Owned(k), v)).collect();
         Ok(result)
     }
+
+    pub(crate) fn is_empty(map: &AHashMap<Cow<'static, str>, serde_json::Value>) -> bool {
+        map.is_empty()
+    }
 }
 
 /// Format-specific metadata (discriminated union).
@@ -152,9 +156,8 @@ pub struct Metadata {
     /// Format-specific metadata (discriminated union)
     ///
     /// Contains detailed metadata specific to the document format.
-    /// Serializes with a `format_type` discriminator field.
-    #[serde(flatten, skip_serializing_if = "Option::is_none")]
-    #[cfg_attr(feature = "api", schema(value_type = Option<Object>))]
+    /// Serialized as a nested `"format"` object with a `format_type` discriminator field.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<FormatMetadata>,
 
     /// Image preprocessing metadata (when OCR preprocessing was applied)
@@ -199,34 +202,15 @@ pub struct Metadata {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub output_format: Option<String>,
 
-    /// Number of sheets in the workbook (Excel/spreadsheet sources only).
-    ///
-    /// `None` for non-spreadsheet documents. Mirrors the JSON-flat field
-    /// already exposed via the `FormatMetadata::Excel` flatten so all bindings
-    /// see it at `metadata.sheet_count`.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sheet_count: Option<usize>,
-
-    /// Sheet names in the workbook (Excel/spreadsheet sources only).
-    ///
-    /// `None` for non-spreadsheet documents.
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub sheet_names: Option<Vec<String>>,
-
     /// Additional custom fields from postprocessors.
     ///
-    /// **Deprecated**: Prefer using typed fields on `ExtractionResult` and `Metadata`
-    /// instead of inserting into this map. Typed fields provide better cross-language
-    /// compatibility and type safety. This field will be removed in a future major version.
-    ///
-    /// This flattened map allows Python/TypeScript postprocessors to add
-    /// arbitrary fields (entity extraction, keyword extraction, etc.).
-    /// Fields are merged at the root level during serialization.
+    /// Serialized as a nested `"additional"` object (not flattened at root level).
     /// Uses `Cow<'static, str>` keys so static string keys avoid allocation.
     #[serde(
-        flatten,
+        skip_serializing_if = "additional_serde::is_empty",
         serialize_with = "additional_serde::serialize",
-        deserialize_with = "additional_serde::deserialize"
+        deserialize_with = "additional_serde::deserialize",
+        default
     )]
     #[cfg_attr(feature = "api", schema(value_type = HashMap<String, serde_json::Value>))]
     pub additional: AHashMap<Cow<'static, str>, serde_json::Value>,
@@ -260,15 +244,21 @@ impl Metadata {
     }
 }
 
-/// Excel/spreadsheet metadata marker.
+/// Excel/spreadsheet format metadata.
 ///
-/// Sheet count and sheet names are now exposed directly on [`Metadata`] as
-/// `sheet_count: Option<usize>` and `sheet_names: Option<Vec<String>>` so that
-/// every binding (Rust, Python, Node, …) sees them at the same path. This
-/// struct remains as a `FormatMetadata` variant tag for spreadsheet sources.
+/// Identifies the document as a spreadsheet source via the `FormatMetadata::Excel`
+/// discriminant. Sheet count and sheet names are stored inside this struct.
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 #[cfg_attr(feature = "api", derive(utoipa::ToSchema))]
-pub struct ExcelMetadata {}
+pub struct ExcelMetadata {
+    /// Number of sheets in the workbook.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sheet_count: Option<usize>,
+
+    /// Names of all sheets in the workbook.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub sheet_names: Option<Vec<String>>,
+}
 
 /// Email metadata extracted from .eml and .msg files.
 ///

@@ -59,17 +59,14 @@ mod tests {
         let json = serde_json::to_value(&metadata).unwrap();
         println!("Serialized metadata: {}", serde_json::to_string_pretty(&json).unwrap());
 
-        assert!(
-            json.get("format_type").is_some(),
-            "format_type should be present in serialized JSON"
-        );
-        assert_eq!(json.get("format_type").unwrap(), "text");
+        let format = json.get("format").expect("format field should be present");
+        assert_eq!(format.get("format_type").unwrap(), "text");
+        assert_eq!(format.get("line_count").unwrap(), 1);
+        assert_eq!(format.get("word_count").unwrap(), 2);
+        assert_eq!(format.get("character_count").unwrap(), 13);
 
-        assert_eq!(json.get("line_count").unwrap(), 1);
-        assert_eq!(json.get("word_count").unwrap(), 2);
-        assert_eq!(json.get("character_count").unwrap(), 13);
-
-        assert_eq!(json.get("quality_score").unwrap(), 1.0);
+        let additional = json.get("additional").expect("additional field should be present");
+        assert_eq!(additional.get("quality_score").unwrap(), 1.0);
     }
 
     #[test]

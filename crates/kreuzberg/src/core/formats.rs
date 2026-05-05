@@ -6,10 +6,10 @@
 //!
 //! # Known Format Fields
 //!
-//! The registry contains 58 standardized format fields organized by category:
-//! - **Document Properties**: format_type, title, author, keywords, creator, producer, etc.
+//! The registry contains 55 standardized format fields organized by category:
+//! - **Document Properties**: title, author, keywords, creator, producer, etc.
 //! - **Dates**: creation_date, modification_date
-//! - **Pagination**: page_count, sheet_count, sheet_names
+//! - **Pagination**: page_count
 //! - **Email Metadata**: from_email, from_name, to_emails, cc_emails, bcc_emails, message_id
 //! - **Attachments**: attachments
 //! - **Descriptions**: description, summary
@@ -29,7 +29,7 @@
 //!
 //! assert!(is_valid_format_field("title"));
 //! assert!(!is_valid_format_field("invalid_field"));
-//! assert_eq!(KNOWN_FORMATS.len(), 58);
+//! assert_eq!(KNOWN_FORMATS.len(), 55);
 //! ```
 
 #[cfg(test)]
@@ -51,7 +51,6 @@ use std::sync::LazyLock;
 /// - Archives: file_count, file_list, total_size, etc.
 #[cfg(test)]
 pub(crate) const KNOWN_FORMATS: &[&str] = &[
-    "format_type",
     "title",
     "author",
     "keywords",
@@ -60,8 +59,6 @@ pub(crate) const KNOWN_FORMATS: &[&str] = &[
     "creation_date",
     "modification_date",
     "page_count",
-    "sheet_count",
-    "sheet_names",
     "from_email",
     "from_name",
     "to_emails",
@@ -152,7 +149,7 @@ mod tests {
 
     #[test]
     fn test_known_formats_count() {
-        assert_eq!(KNOWN_FORMATS.len(), 58, "Expected 58 known format fields");
+        assert_eq!(KNOWN_FORMATS.len(), 55, "Expected 55 known format fields");
     }
 
     #[test]
@@ -185,7 +182,7 @@ mod tests {
 
     #[test]
     fn test_all_document_property_fields() {
-        let doc_fields = ["format_type", "title", "author", "keywords", "creator", "producer"];
+        let doc_fields = ["title", "author", "keywords", "creator", "producer"];
         for field in &doc_fields {
             assert!(is_valid_format_field(field), "Missing field: {}", field);
         }

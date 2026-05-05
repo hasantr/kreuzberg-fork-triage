@@ -103,7 +103,10 @@ impl ExcelExtractor {
 
         let sheet_names: Vec<String> = workbook.sheets.iter().map(|s| s.name.clone()).collect();
         let sheet_count = workbook.sheets.len();
-        let excel_metadata = ExcelMetadata::default();
+        let excel_metadata = ExcelMetadata {
+            sheet_count: Some(sheet_count),
+            sheet_names: Some(sheet_names),
+        };
 
         let mut additional = AHashMap::new();
         let wb_meta = &workbook.metadata;
@@ -127,7 +130,7 @@ impl ExcelExtractor {
         // Put remaining metadata into additional map (excluding standard fields)
         for (key, value) in &workbook.metadata {
             match key.as_str() {
-                "sheet_count" | "sheet_names" | "title" | "subject" | "created_by" | "creator" | "modified_by"
+                "title" | "subject" | "created_by" | "creator" | "modified_by"
                 | "created_at" | "modified_at" | "keywords" | "language" => {}
                 _ => {
                     additional.insert(Cow::Owned(key.clone()), serde_json::json!(value));
@@ -146,8 +149,6 @@ impl ExcelExtractor {
             created_by,
             modified_by,
             format: Some(crate::types::FormatMetadata::Excel(excel_metadata)),
-            sheet_count: Some(sheet_count),
-            sheet_names: Some(sheet_names),
             additional,
             ..Default::default()
         };
@@ -160,7 +161,6 @@ impl SyncExtractor for ExcelExtractor {
     fn extract_sync(&self, content: &[u8], mime_type: &str, config: &ExtractionConfig) -> Result<InternalDocument> {
         let _span = tracing::debug_span!(
             "extract_excel",
-            sheet_count = tracing::field::Empty,
             element_count = tracing::field::Empty,
         )
         .entered();
