@@ -328,7 +328,7 @@ pastey = "0.2"
 pdf_oxide = { workspace = true, optional = true }
 pdfium-render = { workspace = true, features = ["thread_safe", "image_latest"], optional = true }
 pulldown-cmark = { version = "0.13" }
-quick-xml = { version = "0.39.2", features = ["serialize"], optional = true }
+quick-xml = { version = "0.39.3", features = ["serialize"], optional = true }
 rake = { version = "0.3.6", optional = true }
 rayon = { workspace = true }
 regex = "1.12.3"
@@ -376,7 +376,7 @@ tracing = { workspace = true }
 tracing-opentelemetry = { version = "0.32", optional = true }
 unicode-normalization = { version = "0.1.25", optional = true }
 urlencoding = "2"
-utoipa = { version = "5.4", features = ["axum_extras"], optional = true }
+utoipa = { version = "5.5", features = ["axum_extras"], optional = true }
 v_htmlescape = { version = "0.17", optional = true }
 whatlang = { version = "0.18.0", optional = true }
 zip = { version = ">=7.0.0", optional = true, default-features = false, features = [
