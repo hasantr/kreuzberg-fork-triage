@@ -18,5 +18,8 @@
       "field": "embeddings",
       "value": 2
     }
-  ]
+  ],
+  "skip": {
+    "skip_languages": ["wasm"]
+  }
 }
