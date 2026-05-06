@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Breaking Changes
 
+- **`Metadata.format` is now a nested object, not flattened**: The `format`
+  field (and its `format_type` discriminator) moved from the root of the
+  `Metadata` JSON object into a dedicated `format` key:
+  `{"format": {"format_type": "pdf", ...}}` instead of
+  `{"format_type": "pdf", ...}` at root. The `additional` postprocessor map
+  is likewise nested under an `"additional"` key. The top-level
+  `sheet_count` / `sheet_names` mirror fields are gone; access them via
+  `metadata.format.excel.sheet_count` / `.sheet_names`. Affects REST,
+  MCP, CLI (`--output-format json`), and every binding.
 - **Go module path changed from `v4` to `v5`**: Import path is now `github.com/kreuzberg-dev/kreuzberg/v5`. Update your `go.mod` and all import statements.
 - **PHP binding parameter names are now lowerCamelCase**: Function parameters such as `$mime_type` are now `$mimeType`, `$page_index` → `$pageIndex`, etc., matching PHP naming conventions.
 - **Python `_to_rust_extraction_config` dict-coercion refactored**: The `isinstance(value, dict)` branch now delegates to `_coerce_dict_extraction_config()`. No public API change; internal helper is not part of the public surface.
