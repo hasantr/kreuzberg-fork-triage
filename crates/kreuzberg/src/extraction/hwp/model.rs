@@ -13,25 +13,10 @@ use super::parser::Record;
 pub struct HwpDocument {
     /// All sections from all BodyText/SectionN streams.
     pub sections: Vec<Section>,
-}
-
-impl HwpDocument {
-    /// Concatenate the text of every paragraph in every section, separated by
-    /// newlines.
-    pub(crate) fn extract_text(&self) -> String {
-        let mut out = String::new();
-        for section in &self.sections {
-            for para in &section.paragraphs {
-                if let Some(ref t) = para.text
-                    && !t.content.is_empty()
-                {
-                    out.push_str(&t.content);
-                    out.push('\n');
-                }
-            }
-        }
-        out
-    }
+    /// Global character shape table from DocInfo.
+    pub char_shapes: Vec<CharShape>,
+    /// Extracted images from BinData.
+    pub images: Vec<HwpImage>,
 }
 
 // ---------------------------------------------------------------------------
@@ -52,6 +37,30 @@ pub struct Section {
 #[derive(Debug, Default)]
 pub struct Paragraph {
     pub text: Option<ParaText>,
+    pub outline_level: u8,
+    /// Mappings from character position to char_shape index.
+    pub char_shape_runs: Vec<(u32, u16)>,
+}
+
+// ---------------------------------------------------------------------------
+// CharShape — character formatting attributes
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct CharShape {
+    pub bold: bool,
+    pub italic: bool,
+    pub underline: bool,
+}
+
+// ---------------------------------------------------------------------------
+// Images
+// ---------------------------------------------------------------------------
+
+#[derive(Debug, Clone, Default)]
+pub struct HwpImage {
+    pub name: String,
+    pub data: Vec<u8>,
 }
 
 // ---------------------------------------------------------------------------

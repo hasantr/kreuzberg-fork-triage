@@ -3,7 +3,7 @@
 /// Consolidated from hwpers parser/record.rs, parser/header.rs, and
 /// parser/body_text.rs.
 use super::error::{HwpError, Result};
-use super::model::{ParaText, Paragraph, Section};
+use super::model::{CharShape, ParaText, Paragraph, Section};
 use super::reader::{StreamReader, decompress_stream};
 
 // ---------------------------------------------------------------------------
@@ -49,11 +49,6 @@ impl FileHeader {
     /// Whether the document is password-encrypted.
     pub(crate) fn is_encrypted(&self) -> bool {
         (self.flags & 0x02) != 0
-    }
-
-    /// Whether the document is a distribution document (text in ViewText/).
-    pub(crate) fn is_distribute(&self) -> bool {
-        (self.flags & 0x04) != 0
     }
 }
 
@@ -122,6 +117,39 @@ const TAG_PARA_HEADER: u16 = HWPTAG_BEGIN + 64; // 0x50
 /// offset 65 from HWPTAG_BEGIN, yielding tag ID 0x51. The record payload is a
 /// sequence of UTF-16LE code units representing the paragraph content.
 const TAG_PARA_TEXT: u16 = HWPTAG_BEGIN + 65; // 0x51
+/// HWP 5.x body-text record tag: paragraph shape (HWPTAG_BEGIN + 66 = 0x52).
+const TAG_PARA_SHAPE: u16 = HWPTAG_BEGIN + 66; // 0x52
+/// HWP 5.x body-text record tag: char shape (HWPTAG_BEGIN + 67 = 0x53).
+const TAG_CHAR_SHAPE: u16 = HWPTAG_BEGIN + 67; // 0x53
+
+const TAG_CHAR_SHAPE_INFO: u16 = HWPTAG_BEGIN + 30; // 0x2E
+
+// ---------------------------------------------------------------------------
+// DocInfoParser — parse global tables
+// ---------------------------------------------------------------------------
+
+pub(crate) fn parse_doc_info(data: Vec<u8>) -> Result<Vec<CharShape>> {
+    let mut reader = StreamReader::new(data);
+    let mut char_shapes = Vec::new();
+
+    while reader.remaining() >= 4 {
+        let record = match Record::parse(&mut reader) {
+            Ok(r) => r,
+            Err(_) => break,
+        };
+
+        if record.tag_id == TAG_CHAR_SHAPE_INFO && record.data.len() >= 4 {
+            let font_attr = u32::from_le_bytes([record.data[0], record.data[1], record.data[2], record.data[3]]);
+            char_shapes.push(CharShape {
+                bold: (font_attr & 0x01) != 0,
+                italic: (font_attr & 0x02) != 0,
+                underline: (font_attr & 0x04) != 0,
+            });
+        }
+    }
+
+    Ok(char_shapes)
+}
 
 // ---------------------------------------------------------------------------
 // BodyTextParser — parse a single decompressed section into paragraphs
@@ -160,6 +188,27 @@ pub(crate) fn parse_body_text(data: Vec<u8>, is_compressed: bool) -> Result<Vec<
                     para.text = Some(text);
                 }
             }
+            TAG_PARA_SHAPE => {
+                if let Some(ref mut para) = current_paragraph {
+                    // ParaShape record byte offset 18: outline_level (u8)
+                    if record.data.len() > 18 {
+                        para.outline_level = record.data[18];
+                    }
+                }
+            }
+            TAG_CHAR_SHAPE => {
+                if let Some(ref mut para) = current_paragraph {
+                    // CharShape record in BodyText is a list of (pos, shape_idx)
+                    // Each entry is 6 bytes: pos (u32), shape_idx (u16)
+                    let mut reader = record.data_reader();
+                    while reader.remaining() >= 6 {
+                        let pos = reader.read_u32().unwrap_or(0);
+                        let shape_idx = reader.read_u16().unwrap_or(0);
+                        para.char_shape_runs.push((pos, shape_idx));
+                    }
+                }
+            }
+
             _ => {
                 // Skip all other tags — we only need plain text
             }
@@ -189,8 +238,9 @@ mod tests {
             return;
         }
         let bytes = std::fs::read(&path).expect("read file");
-        let text = crate::extraction::hwp::extract_hwp_text(&bytes).expect("HWP extraction should succeed");
-        assert!(text.len() >= 10, "Expected content length >= 10, got {}", text.len());
+        let doc = crate::extraction::hwp::extract_hwp_document(&bytes).expect("HWP extraction should succeed");
+        assert!(!doc.sections.is_empty(), "Expected at least one section");
+        assert!(!doc.sections[0].paragraphs.is_empty(), "Expected at least one paragraph");
     }
 
     #[test]
