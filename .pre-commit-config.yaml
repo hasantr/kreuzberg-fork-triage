@@ -97,6 +97,7 @@ repos:
             "warnings",
           ]
       - id: cargo-machete
+        args: ["crates/", "packages/", "tools/"]
         exclude: ^e2e/
       - id: cargo-deny
         args: ["check"]
