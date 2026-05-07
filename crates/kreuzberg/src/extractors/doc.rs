@@ -124,7 +124,7 @@ impl DocumentExtractor for DocExtractor {
             authors: meta_authors,
             created_by: meta_created_by,
             modified_by: meta_modified_by,
-            additional: metadata_map,
+            custom: metadata_map,
             ..Default::default()
         };
 

@@ -46,7 +46,7 @@ fn ensure_quality_processor() {
 #[serial]
 async fn test_run_pipeline_basic() {
     let mut doc = make_doc("test", "text/plain");
-    doc.metadata.additional.insert(
+    doc.metadata.custom.insert(
         Cow::Borrowed(VALIDATION_MARKER_KEY),
         serde_json::json!(ORDER_VALIDATION_MARKER),
     );
@@ -139,15 +139,15 @@ async fn test_pipeline_without_chunking() {
 #[serial]
 async fn test_pipeline_preserves_metadata() {
     use ahash::AHashMap;
-    let mut additional = AHashMap::new();
-    additional.insert(Cow::Borrowed("source"), serde_json::json!("test"));
-    additional.insert(Cow::Borrowed("page"), serde_json::json!(1));
+    let mut custom = AHashMap::new();
+    custom.insert(Cow::Borrowed("source"), serde_json::json!("test"));
+    custom.insert(Cow::Borrowed("page"), serde_json::json!(1));
 
     let doc = make_doc_with_metadata(
         "test",
         "text/plain",
         Metadata {
-            additional,
+            custom,
             ..Default::default()
         },
     );
@@ -161,11 +161,11 @@ async fn test_pipeline_preserves_metadata() {
 
     let processed = run_pipeline(doc, &config).await.unwrap();
     assert_eq!(
-        processed.metadata.additional.get("source").unwrap(),
+        processed.metadata.custom.get("source").unwrap(),
         &serde_json::json!("test")
     );
     assert_eq!(
-        processed.metadata.additional.get("page").unwrap(),
+        processed.metadata.custom.get("page").unwrap(),
         &serde_json::json!(1)
     );
 }
@@ -304,7 +304,7 @@ async fn test_pipeline_without_keyword_config() {
 
     let processed = run_pipeline(doc, &config).await.unwrap();
 
-    assert!(!processed.metadata.additional.contains_key("keywords"));
+    assert!(!processed.metadata.custom.contains_key("keywords"));
 }
 
 #[tokio::test]
@@ -335,7 +335,7 @@ async fn test_pipeline_keyword_extraction_short_content() {
 
     let processed = run_pipeline(doc, &config).await.unwrap();
 
-    assert!(!processed.metadata.additional.contains_key("keywords"));
+    assert!(!processed.metadata.custom.contains_key("keywords"));
 }
 
 #[tokio::test]
@@ -366,7 +366,7 @@ async fn test_postprocessor_runs_before_validator() {
         async fn process(&self, result: &mut ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
             result
                 .metadata
-                .additional
+                .custom
                 .insert(Cow::Borrowed("processed"), serde_json::json!(true));
             Ok(())
         }
@@ -397,7 +397,7 @@ async fn test_postprocessor_runs_before_validator() {
         async fn validate(&self, result: &ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
             let should_validate = result
                 .metadata
-                .additional
+                .custom
                 .get(VALIDATION_MARKER_KEY)
                 .and_then(|v| v.as_str())
                 == Some(POSTPROCESSOR_VALIDATION_MARKER);
@@ -408,7 +408,7 @@ async fn test_postprocessor_runs_before_validator() {
 
             let processed = result
                 .metadata
-                .additional
+                .custom
                 .get("processed")
                 .and_then(|v| v.as_bool())
                 .unwrap_or(false);
@@ -444,7 +444,7 @@ async fn test_postprocessor_runs_before_validator() {
     clear_processor_cache().unwrap();
 
     let mut doc = make_doc("test", "text/plain");
-    doc.metadata.additional.insert(
+    doc.metadata.custom.insert(
         Cow::Borrowed(VALIDATION_MARKER_KEY),
         serde_json::json!(POSTPROCESSOR_VALIDATION_MARKER),
     );
@@ -468,7 +468,7 @@ async fn test_postprocessor_runs_before_validator() {
     assert!(processed.is_ok(), "Validator should have seen post-processor metadata");
     let processed = processed.unwrap();
     assert_eq!(
-        processed.metadata.additional.get("processed"),
+        processed.metadata.custom.get("processed"),
         Some(&serde_json::json!(true)),
         "Post-processor metadata should be present"
     );
@@ -504,7 +504,7 @@ async fn test_quality_processing_runs_before_validator() {
         async fn validate(&self, result: &ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
             let should_validate = result
                 .metadata
-                .additional
+                .custom
                 .get(VALIDATION_MARKER_KEY)
                 .and_then(|v| v.as_str())
                 == Some(QUALITY_VALIDATION_MARKER);
@@ -530,7 +530,7 @@ async fn test_quality_processing_runs_before_validator() {
     }
 
     let mut doc = make_doc("This is meaningful test content for quality scoring.", "text/plain");
-    doc.metadata.additional.insert(
+    doc.metadata.custom.insert(
         Cow::Borrowed(VALIDATION_MARKER_KEY),
         serde_json::json!(QUALITY_VALIDATION_MARKER),
     );
@@ -578,7 +578,7 @@ async fn test_multiple_postprocessors_run_before_validator() {
         async fn process(&self, result: &mut ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
             let mut order = result
                 .metadata
-                .additional
+                .custom
                 .get("execution_order")
                 .and_then(|v| v.as_array())
                 .cloned()
@@ -586,7 +586,7 @@ async fn test_multiple_postprocessors_run_before_validator() {
             order.push(serde_json::json!("early"));
             result
                 .metadata
-                .additional
+                .custom
                 .insert(Cow::Borrowed("execution_order"), serde_json::json!(order));
             Ok(())
         }
@@ -617,7 +617,7 @@ async fn test_multiple_postprocessors_run_before_validator() {
         async fn process(&self, result: &mut ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
             let mut order = result
                 .metadata
-                .additional
+                .custom
                 .get("execution_order")
                 .and_then(|v| v.as_array())
                 .cloned()
@@ -625,7 +625,7 @@ async fn test_multiple_postprocessors_run_before_validator() {
             order.push(serde_json::json!("late"));
             result
                 .metadata
-                .additional
+                .custom
                 .insert(Cow::Borrowed("execution_order"), serde_json::json!(order));
             Ok(())
         }
@@ -656,7 +656,7 @@ async fn test_multiple_postprocessors_run_before_validator() {
         async fn validate(&self, result: &ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
             let should_validate = result
                 .metadata
-                .additional
+                .custom
                 .get(VALIDATION_MARKER_KEY)
                 .and_then(|v| v.as_str())
                 == Some(ORDER_VALIDATION_MARKER);
@@ -667,7 +667,7 @@ async fn test_multiple_postprocessors_run_before_validator() {
 
             let order = result
                 .metadata
-                .additional
+                .custom
                 .get("execution_order")
                 .and_then(|v| v.as_array())
                 .ok_or_else(|| crate::KreuzbergError::Validation {

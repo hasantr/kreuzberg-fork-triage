@@ -109,7 +109,7 @@ impl PostProcessor for MetadataAddingProcessor {
     async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> {
         result
             .metadata
-            .additional
+            .custom
             .insert(Cow::Owned(self.key.clone()), serde_json::json!(self.value));
         Ok(())
     }
@@ -413,7 +413,7 @@ async fn test_pipeline_cross_stage_data_flow() {
         #[async_trait]
         impl PostProcessor for MiddleProcessor {
             async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> {
-                if let Some(stage) = result.metadata.additional.get(&Cow::Borrowed("stage")) {
+                if let Some(stage) = result.metadata.custom.get(&Cow::Borrowed("stage")) {
                     result.content.push_str(&format!(
                         "[saw:{}]",
                         stage.as_str().expect("Failed to extract string from value")
@@ -778,10 +778,10 @@ async fn test_pipeline_metadata_added_in_early_visible_in_middle() {
         #[async_trait]
         impl PostProcessor for MiddleReadingProcessor {
             async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> {
-                if let Some(val) = result.metadata.additional.get(&Cow::Borrowed("early_key")) {
+                if let Some(val) = result.metadata.custom.get(&Cow::Borrowed("early_key")) {
                     result
                         .metadata
-                        .additional
+                        .custom
                         .insert(Cow::Borrowed("middle_saw"), val.clone());
                 }
                 Ok(())
@@ -803,7 +803,7 @@ async fn test_pipeline_metadata_added_in_early_visible_in_middle() {
     assert_eq!(
         processed
             .metadata
-            .additional
+            .custom
             .get("middle_saw")
             .expect("Operation failed")
             .as_str()
@@ -895,7 +895,7 @@ async fn test_pipeline_multiple_processors_modifying_same_metadata() {
                 async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> {
                     result
                         .metadata
-                        .additional
+                        .custom
                         .insert(Cow::Borrowed("shared_key"), serde_json::json!(self.value));
                     Ok(())
                 }
@@ -923,7 +923,7 @@ async fn test_pipeline_multiple_processors_modifying_same_metadata() {
     assert_eq!(
         processed
             .metadata
-            .additional
+            .custom
             .get("shared_key")
             .expect("Operation failed")
             .as_str()
@@ -964,13 +964,13 @@ async fn test_pipeline_processors_reading_previous_output() {
             async fn process(&self, result: &mut ExtractionResult, _: &ExtractionConfig) -> Result<()> {
                 let current_count = result
                     .metadata
-                    .additional
+                    .custom
                     .get(&Cow::Borrowed("count"))
                     .and_then(|v| v.as_i64())
                     .unwrap_or(0);
                 result
                     .metadata
-                    .additional
+                    .custom
                     .insert(Cow::Borrowed("count"), serde_json::json!(current_count + 1));
                 Ok(())
             }
@@ -1000,7 +1000,7 @@ async fn test_pipeline_processors_reading_previous_output() {
     assert_eq!(
         processed
             .metadata
-            .additional
+            .custom
             .get("count")
             .expect("Operation failed")
             .as_i64()

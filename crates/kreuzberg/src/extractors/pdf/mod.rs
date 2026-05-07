@@ -983,6 +983,7 @@ impl PdfExtractor {
                     created_by: pdf_metadata.created_by.clone(),
                     pages: pdf_metadata.page_structure.clone(),
                     format: Some(crate::types::FormatMetadata::Pdf(pdf_metadata.pdf_specific)),
+                    extraction_method: Some(extraction_method.as_str().to_string()),
                     ..Default::default()
                 };
                 // Tables are already embedded in the InternalDocument via push_table.
@@ -1074,10 +1075,7 @@ impl PdfExtractor {
                 format: Some(crate::types::FormatMetadata::Pdf(pdf_metadata.pdf_specific)),
                 ..Default::default()
             };
-            doc.metadata.additional.insert(
-                std::borrow::Cow::Borrowed("extraction_method"),
-                serde_json::Value::String(extraction_method.as_str().to_string()),
-            );
+            doc.metadata.extraction_method = Some(extraction_method.as_str().to_string());
             // When the OCR path produced a structured InternalDocument, its tables are
             // already embedded with matching ElementKind::Table indices. Overwriting
             // doc.tables would break those references. Instead, merge any additional
@@ -1463,10 +1461,7 @@ impl PdfExtractor {
             format: Some(crate::types::FormatMetadata::Pdf(pdf_metadata.pdf_specific)),
             ..Default::default()
         };
-        doc.metadata.additional.insert(
-            std::borrow::Cow::Borrowed("extraction_method"),
-            serde_json::Value::String(extraction_method.as_str().to_string()),
-        );
+        doc.metadata.extraction_method = Some(extraction_method.as_str().to_string());
 
         // When using the structured doc, tables are already interleaved by the assembly pipeline.
         // Only add tables separately for the flat-text fallback path.

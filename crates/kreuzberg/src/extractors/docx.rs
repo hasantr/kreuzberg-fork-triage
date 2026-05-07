@@ -1405,7 +1405,7 @@ impl DocumentExtractor for DocxExtractor {
                 app_properties: docx_app_properties,
                 custom_properties: docx_custom_properties,
             }))),
-            additional: metadata_map,
+            custom: metadata_map,
             ..Default::default()
         };
 
@@ -2424,14 +2424,14 @@ mod tests {
         assert_eq!(result.metadata.modified_at.as_deref(), Some("2024-02-20T14:45:00Z"));
         assert_eq!(result.metadata.language.as_deref(), Some("en-US"));
 
-        // Verify these are NOT duplicated in additional map
+        // Verify these are NOT duplicated in custom map
         assert!(
-            result.metadata.additional.get("title").is_none(),
-            "title should not be in additional"
+            result.metadata.custom.get("title").is_none(),
+            "title should not be in custom"
         );
         assert!(
-            result.metadata.additional.get("created_by").is_none(),
-            "created_by should not be in additional"
+            result.metadata.custom.get("created_by").is_none(),
+            "created_by should not be in custom"
         );
     }
 

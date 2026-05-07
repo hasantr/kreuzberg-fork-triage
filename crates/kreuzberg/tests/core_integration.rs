@@ -520,8 +520,8 @@ async fn test_extraction_with_chunking_config() {
     let chunks = result.chunks.expect("Operation failed");
     assert!(chunks.len() > 1, "Should have multiple chunks for long content");
 
-    assert!(result.metadata.additional.contains_key("chunk_count"));
-    let chunk_count = result.metadata.additional.get("chunk_count").expect("Value not found");
+    assert!(result.metadata.custom.contains_key("chunk_count"));
+    let chunk_count = result.metadata.custom.get("chunk_count").expect("Value not found");
     assert_eq!(
         chunks.len(),
         chunk_count.as_u64().expect("Operation failed") as usize,

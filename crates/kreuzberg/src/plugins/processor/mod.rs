@@ -89,7 +89,7 @@ mod tests {
         async fn process(&self, result: &mut ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
             result
                 .metadata
-                .additional
+                .custom
                 .insert(Cow::Borrowed("processed_by"), serde_json::json!(self.name()));
             Ok(())
         }
@@ -116,7 +116,7 @@ mod tests {
 
         assert_eq!(result.content, "test content");
         assert_eq!(
-            result.metadata.additional.get("processed_by").unwrap(),
+            result.metadata.custom.get("processed_by").unwrap(),
             &serde_json::json!("mock-processor")
         );
     }
@@ -221,7 +221,7 @@ mod tests {
         processor.process(&mut result, &config).await.unwrap();
 
         assert_eq!(result.content, "");
-        assert!(result.metadata.additional.contains_key("processed_by"));
+        assert!(result.metadata.custom.contains_key("processed_by"));
     }
 
     #[tokio::test]
@@ -230,14 +230,14 @@ mod tests {
             stage: ProcessingStage::Early,
         };
 
-        let mut additional = AHashMap::new();
-        additional.insert(Cow::Borrowed("existing_key"), serde_json::json!("existing_value"));
+        let mut custom = AHashMap::new();
+        custom.insert(Cow::Borrowed("existing_key"), serde_json::json!("existing_value"));
 
         let mut result = ExtractionResult {
             content: "test".to_string(),
             mime_type: Cow::Borrowed("text/plain"),
             metadata: crate::types::Metadata {
-                additional,
+                custom,
                 ..Default::default()
             },
             ..Default::default()
@@ -247,10 +247,10 @@ mod tests {
         processor.process(&mut result, &config).await.unwrap();
 
         assert_eq!(
-            result.metadata.additional.get("existing_key").unwrap(),
+            result.metadata.custom.get("existing_key").unwrap(),
             &serde_json::json!("existing_value")
         );
-        assert!(result.metadata.additional.contains_key("processed_by"));
+        assert!(result.metadata.custom.contains_key("processed_by"));
     }
 
     #[test]

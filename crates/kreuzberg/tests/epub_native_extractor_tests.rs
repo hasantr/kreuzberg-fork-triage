@@ -218,7 +218,7 @@ async fn test_native_epub_deterministic_extraction() {
     );
 
     assert_eq!(
-        result1.metadata.additional, result2.metadata.additional,
+        result1.metadata.custom, result2.metadata.custom,
         "Metadata extraction should be deterministic"
     );
 

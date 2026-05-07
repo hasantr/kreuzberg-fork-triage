@@ -11,7 +11,7 @@ use crate::extractors::SyncExtractor;
 use crate::extractors::security::ZipBombValidator;
 use crate::plugins::{DocumentExtractor, Plugin};
 use crate::types::internal::{ElementKind, InternalDocument, InternalElement};
-use crate::types::{ArchiveMetadata, Metadata, ProcessingWarning};
+use crate::types::{ArchiveFileEntry, ArchiveMetadata, Metadata, ProcessingWarning};
 use ahash::AHashMap;
 use async_trait::async_trait;
 use std::borrow::Cow;
@@ -28,37 +28,26 @@ fn build_archive_doc_inner(
     children: Vec<crate::types::ArchiveEntry>,
     processing_warnings: Vec<ProcessingWarning>,
 ) -> InternalDocument {
-    let file_names: Vec<String> = extraction_metadata
+    let entries: Vec<ArchiveFileEntry> = extraction_metadata
         .file_list
         .iter()
-        .map(|entry| entry.path.clone())
+        .map(|entry| ArchiveFileEntry {
+            path: entry.path.clone(),
+            size: entry.size,
+            is_dir: entry.is_dir,
+        })
         .collect();
 
     let archive_metadata = ArchiveMetadata {
         format: Cow::Borrowed(format_name),
         file_count: extraction_metadata.file_count,
-        file_list: file_names,
+        entries,
         total_size: extraction_metadata.total_size as usize,
         compressed_size: None,
     };
 
-    let mut additional = AHashMap::new();
-    let file_details: Vec<serde_json::Value> = extraction_metadata
-        .file_list
-        .iter()
-        .map(|entry| {
-            serde_json::json!({
-                "path": entry.path,
-                "size": entry.size,
-                "is_dir": entry.is_dir,
-            })
-        })
-        .collect();
-    additional.insert(Cow::Borrowed("files"), serde_json::json!(file_details));
-
     let metadata = Metadata {
         format: Some(crate::types::FormatMetadata::Archive(archive_metadata)),
-        additional,
         ..Default::default()
     };
 

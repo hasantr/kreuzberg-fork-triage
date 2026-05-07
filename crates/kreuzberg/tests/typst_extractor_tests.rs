@@ -271,14 +271,14 @@ async fn test_metadata_extraction() {
 
     let extraction = result.expect("Operation failed");
 
-    if let Some(title) = extraction.metadata.additional.get("title") {
+    if let Some(title) = extraction.metadata.custom.get("title") {
         assert!(
             title.to_string().contains("Metadata") || title.to_string().contains("Example"),
             "Title should contain expected text"
         );
     }
 
-    if let Some(author) = extraction.metadata.additional.get("author") {
+    if let Some(author) = extraction.metadata.custom.get("author") {
         assert!(
             author.to_string().contains("John") || author.to_string().contains("Doe"),
             "Author should contain expected text"
@@ -458,7 +458,7 @@ async fn test_undergradmath_extraction() {
         "Should extract content from complex math document"
     );
 
-    if let Some(title) = extraction.metadata.additional.get("title") {
+    if let Some(title) = extraction.metadata.custom.get("title") {
         assert!(!title.to_string().is_empty(), "Title should be extracted");
     }
 

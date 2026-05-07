@@ -199,15 +199,15 @@ impl Plugin for MetadataOcrBackend {
 impl OcrBackend for MetadataOcrBackend {
     async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult> {
         let mut metadata = Metadata::default();
-        metadata.additional.insert(
+        metadata.custom.insert(
             std::borrow::Cow::Borrowed("ocr_backend"),
             serde_json::json!(self.name()),
         );
-        metadata.additional.insert(
+        metadata.custom.insert(
             std::borrow::Cow::Borrowed("image_size"),
             serde_json::json!(image_bytes.len()),
         );
-        metadata.additional.insert(
+        metadata.custom.insert(
             std::borrow::Cow::Borrowed("ocr_language"),
             serde_json::json!(config.language),
         );
@@ -495,9 +495,9 @@ fn test_ocr_backend_returns_correct_format() {
 
     assert!(!extraction_result.content.is_empty());
     assert_eq!(extraction_result.mime_type, "image/png");
-    assert!(extraction_result.metadata.additional.contains_key("ocr_backend"));
-    assert!(extraction_result.metadata.additional.contains_key("image_size"));
-    assert!(extraction_result.metadata.additional.contains_key("ocr_language"));
+    assert!(extraction_result.metadata.custom.contains_key("ocr_backend"));
+    assert!(extraction_result.metadata.custom.contains_key("image_size"));
+    assert!(extraction_result.metadata.custom.contains_key("ocr_language"));
 
     {
         let mut reg = registry.write();

@@ -82,9 +82,9 @@ impl PostProcessor for MetadataAddingProcessor {
     async fn process(&self, result: &mut ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
         result
             .metadata
-            .additional
+            .custom
             .insert(Cow::Borrowed("processed_by"), serde_json::json!(self.name()));
-        result.metadata.additional.insert(
+        result.metadata.custom.insert(
             Cow::Borrowed("word_count"),
             serde_json::json!(result.content.split_whitespace().count()),
         );
@@ -317,17 +317,17 @@ fn test_postprocessor_adds_metadata() {
     let extraction_result = result.expect("Operation failed");
 
     assert!(
-        extraction_result.metadata.additional.contains_key("processed_by"),
+        extraction_result.metadata.custom.contains_key("processed_by"),
         "Metadata 'processed_by' not added"
     );
     assert!(
-        extraction_result.metadata.additional.contains_key("word_count"),
+        extraction_result.metadata.custom.contains_key("word_count"),
         "Metadata 'word_count' not added"
     );
 
     let processed_by = extraction_result
         .metadata
-        .additional
+        .custom
         .get("processed_by")
         .expect("Operation failed");
     assert_eq!(
@@ -553,7 +553,7 @@ fn test_multiple_postprocessors_execution_order() {
 
     let extraction_result = result.expect("Operation failed");
 
-    assert!(extraction_result.metadata.additional.contains_key("processed_by"));
+    assert!(extraction_result.metadata.custom.contains_key("processed_by"));
     assert!(!extraction_result.content.chars().any(|c| c.is_lowercase()));
     assert!(extraction_result.content.contains("[LATE]"));
 

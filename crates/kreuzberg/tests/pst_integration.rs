@@ -36,7 +36,7 @@ async fn test_pst_empty_file_extraction() {
     // Empty PST has no messages
     let message_count = result
         .metadata
-        .additional
+        .custom
         .get("message_count")
         .and_then(|v| v.as_u64())
         .unwrap_or(u64::MAX);
@@ -57,7 +57,7 @@ async fn test_pst_message_count_in_metadata() {
         .expect("Should extract empty PST");
 
     assert!(
-        result.metadata.additional.contains_key("message_count"),
+        result.metadata.custom.contains_key("message_count"),
         "Extraction result should include message_count in additional metadata"
     );
 }

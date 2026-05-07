@@ -638,9 +638,8 @@ pub fn derive_extraction_result(
 
     let extraction_method = doc
         .metadata
-        .additional
-        .get("extraction_method")
-        .and_then(serde_json::Value::as_str)
+        .extraction_method
+        .as_deref()
         .and_then(ExtractionMethod::from_metadata_value);
 
     tracing::debug!(
@@ -1058,10 +1057,7 @@ mod tests {
     #[test]
     fn test_derive_extraction_result_promotes_extraction_method() {
         let mut doc = make_doc("pdf");
-        doc.metadata.additional.insert(
-            Cow::Borrowed("extraction_method"),
-            serde_json::Value::String("mixed".to_string()),
-        );
+        doc.metadata.extraction_method = Some("mixed".to_string());
         doc.push_element(InternalElement::text(ElementKind::Paragraph, "Hello world.", 0));
 
         let result = derive_extraction_result(doc, false, crate::core::config::OutputFormat::Plain);
@@ -1071,10 +1067,7 @@ mod tests {
     #[test]
     fn test_derive_extraction_result_ignores_unknown_extraction_method() {
         let mut doc = make_doc("pdf");
-        doc.metadata.additional.insert(
-            Cow::Borrowed("extraction_method"),
-            serde_json::Value::String("native_ole".to_string()),
-        );
+        doc.metadata.extraction_method = Some("native_ole".to_string());
         doc.push_element(InternalElement::text(ElementKind::Paragraph, "Hello world.", 0));
 
         let result = derive_extraction_result(doc, false, crate::core::config::OutputFormat::Plain);

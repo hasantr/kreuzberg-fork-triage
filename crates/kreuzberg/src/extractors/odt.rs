@@ -1090,7 +1090,7 @@ impl DocumentExtractor for OdtExtractor {
             created_at,
             modified_at,
             created_by,
-            additional: metadata_map,
+            custom: metadata_map,
             ..Default::default()
         };
 

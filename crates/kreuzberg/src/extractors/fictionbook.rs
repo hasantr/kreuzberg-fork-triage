@@ -424,7 +424,7 @@ impl FictionBookExtractor {
         };
         metadata.format = Some(crate::types::metadata::FormatMetadata::FictionBook(fb_metadata));
 
-        metadata.additional = additional;
+        metadata.custom = additional;
 
         Ok(metadata)
     }
@@ -1146,9 +1146,9 @@ mod tests {
             authors[0]
         );
 
-        // Check author details in additional metadata
+        // Check author details in custom metadata
         let details = metadata
-            .additional
+            .custom
             .get("author_details")
             .expect("expected author_details");
         assert!(details.is_array());

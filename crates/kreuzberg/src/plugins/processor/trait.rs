@@ -96,7 +96,7 @@ pub enum ProcessingStage {
 ///         let word_count = result.content.split_whitespace().count();
 ///
 ///         // Add to metadata
-///         result.metadata.additional.insert("word_count".to_string().into(), serde_json::json!(word_count));
+///         result.metadata.custom.insert("word_count".to_string().into(), serde_json::json!(word_count));
 ///
 ///         Ok(())
 ///     }
@@ -158,7 +158,7 @@ pub trait PostProcessor: Plugin {
     ///     let language = "en"; // Placeholder detection
     ///
     ///     // Add to metadata
-    ///     result.metadata.additional.insert("detected_language".to_string().into(), serde_json::json!(language));
+    ///     result.metadata.custom.insert("detected_language".to_string().into(), serde_json::json!(language));
     ///
     ///     Ok(())
     /// }

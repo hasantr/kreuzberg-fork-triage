@@ -288,7 +288,7 @@ async fn test_quality_processing_enabled_produces_score() {
         .expect("Should extract successfully");
 
     // Quality processing should add a quality_score to metadata
-    let has_quality_score = result.metadata.additional.contains_key("quality_score");
+    let has_quality_score = result.metadata.custom.contains_key("quality_score");
     assert!(
         has_quality_score,
         "Quality processing enabled should produce quality_score in metadata"
@@ -311,7 +311,7 @@ async fn test_quality_processing_disabled_no_score() {
         .expect("Should extract successfully");
 
     assert!(
-        !result.metadata.additional.contains_key("quality_score"),
+        !result.metadata.custom.contains_key("quality_score"),
         "Quality processing disabled should not produce quality_score"
     );
 }
@@ -403,7 +403,7 @@ async fn test_large_document_with_combined_config() {
     #[cfg(feature = "quality")]
     {
         assert!(
-            result.metadata.additional.contains_key("quality_score"),
+            result.metadata.custom.contains_key("quality_score"),
             "Should have quality score"
         );
     }

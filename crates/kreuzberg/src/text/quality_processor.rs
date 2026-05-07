@@ -61,7 +61,8 @@ impl Plugin for QualityProcessor {
 impl PostProcessor for QualityProcessor {
     async fn process(&self, result: &mut ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
         let quality_score = if should_use_metadata(&result.metadata) {
-            crate::text::quality::calculate_quality_score(&result.content, Some(&result.metadata.additional))
+            let meta_map = build_metadata_map(&result.metadata);
+            crate::text::quality::calculate_quality_score(&result.content, Some(&meta_map))
         } else {
             crate::text::quality::calculate_quality_score(&result.content, None)
         };
@@ -89,17 +90,34 @@ impl PostProcessor for QualityProcessor {
     }
 }
 
-/// Check if metadata contains any important fields without allocation.
-///
-/// # Performance
-///
-/// O(1) check avoiding HashMap allocation when metadata is sparse.
-/// Only allocates HashMap when important metadata fields are present.
+/// Check if metadata contains any important fields.
 fn should_use_metadata(metadata: &crate::types::Metadata) -> bool {
-    const IMPORTANT_FIELDS: &[&str] = &["title", "author", "subject", "description", "keywords"];
-    IMPORTANT_FIELDS
-        .iter()
-        .any(|field| metadata.additional.contains_key(*field))
+    metadata.title.is_some()
+        || metadata.subject.is_some()
+        || metadata.authors.is_some()
+        || metadata.keywords.is_some()
+}
+
+/// Build a metadata map from typed fields for quality scoring.
+fn build_metadata_map(
+    metadata: &crate::types::Metadata,
+) -> ahash::AHashMap<std::borrow::Cow<'static, str>, serde_json::Value> {
+    let mut map = ahash::AHashMap::new();
+    if let Some(ref title) = metadata.title {
+        map.insert(std::borrow::Cow::Borrowed("title"), serde_json::json!(title));
+    }
+    if let Some(ref subject) = metadata.subject {
+        map.insert(std::borrow::Cow::Borrowed("subject"), serde_json::json!(subject));
+    }
+    if let Some(ref authors) = metadata.authors {
+        if let Some(first) = authors.first() {
+            map.insert(std::borrow::Cow::Borrowed("author"), serde_json::json!(first));
+        }
+    }
+    if let Some(ref keywords) = metadata.keywords {
+        map.insert(std::borrow::Cow::Borrowed("keywords"), serde_json::json!(keywords));
+    }
+    map
 }
 
 #[cfg(test)]

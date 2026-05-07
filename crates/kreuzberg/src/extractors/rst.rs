@@ -77,7 +77,7 @@ impl RstExtractor {
             .remove(&Cow::Borrowed("date"))
             .and_then(|v| v.as_str().map(|s| s.to_string()));
 
-        metadata.additional = additional;
+        metadata.custom = additional;
         (text, metadata)
     }
 

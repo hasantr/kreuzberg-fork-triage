@@ -44,39 +44,39 @@ async fn test_docx_full_metadata_extraction() {
         "Should have correct creation date"
     );
     assert_eq!(
-        result.metadata.additional.get("revision").and_then(|v| v.as_str()),
+        result.metadata.custom.get("revision").and_then(|v| v.as_str()),
         Some("7"),
         "Should have revision number"
     );
 
     assert_eq!(
-        result.metadata.additional.get("page_count").and_then(|v| v.as_i64()),
+        result.metadata.custom.get("page_count").and_then(|v| v.as_i64()),
         Some(2),
         "Should have 2 pages"
     );
     assert_eq!(
-        result.metadata.additional.get("word_count").and_then(|v| v.as_i64()),
+        result.metadata.custom.get("word_count").and_then(|v| v.as_i64()),
         Some(108),
         "Should have 108 words"
     );
     assert_eq!(
         result
             .metadata
-            .additional
+            .custom
             .get("character_count")
             .and_then(|v| v.as_i64()),
         Some(620),
         "Should have 620 characters"
     );
     assert_eq!(
-        result.metadata.additional.get("line_count").and_then(|v| v.as_i64()),
+        result.metadata.custom.get("line_count").and_then(|v| v.as_i64()),
         Some(5),
         "Should have 5 lines"
     );
     assert_eq!(
         result
             .metadata
-            .additional
+            .custom
             .get("paragraph_count")
             .and_then(|v| v.as_i64()),
         Some(1),
@@ -84,7 +84,7 @@ async fn test_docx_full_metadata_extraction() {
     );
 
     println!("✅ DOCX metadata extraction test passed!");
-    println!("   Found {} metadata fields", result.metadata.additional.len());
+    println!("   Found {} metadata fields", result.metadata.custom.len());
 }
 
 #[tokio::test]
@@ -108,12 +108,12 @@ async fn test_docx_minimal_metadata_extraction() {
     assert!(!result.content.is_empty(), "Content should not be empty");
 
     assert_eq!(
-        result.metadata.additional.get("page_count").and_then(|v| v.as_i64()),
+        result.metadata.custom.get("page_count").and_then(|v| v.as_i64()),
         Some(1),
         "Should have 1 page"
     );
     assert_eq!(
-        result.metadata.additional.get("word_count").and_then(|v| v.as_i64()),
+        result.metadata.custom.get("word_count").and_then(|v| v.as_i64()),
         Some(520),
         "Should have 520 words"
     );

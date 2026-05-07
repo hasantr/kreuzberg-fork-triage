@@ -157,7 +157,7 @@ impl Plugin for MetadataValidator {
 #[async_trait]
 impl Validator for MetadataValidator {
     async fn validate(&self, result: &ExtractionResult, _config: &ExtractionConfig) -> Result<()> {
-        if !result.metadata.additional.contains_key(self.required_key.as_str()) {
+        if !result.metadata.custom.contains_key(self.required_key.as_str()) {
             Err(KreuzbergError::validation(format!(
                 "Required metadata key '{}' missing",
                 self.required_key

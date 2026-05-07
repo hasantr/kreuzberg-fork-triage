@@ -38,19 +38,19 @@ async fn test_pandoc_baseline_yaml_fields() {
     let result = derive_extraction_result(doc, false, kreuzberg::OutputFormat::Plain);
 
     assert_eq!(
-        result.metadata.additional.get("title").and_then(|v| v.as_str()),
+        result.metadata.custom.get("title").and_then(|v| v.as_str()),
         Some("Test Document")
     );
     assert_eq!(
-        result.metadata.additional.get("author").and_then(|v| v.as_str()),
+        result.metadata.custom.get("author").and_then(|v| v.as_str()),
         Some("John Doe")
     );
     assert_eq!(result.metadata.created_at, Some("2024-01-15".to_string()));
 
-    assert!(result.metadata.additional.contains_key("keywords"));
+    assert!(result.metadata.custom.contains_key("keywords"));
     let keywords = result
         .metadata
-        .additional
+        .custom
         .get("keywords")
         .and_then(|v| v.as_str())
         .unwrap_or("");
@@ -59,21 +59,21 @@ async fn test_pandoc_baseline_yaml_fields() {
     assert!(keywords.contains("rust"));
 
     assert_eq!(
-        result.metadata.additional.get("abstract").and_then(|v| v.as_str()),
+        result.metadata.custom.get("abstract").and_then(|v| v.as_str()),
         Some("This is an abstract")
     );
 
     assert_eq!(result.metadata.subject, Some("Testing Subject".to_string()));
 
     assert_eq!(
-        result.metadata.additional.get("category").and_then(|v| v.as_str()),
+        result.metadata.custom.get("category").and_then(|v| v.as_str()),
         Some("Documentation")
     );
 
-    assert!(result.metadata.additional.contains_key("tags"));
+    assert!(result.metadata.custom.contains_key("tags"));
     let tags = result
         .metadata
-        .additional
+        .custom
         .get("tags")
         .and_then(|v| v.as_str())
         .unwrap_or("");
@@ -81,12 +81,12 @@ async fn test_pandoc_baseline_yaml_fields() {
     assert!(tags.contains("draft"));
 
     assert_eq!(
-        result.metadata.additional.get("language").and_then(|v| v.as_str()),
+        result.metadata.custom.get("language").and_then(|v| v.as_str()),
         Some("en")
     );
 
     assert_eq!(
-        result.metadata.additional.get("version").and_then(|v| v.as_str()),
+        result.metadata.custom.get("version").and_then(|v| v.as_str()),
         Some("1.0.0")
     );
 }
@@ -195,10 +195,10 @@ async fn test_keywords_array_extraction() {
         .expect("Should extract keywords array");
     let result = derive_extraction_result(doc, false, kreuzberg::OutputFormat::Plain);
 
-    assert!(result.metadata.additional.contains_key("keywords"));
+    assert!(result.metadata.custom.contains_key("keywords"));
     let keywords = result
         .metadata
-        .additional
+        .custom
         .get("keywords")
         .and_then(|v| v.as_str())
         .unwrap_or("");
@@ -255,7 +255,7 @@ async fn test_comprehensive_md_extraction() {
     assert!(!result.content.is_empty());
 
     let _has_title_or_author =
-        result.metadata.additional.contains_key("title") || result.metadata.additional.contains_key("author");
+        result.metadata.custom.contains_key("title") || result.metadata.custom.contains_key("author");
 
     assert!(result.content.contains("Additional markdown reader tests") || result.content.contains("markdown"));
 
@@ -324,11 +324,11 @@ async fn test_standard_yaml_metadata_fields() {
     let result = derive_extraction_result(doc, false, kreuzberg::OutputFormat::Plain);
 
     assert_eq!(
-        result.metadata.additional.get("title").and_then(|v| v.as_str()),
+        result.metadata.custom.get("title").and_then(|v| v.as_str()),
         Some("Standard Fields Test")
     );
     assert_eq!(
-        result.metadata.additional.get("author").and_then(|v| v.as_str()),
+        result.metadata.custom.get("author").and_then(|v| v.as_str()),
         Some("Test Author")
     );
     assert_eq!(result.metadata.created_at, Some("2024-12-06".to_string()));
@@ -364,7 +364,7 @@ async fn test_multiline_title_in_yaml() {
         .expect("Should extract multiline title");
     let result = derive_extraction_result(doc, false, kreuzberg::OutputFormat::Plain);
 
-    let title = result.metadata.additional.get("title").and_then(|v| v.as_str());
+    let title = result.metadata.custom.get("title").and_then(|v| v.as_str());
     assert!(title.is_some());
 }
 
@@ -414,7 +414,7 @@ async fn test_keywords_list_comma_separation() {
 
     let keywords = result
         .metadata
-        .additional
+        .custom
         .get("keywords")
         .and_then(|v| v.as_str())
         .unwrap_or("");
@@ -440,7 +440,7 @@ async fn test_no_frontmatter_extraction() {
     assert!(result.content.contains("Document Title"));
     assert!(result.content.contains("document") || result.content.contains("Section"));
 
-    let title = result.metadata.additional.get("title").and_then(|v| v.as_str());
+    let title = result.metadata.custom.get("title").and_then(|v| v.as_str());
     assert_eq!(title, Some("Document Title"));
 }
 
@@ -491,7 +491,7 @@ async fn test_nested_yaml_awareness() {
         .expect("Should extract document");
     let result = derive_extraction_result(doc, false, kreuzberg::OutputFormat::Plain);
 
-    let title = result.metadata.additional.get("title").and_then(|v| v.as_str());
+    let title = result.metadata.custom.get("title").and_then(|v| v.as_str());
     assert_eq!(title, Some("Test"));
 }
 
@@ -507,7 +507,7 @@ async fn test_special_characters_in_metadata() {
         .expect("Should extract with special characters");
     let result = derive_extraction_result(doc, false, kreuzberg::OutputFormat::Plain);
 
-    let title = result.metadata.additional.get("title").and_then(|v| v.as_str());
+    let title = result.metadata.custom.get("title").and_then(|v| v.as_str());
     assert!(title.is_some());
     assert!(title.expect("Operation failed").contains("&") || title.expect("Operation failed").contains("Part"));
 }

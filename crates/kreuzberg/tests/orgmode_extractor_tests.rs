@@ -113,7 +113,7 @@ async fn test_orgmode_metadata_extraction() {
     assert_contains_ci(&result.content, "content", "Should contain document content");
 
     println!("✅ Org Mode metadata extraction test passed!");
-    println!("   Metadata fields: {}", result.metadata.additional.len());
+    println!("   Metadata fields: {}", result.metadata.custom.len());
     println!("   Content length: {} bytes", result.content.len());
 }
 
@@ -771,14 +771,14 @@ async fn test_orgmode_extraction_statistics() {
                 Ok(result) => {
                     total_files += 1;
                     total_content_bytes += result.content.len();
-                    total_metadata_fields += result.metadata.additional.len();
+                    total_metadata_fields += result.metadata.custom.len();
 
                     println!("✓ {}", orgmode_file);
                     println!("  Content: {} bytes", result.content.len());
-                    println!("  Metadata fields: {}", result.metadata.additional.len());
+                    println!("  Metadata fields: {}", result.metadata.custom.len());
 
-                    if !result.metadata.additional.is_empty() {
-                        let keys: Vec<String> = result.metadata.additional.keys().map(|k| k.to_string()).collect();
+                    if !result.metadata.custom.is_empty() {
+                        let keys: Vec<String> = result.metadata.custom.keys().map(|k| k.to_string()).collect();
                         println!("  Keys: {}", keys.join(", "));
                     }
 

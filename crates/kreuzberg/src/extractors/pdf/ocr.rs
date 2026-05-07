@@ -551,7 +551,7 @@ pub(crate) async fn extract_with_ocr(
         let result = backend.process_document(doc_path, ocr_config).await?;
         let mean_conf = result
             .metadata
-            .additional
+            .custom
             .get("mean_text_conf")
             .and_then(|v| v.as_f64())
             .map(|v| v / 100.0);
@@ -741,7 +741,7 @@ pub(crate) async fn extract_with_ocr(
 
             if let Some(conf_val) = ocr_result
                 .metadata
-                .additional
+                .custom
                 .get("mean_text_conf")
                 .and_then(|v| v.as_i64())
             {

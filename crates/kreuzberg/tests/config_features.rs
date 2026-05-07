@@ -404,7 +404,7 @@ async fn test_quality_processing_enabled() {
         .await
         .expect("Should extract successfully");
 
-    if let Some(score) = result.metadata.additional.get("quality_score") {
+    if let Some(score) = result.metadata.custom.get("quality_score") {
         let score_value = score.as_f64().expect("Operation failed");
         assert!((0.0..=1.0).contains(&score_value));
     }
@@ -432,24 +432,24 @@ async fn test_quality_threshold_filtering() {
         .expect("Should extract successfully");
 
     assert!(
-        result_high.metadata.additional.contains_key("quality_score"),
+        result_high.metadata.custom.contains_key("quality_score"),
         "High quality should have score"
     );
     assert!(
-        result_low.metadata.additional.contains_key("quality_score"),
+        result_low.metadata.custom.contains_key("quality_score"),
         "Low quality should have score"
     );
 
     let score_high = result_high
         .metadata
-        .additional
+        .custom
         .get("quality_score")
         .expect("Operation failed")
         .as_f64()
         .expect("Operation failed");
     let score_low = result_low
         .metadata
-        .additional
+        .custom
         .get("quality_score")
         .expect("Operation failed")
         .as_f64()
@@ -474,7 +474,7 @@ async fn test_quality_processing_disabled() {
         .await
         .expect("Should extract successfully");
 
-    assert!(!result.metadata.additional.contains_key("quality_score"));
+    assert!(!result.metadata.custom.contains_key("quality_score"));
     assert!(!result.content.is_empty());
 }
 
@@ -620,20 +620,20 @@ async fn test_chunking_with_embeddings() {
     let chunks = result.chunks.expect("Operation failed");
     assert!(chunks.len() > 1, "Should have multiple chunks");
 
-    println!("Metadata: {:?}", result.metadata.additional);
+    println!("Metadata: {:?}", result.metadata.custom);
 
-    if let Some(error) = result.metadata.additional.get("embedding_error") {
+    if let Some(error) = result.metadata.custom.get("embedding_error") {
         panic!("Embedding generation failed: {}", error);
     }
 
     assert!(
-        result.metadata.additional.contains_key("embeddings_generated"),
+        result.metadata.custom.contains_key("embeddings_generated"),
         "Should have embeddings_generated metadata"
     );
     assert_eq!(
         result
             .metadata
-            .additional
+            .custom
             .get("embeddings_generated")
             .expect("Value not found"),
         &serde_json::Value::Bool(true)
@@ -694,7 +694,7 @@ async fn test_chunking_with_fast_embeddings() {
     let chunks = result.chunks.expect("Should have chunks");
     assert!(!chunks.is_empty(), "Should have at least one chunk");
 
-    if let Some(error) = result.metadata.additional.get("embedding_error") {
+    if let Some(error) = result.metadata.custom.get("embedding_error") {
         panic!("Embedding generation failed: {}", error);
     }
 

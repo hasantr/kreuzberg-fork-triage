@@ -89,21 +89,21 @@ async fn test_opml_rss_feeds_extraction() {
     assert_contains_ci(&result.content, "Rust Blog", "Should contain Rust Blog feed");
 
     assert!(
-        result.metadata.additional.contains_key("title"),
+        result.metadata.custom.contains_key("title"),
         "Should extract title metadata"
     );
     assert_eq!(
-        result.metadata.additional.get("title").and_then(|v| v.as_str()),
+        result.metadata.custom.get("title").and_then(|v| v.as_str()),
         Some("Tech News Feeds"),
         "Should have correct title"
     );
 
     let has_owner =
-        result.metadata.additional.contains_key("ownerName") || result.metadata.additional.contains_key("ownerEmail");
+        result.metadata.custom.contains_key("ownerName") || result.metadata.custom.contains_key("ownerEmail");
     assert!(has_owner, "Should extract owner information");
 
     println!("✅ RSS feeds extraction test passed!");
-    println!("   Found {} metadata fields", result.metadata.additional.len());
+    println!("   Found {} metadata fields", result.metadata.custom.len());
     println!("   Content length: {} bytes", result.content.len());
 }
 
@@ -146,19 +146,19 @@ async fn test_opml_podcast_directory_extraction() {
     assert_contains_ci(&result.content, "Acquired", "Should contain Acquired podcast");
 
     assert_eq!(
-        result.metadata.additional.get("title").and_then(|v| v.as_str()),
+        result.metadata.custom.get("title").and_then(|v| v.as_str()),
         Some("Podcast Directory"),
         "Should have correct title"
     );
 
     assert_eq!(
-        result.metadata.additional.get("ownerName").and_then(|v| v.as_str()),
+        result.metadata.custom.get("ownerName").and_then(|v| v.as_str()),
         Some("Jane Doe"),
         "Should extract owner name correctly"
     );
 
     println!("✅ Podcast directory extraction test passed!");
-    println!("   Found {} metadata fields", result.metadata.additional.len());
+    println!("   Found {} metadata fields", result.metadata.custom.len());
     println!("   Content length: {} bytes", result.content.len());
 }
 
@@ -222,7 +222,7 @@ async fn test_opml_outline_hierarchy_extraction() {
     );
 
     assert_eq!(
-        result.metadata.additional.get("title").and_then(|v| v.as_str()),
+        result.metadata.custom.get("title").and_then(|v| v.as_str()),
         Some("Project Outline"),
         "Should have correct title"
     );
@@ -258,7 +258,7 @@ async fn test_opml_metadata_extraction_complete() {
         .await
         .expect("Should extract metadata successfully");
 
-    let metadata = &result.metadata.additional;
+    let metadata = &result.metadata.custom;
 
     assert!(metadata.contains_key("title"), "Should have title metadata");
     assert!(
@@ -556,14 +556,14 @@ async fn test_opml_extraction_statistics() {
                 Ok(result) => {
                     total_files += 1;
                     total_content_bytes += result.content.len();
-                    total_metadata_fields += result.metadata.additional.len();
+                    total_metadata_fields += result.metadata.custom.len();
 
                     println!("✓ {} ", opml_file);
                     println!("  Content: {} bytes", result.content.len());
-                    println!("  Metadata fields: {}", result.metadata.additional.len());
+                    println!("  Metadata fields: {}", result.metadata.custom.len());
 
-                    if !result.metadata.additional.is_empty() {
-                        let keys: Vec<String> = result.metadata.additional.keys().map(|k| k.to_string()).collect();
+                    if !result.metadata.custom.is_empty() {
+                        let keys: Vec<String> = result.metadata.custom.keys().map(|k| k.to_string()).collect();
                         println!("  Keys: {}", keys.join(", "));
                     }
 

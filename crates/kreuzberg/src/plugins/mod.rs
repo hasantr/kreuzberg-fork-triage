@@ -95,7 +95,7 @@
 //!         let extracted_text = extract_strings_from_json(&json);
 //!
 //!         let mut metadata = Metadata::default();
-//!         metadata.additional.insert("extracted_fields".to_string().into(), serde_json::json!(true));
+//!         metadata.custom.insert("extracted_fields".to_string().into(), serde_json::json!(true));
 //!
 //!         Ok(ExtractionResult {
 //!             content: extracted_text,

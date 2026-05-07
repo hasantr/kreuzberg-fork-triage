@@ -91,9 +91,15 @@ fn maybe_infer_yaml_chunker(config: &ChunkingConfig, metadata: &Metadata) -> Opt
     }
 
     let is_structured = metadata
-        .additional
-        .get("data_format")
-        .and_then(|v| v.as_str())
+        .format
+        .as_ref()
+        .and_then(|f| {
+            if let crate::types::FormatMetadata::Structured(s) = f {
+                Some(s.data_format.as_str())
+            } else {
+                None
+            }
+        })
         .is_some_and(|fmt| fmt == "yaml" || fmt == "json");
 
     is_structured.then(|| ChunkingConfig {
@@ -216,11 +222,16 @@ mod tests {
     }
 
     fn make_metadata_with_format(format: &str) -> Metadata {
-        let mut metadata = Metadata::default();
-        metadata
-            .additional
-            .insert(Cow::Borrowed("data_format"), serde_json::json!(format));
-        metadata
+        Metadata {
+            format: Some(crate::types::FormatMetadata::Structured(
+                crate::types::metadata::StructuredMetadata {
+                    data_format: format.to_string(),
+                    field_count: 0,
+                    custom_fields: None,
+                },
+            )),
+            ..Default::default()
+        }
     }
 
     #[tokio::test]

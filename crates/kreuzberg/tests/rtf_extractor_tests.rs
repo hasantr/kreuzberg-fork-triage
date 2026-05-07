@@ -622,7 +622,7 @@ async fn test_rtf_word_sample_matches_docx_metadata_and_content() {
     assert_eq!(
         rtf_result
             .metadata
-            .additional
+            .custom
             .get("created_by")
             .and_then(|v| v.as_str()),
         docx_result.metadata.created_by.as_deref(),
@@ -631,7 +631,7 @@ async fn test_rtf_word_sample_matches_docx_metadata_and_content() {
     assert_eq!(
         rtf_result
             .metadata
-            .additional
+            .custom
             .get("modified_by")
             .and_then(|v| v.as_str()),
         docx_result.metadata.modified_by.as_deref(),
@@ -640,15 +640,15 @@ async fn test_rtf_word_sample_matches_docx_metadata_and_content() {
     assert_eq!(
         rtf_result
             .metadata
-            .additional
+            .custom
             .get("created_at")
             .and_then(|v| v.as_str()),
         docx_result.metadata.created_at.as_deref(),
         "Metadata field created_at should align with DOCX"
     );
     assert_eq!(
-        rtf_result.metadata.additional.get("revision").and_then(|v| v.as_str()),
-        docx_result.metadata.additional.get("revision").and_then(|v| v.as_str()),
+        rtf_result.metadata.custom.get("revision").and_then(|v| v.as_str()),
+        docx_result.metadata.custom.get("revision").and_then(|v| v.as_str()),
         "Metadata field revision should align with DOCX"
     );
 
@@ -660,7 +660,7 @@ async fn test_rtf_word_sample_matches_docx_metadata_and_content() {
         ("paragraph_count", 1),
     ] {
         assert_eq!(
-            rtf_result.metadata.additional.get(key).and_then(|v| v.as_i64()),
+            rtf_result.metadata.custom.get(key).and_then(|v| v.as_i64()),
             Some(expected),
             "Metadata field {} should match DOCX values",
             key
@@ -698,7 +698,7 @@ async fn test_rtf_lorem_ipsum_metadata_alignment() {
         ("paragraph_count", 6),
     ] {
         assert_eq!(
-            result.metadata.additional.get(key).and_then(|v| v.as_i64()),
+            result.metadata.custom.get(key).and_then(|v| v.as_i64()),
             Some(expected),
             "Metadata field {} should match DOCX values",
             key
@@ -791,7 +791,7 @@ async fn test_rtf_comprehensive_extraction_alignment() {
         ("paragraph_count", 8),
     ] {
         assert_eq!(
-            rtf_result.metadata.additional.get(key).and_then(|v| v.as_i64()),
+            rtf_result.metadata.custom.get(key).and_then(|v| v.as_i64()),
             Some(expected),
             "Metadata field {} should be populated",
             key

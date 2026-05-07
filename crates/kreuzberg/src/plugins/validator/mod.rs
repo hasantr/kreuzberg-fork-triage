@@ -310,14 +310,14 @@ mod tests {
     async fn test_validator_with_metadata() {
         let validator = MockValidator { should_fail: false };
 
-        let mut additional = AHashMap::new();
-        additional.insert(Cow::Borrowed("quality_score"), serde_json::json!(0.95));
+        let mut custom = AHashMap::new();
+        custom.insert(Cow::Borrowed("quality_score"), serde_json::json!(0.95));
 
         let result = ExtractionResult {
             content: "test".to_string(),
             mime_type: Cow::Borrowed("text/plain"),
             metadata: crate::types::Metadata {
-                additional,
+                custom,
                 ..Default::default()
             },
             ..Default::default()

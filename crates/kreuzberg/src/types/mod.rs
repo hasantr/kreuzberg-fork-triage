@@ -53,7 +53,7 @@ mod tests {
         };
 
         metadata
-            .additional
+            .custom
             .insert(Cow::Borrowed("quality_score"), serde_json::json!(1.0));
 
         let json = serde_json::to_value(&metadata).unwrap();
@@ -65,8 +65,8 @@ mod tests {
         assert_eq!(format.get("word_count").unwrap(), 2);
         assert_eq!(format.get("character_count").unwrap(), 13);
 
-        let additional = json.get("additional").expect("additional field should be present");
-        assert_eq!(additional.get("quality_score").unwrap(), 1.0);
+        let custom = json.get("custom").expect("custom field should be present");
+        assert_eq!(custom.get("quality_score").unwrap(), 1.0);
     }
 
     #[test]

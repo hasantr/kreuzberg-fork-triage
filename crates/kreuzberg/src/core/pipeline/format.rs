@@ -143,11 +143,11 @@ mod tests {
     #[test]
     fn test_apply_output_format_preserves_metadata() {
         use ahash::AHashMap;
-        let mut additional = AHashMap::new();
-        additional.insert(Cow::Borrowed("custom_key"), serde_json::json!("custom_value"));
+        let mut custom = AHashMap::new();
+        custom.insert(Cow::Borrowed("custom_key"), serde_json::json!("custom_value"));
         let metadata = Metadata {
             title: Some("Test Title".to_string()),
-            additional,
+            custom,
             ..Default::default()
         };
 
@@ -162,7 +162,7 @@ mod tests {
 
         assert_eq!(result.metadata.title, Some("Test Title".to_string()));
         assert_eq!(
-            result.metadata.additional.get("custom_key"),
+            result.metadata.custom.get("custom_key"),
             Some(&serde_json::json!("custom_value"))
         );
     }

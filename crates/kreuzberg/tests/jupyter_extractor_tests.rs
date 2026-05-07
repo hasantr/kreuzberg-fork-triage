@@ -449,7 +449,7 @@ async fn test_jupyter_metadata_aggregation() {
         );
 
         assert!(
-            extraction.metadata.additional.is_empty() || !extraction.metadata.additional.is_empty(),
+            extraction.metadata.custom.is_empty() || !extraction.metadata.custom.is_empty(),
             "{}: Metadata structure should be consistent",
             name
         );

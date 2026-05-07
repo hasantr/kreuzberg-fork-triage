@@ -640,7 +640,7 @@ impl DocumentExtractor for EpubExtractor {
             language: package.metadata.language,
             created_at: package.metadata.date,
             format: Some(epub_format_metadata),
-            additional: metadata_map,
+            custom: metadata_map,
             ..Default::default()
         };
 
