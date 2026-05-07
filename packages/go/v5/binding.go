@@ -7094,12 +7094,12 @@ type DocxMetadata struct {
 	//
 	// Contains title, creator, subject, keywords, dates, etc.
 	// Shared format across DOCX/PPTX/XLSX documents.
-	CoreProperties *string `json:"core_properties,omitempty"`
+	CoreProperties json.RawMessage `json:"core_properties,omitempty"`
 	// Application properties from docProps/app.xml (Word-specific statistics)
 	//
 	// Contains word count, page count, paragraph count, editing time, etc.
 	// DOCX-specific variant of Office application properties.
-	AppProperties *string `json:"app_properties,omitempty"`
+	AppProperties json.RawMessage `json:"app_properties,omitempty"`
 	// Custom properties from docProps/custom.xml (user-defined properties)
 	//
 	// Contains key-value pairs defined by users or applications.
@@ -7111,13 +7111,13 @@ type DocxMetadata struct {
 type DocxMetadataOption func(*DocxMetadata)
 
 // WithDocxMetadataCoreProperties sets the core_properties field.
-func WithDocxMetadataCoreProperties(v string) DocxMetadataOption {
-	return func(c *DocxMetadata) { c.CoreProperties = &v }
+func WithDocxMetadataCoreProperties(v json.RawMessage) DocxMetadataOption {
+	return func(c *DocxMetadata) { c.CoreProperties = v }
 }
 
 // WithDocxMetadataAppProperties sets the app_properties field.
-func WithDocxMetadataAppProperties(v string) DocxMetadataOption {
-	return func(c *DocxMetadata) { c.AppProperties = &v }
+func WithDocxMetadataAppProperties(v json.RawMessage) DocxMetadataOption {
+	return func(c *DocxMetadata) { c.AppProperties = v }
 }
 
 // WithDocxMetadataCustomProperties sets the custom_properties field.
