@@ -2,6 +2,9 @@
 target/
 build/
 dist/
+# Ad-hoc PDF/image debug binaries
+/check_pdf_oxide
+/check_*
 # Hand-authored WASM JS distribution files (intentionally committed)
 !crates/kreuzberg-wasm/dist/extraction/files.js
 !crates/kreuzberg-wasm/dist/ocr/enabler.js
