@@ -12,9 +12,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **#619 follow-up**: `POST /extract-async` now returns HTTP 429 when more than 100 jobs are active simultaneously, preventing unbounded memory growth under load.
+- **WASM OCR backend**: `TesseractWasmBackend` registered for the
+  `ocr-wasm` feature set, exposing OCR on the WASM target via
+  `tesseract-wasm` while the native path continues to use leptess.
 
 ### Fixed
 
+- **alef.toml**: `TesseractWasmBackend` added to `[crates.exclude].types`
+  so non-WASM bindings (kreuzberg-py, kreuzberg-nif, etc.) no longer
+  reference the WASM-only OCR backend (which is
+  `#[cfg(feature = "ocr-wasm")]`-gated) and break the build under
+  default features.
+- **dart e2e**: `extract_file` overridden to `extract_bytes` in `alef.toml`
+  (dart cannot pass file paths through the FRB bridge); e2e generator
+  regenerated to forward actual `[BatchBytesItem]` / `Uint8List`
+  arguments rather than empty parameter lists.
+- **e2e/gleam**: regenerated against alef gleam codegen with
+  `contains_any` OR logic + `gleam/list` import; full FFI shim
+  (`packages/gleam/src/kreuzberg_gleam_ffi.erl`) wraps the
+  `Elixir.Kreuzberg.Native` `*_sync` NIFs and converts the Erlang map
+  results into Gleam-typed tagged tuples (`extraction_result`,
+  `metadata`, `document_structure`, `format_metadata`, `excel_metadata`).
+- **e2e/zig**: regenerated for Zig 0.16 API (allocator + IO surface) and
+  `FormatMetadata` internally-tagged enum path lookups now skip the
+  variant-name segment.
 - **Gleam dependency manifest**: restored canonical hex version ranges in
   `packages/gleam/gleam.toml` (`gleam_stdlib = ">= 0.34.0 and < 2.0.0"`,
   `gleeunit = ">= 1.0.0 and < 2.0.0"`). An earlier `alef sync-versions` had
