@@ -1082,7 +1082,14 @@ before = [
   "bash scripts/setup-swift-bridge.sh",
 ]
 command = "cd packages/swift && swift test"
-e2e = "cd e2e/swift && swift test"
+# Generated e2e tests live inside packages/swift/Tests (SwiftPM 6.0 forbids
+# inter-package `.package(path:)` references within a monorepo, so the e2e
+# generator places them next to the library target — see
+# alef-e2e/src/codegen/swift.rs). The `e2e/swift/Package.swift` file is a
+# documentation-only stub; running `swift test` there fails with "no buildable
+# target". Point the e2e command at the same package as the regular test
+# command so the generated XCTest cases actually execute.
+e2e = "cd packages/swift && swift test"
 
 [crates.test.dart]
 precondition = "command -v dart >/dev/null 2>&1"
