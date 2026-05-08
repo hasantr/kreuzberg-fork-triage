@@ -14,16 +14,14 @@ import org.jspecify.annotations.Nullable;
 /**
  * Word document metadata.
  *
- * Extracted from DOCX files using shared Office Open XML metadata extraction.
- * Integrates with {@code office_metadata} module for core/app/custom properties.
+ * Extracted from DOCX files using shared Office Open XML metadata extraction. Integrates with {@code office_metadata}
+ * module for core/app/custom properties.
  */
 @JsonInclude(JsonInclude.Include.NON_ABSENT)
 @JsonDeserialize(builder = DocxMetadataBuilder.class)
-public record DocxMetadata(
-    @Nullable @JsonProperty("core_properties") String coreProperties,
-    @Nullable @JsonProperty("app_properties") String appProperties,
-    @Nullable @JsonProperty("custom_properties") Map<String, Object> customProperties
-) {
+public record DocxMetadata(@Nullable @JsonProperty("core_properties") String coreProperties,
+        @Nullable @JsonProperty("app_properties") String appProperties,
+        @Nullable @JsonProperty("custom_properties") Map<String, Object> customProperties) {
     public static DocxMetadataBuilder builder() {
         return new DocxMetadataBuilder();
     }
