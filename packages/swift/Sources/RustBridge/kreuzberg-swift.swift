@@ -134,6 +134,15 @@ public func embedding_backend_call_dimensions(_ this: EmbeddingBackendBoxRef) ->
 public func embedding_backend_call_embed<GenericIntoRustString: IntoRustString>(_ this: EmbeddingBackendBoxRef, _ texts: RustVec<GenericIntoRustString>) throws -> RustString {
     try { let val = __swift_bridge__$embedding_backend_call_embed(this.ptr, { let val = texts; val.isOwned = false; return val.ptr }()); if val.is_ok { return RustString(ptr: val.ok_or_err!) } else { throw RustString(ptr: val.ok_or_err!) } }()
 }
+public func extractionConfigFromJson<GenericIntoRustString: IntoRustString>(_ json: GenericIntoRustString) throws -> ExtractionConfig {
+    try { let val = __swift_bridge__$extraction_config_from_json({ let rustString = json.intoRustString(); rustString.isOwned = false; return rustString.ptr }()); if val.is_ok { return ExtractionConfig(ptr: val.ok_or_err!) } else { throw RustString(ptr: val.ok_or_err!) } }()
+}
+public func batchBytesItemFromJson<GenericIntoRustString: IntoRustString>(_ json: GenericIntoRustString) throws -> BatchBytesItem {
+    try { let val = __swift_bridge__$batch_bytes_item_from_json({ let rustString = json.intoRustString(); rustString.isOwned = false; return rustString.ptr }()); if val.is_ok { return BatchBytesItem(ptr: val.ok_or_err!) } else { throw RustString(ptr: val.ok_or_err!) } }()
+}
+public func batchFileItemFromJson<GenericIntoRustString: IntoRustString>(_ json: GenericIntoRustString) throws -> BatchFileItem {
+    try { let val = __swift_bridge__$batch_file_item_from_json({ let rustString = json.intoRustString(); rustString.isOwned = false; return rustString.ptr }()); if val.is_ok { return BatchFileItem(ptr: val.ok_or_err!) } else { throw RustString(ptr: val.ok_or_err!) } }()
+}
 
 public class AccelerationConfig: AccelerationConfigRefMut {
     var isOwned: Bool = true
@@ -16104,6 +16113,81 @@ extension TessdataManager: Vectorizable {
 
     public static func vecOfSelfLen(vecPtr: UnsafeMutableRawPointer) -> UInt {
         __swift_bridge__$Vec_TessdataManager$len(vecPtr)
+    }
+}
+
+
+public class TesseractWasmBackend: TesseractWasmBackendRefMut {
+    var isOwned: Bool = true
+
+    public override init(ptr: UnsafeMutableRawPointer) {
+        super.init(ptr: ptr)
+    }
+
+    deinit {
+        if isOwned {
+            __swift_bridge__$TesseractWasmBackend$_free(ptr)
+        }
+    }
+}
+public class TesseractWasmBackendRefMut: TesseractWasmBackendRef {
+    public override init(ptr: UnsafeMutableRawPointer) {
+        super.init(ptr: ptr)
+    }
+}
+public class TesseractWasmBackendRef {
+    var ptr: UnsafeMutableRawPointer
+
+    public init(ptr: UnsafeMutableRawPointer) {
+        self.ptr = ptr
+    }
+}
+extension TesseractWasmBackend: Vectorizable {
+    public static func vecOfSelfNew() -> UnsafeMutableRawPointer {
+        __swift_bridge__$Vec_TesseractWasmBackend$new()
+    }
+
+    public static func vecOfSelfFree(vecPtr: UnsafeMutableRawPointer) {
+        __swift_bridge__$Vec_TesseractWasmBackend$drop(vecPtr)
+    }
+
+    public static func vecOfSelfPush(vecPtr: UnsafeMutableRawPointer, value: TesseractWasmBackend) {
+        __swift_bridge__$Vec_TesseractWasmBackend$push(vecPtr, {value.isOwned = false; return value.ptr;}())
+    }
+
+    public static func vecOfSelfPop(vecPtr: UnsafeMutableRawPointer) -> Optional<Self> {
+        let pointer = __swift_bridge__$Vec_TesseractWasmBackend$pop(vecPtr)
+        if pointer == nil {
+            return nil
+        } else {
+            return (TesseractWasmBackend(ptr: pointer!) as! Self)
+        }
+    }
+
+    public static func vecOfSelfGet(vecPtr: UnsafeMutableRawPointer, index: UInt) -> Optional<TesseractWasmBackendRef> {
+        let pointer = __swift_bridge__$Vec_TesseractWasmBackend$get(vecPtr, index)
+        if pointer == nil {
+            return nil
+        } else {
+            return TesseractWasmBackendRef(ptr: pointer!)
+        }
+    }
+
+    public static func vecOfSelfGetMut(vecPtr: UnsafeMutableRawPointer, index: UInt) -> Optional<TesseractWasmBackendRefMut> {
+        let pointer = __swift_bridge__$Vec_TesseractWasmBackend$get_mut(vecPtr, index)
+        if pointer == nil {
+            return nil
+        } else {
+            return TesseractWasmBackendRefMut(ptr: pointer!)
+        }
+    }
+
+    public static func vecOfSelfAsPtr(vecPtr: UnsafeMutableRawPointer) -> UnsafePointer<TesseractWasmBackendRef> {
+        UnsafePointer<TesseractWasmBackendRef>(OpaquePointer(__swift_bridge__$Vec_TesseractWasmBackend$as_ptr(vecPtr)))
+    }
+
+    public static func vecOfSelfLen(vecPtr: UnsafeMutableRawPointer) -> UInt {
+        __swift_bridge__$Vec_TesseractWasmBackend$len(vecPtr)
     }
 }
 

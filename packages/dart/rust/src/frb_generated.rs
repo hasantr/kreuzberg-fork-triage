@@ -39,7 +39,7 @@ flutter_rust_bridge::frb_generated_boilerplate!(
     default_rust_auto_opaque = RustAutoOpaqueMoi,
 );
 pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_VERSION: &str = "2.12.0";
-pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = -1169721976;
+pub(crate) const FLUTTER_RUST_BRIDGE_CODEGEN_CONTENT_HASH: i32 = 1021572728;
 
 // Section: executor
 
@@ -876,6 +876,38 @@ fn wire__crate__list_validators_impl(
         },
     )
 }
+fn wire__crate__render_pdf_page_to_png_impl(
+    port_: flutter_rust_bridge::for_generated::MessagePort,
+    ptr_: flutter_rust_bridge::for_generated::PlatformGeneralizedUint8ListPtr,
+    rust_vec_len_: i32,
+    data_len_: i32,
+) {
+    FLUTTER_RUST_BRIDGE_HANDLER.wrap_normal::<flutter_rust_bridge::for_generated::SseCodec, _, _>(
+        flutter_rust_bridge::for_generated::TaskInfo {
+            debug_name: "render_pdf_page_to_png",
+            port: Some(port_),
+            mode: flutter_rust_bridge::for_generated::FfiCallMode::Normal,
+        },
+        move || {
+            let message = unsafe {
+                flutter_rust_bridge::for_generated::Dart2RustMessageSse::from_wire(ptr_, rust_vec_len_, data_len_)
+            };
+            let mut deserializer = flutter_rust_bridge::for_generated::SseDeserializer::new(message);
+            let api_pdf_bytes = <Vec<u8>>::sse_decode(&mut deserializer);
+            let api_page_index = <i64>::sse_decode(&mut deserializer);
+            let api_dpi = <Option<i64>>::sse_decode(&mut deserializer);
+            let api_password = <Option<String>>::sse_decode(&mut deserializer);
+            deserializer.end();
+            move |context| {
+                transform_result_sse::<_, String>((move || {
+                    let output_ok =
+                        crate::render_pdf_page_to_png(api_pdf_bytes, api_page_index, api_dpi, api_password)?;
+                    Ok(output_ok)
+                })())
+            }
+        },
+    )
+}
 
 // Section: static_checks
 
@@ -1002,6 +1034,24 @@ const _: fn() = || {
         let _: Option<String> = ContributorRole.role;
     }
     {
+        let CoreProperties = None::<crate::CoreProperties>.unwrap();
+        let _: Option<String> = CoreProperties.title;
+        let _: Option<String> = CoreProperties.subject;
+        let _: Option<String> = CoreProperties.creator;
+        let _: Option<String> = CoreProperties.keywords;
+        let _: Option<String> = CoreProperties.description;
+        let _: Option<String> = CoreProperties.last_modified_by;
+        let _: Option<String> = CoreProperties.revision;
+        let _: Option<String> = CoreProperties.created;
+        let _: Option<String> = CoreProperties.modified;
+        let _: Option<String> = CoreProperties.category;
+        let _: Option<String> = CoreProperties.content_status;
+        let _: Option<String> = CoreProperties.language;
+        let _: Option<String> = CoreProperties.identifier;
+        let _: Option<String> = CoreProperties.version;
+        let _: Option<String> = CoreProperties.last_printed;
+    }
+    {
         let CsvMetadata = None::<crate::CsvMetadata>.unwrap();
         let _: i64 = CsvMetadata.row_count;
         let _: i64 = CsvMetadata.column_count;
@@ -1072,9 +1122,28 @@ const _: fn() = || {
         let _: Vec<String> = DocumentStructure.node_types;
     }
     {
+        let DocxAppProperties = None::<crate::DocxAppProperties>.unwrap();
+        let _: Option<String> = DocxAppProperties.application;
+        let _: Option<String> = DocxAppProperties.app_version;
+        let _: Option<String> = DocxAppProperties.template;
+        let _: Option<i64> = DocxAppProperties.total_time;
+        let _: Option<i64> = DocxAppProperties.pages;
+        let _: Option<i64> = DocxAppProperties.words;
+        let _: Option<i64> = DocxAppProperties.characters;
+        let _: Option<i64> = DocxAppProperties.characters_with_spaces;
+        let _: Option<i64> = DocxAppProperties.lines;
+        let _: Option<i64> = DocxAppProperties.paragraphs;
+        let _: Option<String> = DocxAppProperties.company;
+        let _: Option<i64> = DocxAppProperties.doc_security;
+        let _: Option<bool> = DocxAppProperties.scale_crop;
+        let _: Option<bool> = DocxAppProperties.links_up_to_date;
+        let _: Option<bool> = DocxAppProperties.shared_doc;
+        let _: Option<bool> = DocxAppProperties.hyperlinks_changed;
+    }
+    {
         let DocxMetadata = None::<crate::DocxMetadata>.unwrap();
-        let _: Option<String> = DocxMetadata.core_properties;
-        let _: Option<String> = DocxMetadata.app_properties;
+        let _: Option<crate::CoreProperties> = DocxMetadata.core_properties;
+        let _: Option<crate::DocxAppProperties> = DocxMetadata.app_properties;
         let _: Option<std::collections::HashMap<String, String>> = DocxMetadata.custom_properties;
     }
     {
@@ -2830,6 +2899,44 @@ impl SseDecode for crate::ContributorRole {
     }
 }
 
+impl SseDecode for crate::CoreProperties {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_title = <Option<String>>::sse_decode(deserializer);
+        let mut var_subject = <Option<String>>::sse_decode(deserializer);
+        let mut var_creator = <Option<String>>::sse_decode(deserializer);
+        let mut var_keywords = <Option<String>>::sse_decode(deserializer);
+        let mut var_description = <Option<String>>::sse_decode(deserializer);
+        let mut var_lastModifiedBy = <Option<String>>::sse_decode(deserializer);
+        let mut var_revision = <Option<String>>::sse_decode(deserializer);
+        let mut var_created = <Option<String>>::sse_decode(deserializer);
+        let mut var_modified = <Option<String>>::sse_decode(deserializer);
+        let mut var_category = <Option<String>>::sse_decode(deserializer);
+        let mut var_contentStatus = <Option<String>>::sse_decode(deserializer);
+        let mut var_language = <Option<String>>::sse_decode(deserializer);
+        let mut var_identifier = <Option<String>>::sse_decode(deserializer);
+        let mut var_version = <Option<String>>::sse_decode(deserializer);
+        let mut var_lastPrinted = <Option<String>>::sse_decode(deserializer);
+        return crate::CoreProperties {
+            title: var_title,
+            subject: var_subject,
+            creator: var_creator,
+            keywords: var_keywords,
+            description: var_description,
+            last_modified_by: var_lastModifiedBy,
+            revision: var_revision,
+            created: var_created,
+            modified: var_modified,
+            category: var_category,
+            content_status: var_contentStatus,
+            language: var_language,
+            identifier: var_identifier,
+            version: var_version,
+            last_printed: var_lastPrinted,
+        };
+    }
+}
+
 impl SseDecode for crate::CsvMetadata {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -2988,11 +3095,51 @@ impl SseDecode for crate::DocumentStructure {
     }
 }
 
+impl SseDecode for crate::DocxAppProperties {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        let mut var_application = <Option<String>>::sse_decode(deserializer);
+        let mut var_appVersion = <Option<String>>::sse_decode(deserializer);
+        let mut var_template = <Option<String>>::sse_decode(deserializer);
+        let mut var_totalTime = <Option<i64>>::sse_decode(deserializer);
+        let mut var_pages = <Option<i64>>::sse_decode(deserializer);
+        let mut var_words = <Option<i64>>::sse_decode(deserializer);
+        let mut var_characters = <Option<i64>>::sse_decode(deserializer);
+        let mut var_charactersWithSpaces = <Option<i64>>::sse_decode(deserializer);
+        let mut var_lines = <Option<i64>>::sse_decode(deserializer);
+        let mut var_paragraphs = <Option<i64>>::sse_decode(deserializer);
+        let mut var_company = <Option<String>>::sse_decode(deserializer);
+        let mut var_docSecurity = <Option<i64>>::sse_decode(deserializer);
+        let mut var_scaleCrop = <Option<bool>>::sse_decode(deserializer);
+        let mut var_linksUpToDate = <Option<bool>>::sse_decode(deserializer);
+        let mut var_sharedDoc = <Option<bool>>::sse_decode(deserializer);
+        let mut var_hyperlinksChanged = <Option<bool>>::sse_decode(deserializer);
+        return crate::DocxAppProperties {
+            application: var_application,
+            app_version: var_appVersion,
+            template: var_template,
+            total_time: var_totalTime,
+            pages: var_pages,
+            words: var_words,
+            characters: var_characters,
+            characters_with_spaces: var_charactersWithSpaces,
+            lines: var_lines,
+            paragraphs: var_paragraphs,
+            company: var_company,
+            doc_security: var_docSecurity,
+            scale_crop: var_scaleCrop,
+            links_up_to_date: var_linksUpToDate,
+            shared_doc: var_sharedDoc,
+            hyperlinks_changed: var_hyperlinksChanged,
+        };
+    }
+}
+
 impl SseDecode for crate::DocxMetadata {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
-        let mut var_coreProperties = <Option<String>>::sse_decode(deserializer);
-        let mut var_appProperties = <Option<String>>::sse_decode(deserializer);
+        let mut var_coreProperties = <Option<crate::CoreProperties>>::sse_decode(deserializer);
+        let mut var_appProperties = <Option<crate::DocxAppProperties>>::sse_decode(deserializer);
         let mut var_customProperties = <Option<std::collections::HashMap<String, String>>>::sse_decode(deserializer);
         return crate::DocxMetadata {
             core_properties: var_coreProperties,
@@ -5170,6 +5317,17 @@ impl SseDecode for Option<crate::ContentFilterConfig> {
     }
 }
 
+impl SseDecode for Option<crate::CoreProperties> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::CoreProperties>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
 impl SseDecode for Option<crate::DjotContent> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
@@ -5186,6 +5344,17 @@ impl SseDecode for Option<crate::DocumentStructure> {
     fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
         if (<bool>::sse_decode(deserializer)) {
             return Some(<crate::DocumentStructure>::sse_decode(deserializer));
+        } else {
+            return None;
+        }
+    }
+}
+
+impl SseDecode for Option<crate::DocxAppProperties> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_decode(deserializer: &mut flutter_rust_bridge::for_generated::SseDeserializer) -> Self {
+        if (<bool>::sse_decode(deserializer)) {
+            return Some(<crate::DocxAppProperties>::sse_decode(deserializer));
         } else {
             return None;
         }
@@ -6545,6 +6714,7 @@ fn pde_ffi_dispatcher_primary_impl(
         24 => wire__crate__list_ocr_backends_impl(port, ptr, rust_vec_len, data_len),
         25 => wire__crate__list_post_processors_impl(port, ptr, rust_vec_len, data_len),
         26 => wire__crate__list_validators_impl(port, ptr, rust_vec_len, data_len),
+        27 => wire__crate__render_pdf_page_to_png_impl(port, ptr, rust_vec_len, data_len),
         _ => unreachable!(),
     }
 }
@@ -7269,6 +7439,35 @@ impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::ContributorRole>> for c
     }
 }
 // Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::CoreProperties> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.title.into_into_dart().into_dart(),
+            self.0.subject.into_into_dart().into_dart(),
+            self.0.creator.into_into_dart().into_dart(),
+            self.0.keywords.into_into_dart().into_dart(),
+            self.0.description.into_into_dart().into_dart(),
+            self.0.last_modified_by.into_into_dart().into_dart(),
+            self.0.revision.into_into_dart().into_dart(),
+            self.0.created.into_into_dart().into_dart(),
+            self.0.modified.into_into_dart().into_dart(),
+            self.0.category.into_into_dart().into_dart(),
+            self.0.content_status.into_into_dart().into_dart(),
+            self.0.language.into_into_dart().into_dart(),
+            self.0.identifier.into_into_dart().into_dart(),
+            self.0.version.into_into_dart().into_dart(),
+            self.0.last_printed.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<crate::CoreProperties> {}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::CoreProperties>> for crate::CoreProperties {
+    fn into_into_dart(self) -> FrbWrapper<crate::CoreProperties> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
 impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::CsvMetadata> {
     fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
         [
@@ -7434,6 +7633,36 @@ impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::DocumentStructure> {
 impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<crate::DocumentStructure> {}
 impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::DocumentStructure>> for crate::DocumentStructure {
     fn into_into_dart(self) -> FrbWrapper<crate::DocumentStructure> {
+        self.into()
+    }
+}
+// Codec=Dco (DartCObject based), see doc to use other codecs
+impl flutter_rust_bridge::IntoDart for FrbWrapper<crate::DocxAppProperties> {
+    fn into_dart(self) -> flutter_rust_bridge::for_generated::DartAbi {
+        [
+            self.0.application.into_into_dart().into_dart(),
+            self.0.app_version.into_into_dart().into_dart(),
+            self.0.template.into_into_dart().into_dart(),
+            self.0.total_time.into_into_dart().into_dart(),
+            self.0.pages.into_into_dart().into_dart(),
+            self.0.words.into_into_dart().into_dart(),
+            self.0.characters.into_into_dart().into_dart(),
+            self.0.characters_with_spaces.into_into_dart().into_dart(),
+            self.0.lines.into_into_dart().into_dart(),
+            self.0.paragraphs.into_into_dart().into_dart(),
+            self.0.company.into_into_dart().into_dart(),
+            self.0.doc_security.into_into_dart().into_dart(),
+            self.0.scale_crop.into_into_dart().into_dart(),
+            self.0.links_up_to_date.into_into_dart().into_dart(),
+            self.0.shared_doc.into_into_dart().into_dart(),
+            self.0.hyperlinks_changed.into_into_dart().into_dart(),
+        ]
+        .into_dart()
+    }
+}
+impl flutter_rust_bridge::for_generated::IntoDartExceptPrimitive for FrbWrapper<crate::DocxAppProperties> {}
+impl flutter_rust_bridge::IntoIntoDart<FrbWrapper<crate::DocxAppProperties>> for crate::DocxAppProperties {
+    fn into_into_dart(self) -> FrbWrapper<crate::DocxAppProperties> {
         self.into()
     }
 }
@@ -10331,6 +10560,27 @@ impl SseEncode for crate::ContributorRole {
     }
 }
 
+impl SseEncode for crate::CoreProperties {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.title, serializer);
+        <Option<String>>::sse_encode(self.subject, serializer);
+        <Option<String>>::sse_encode(self.creator, serializer);
+        <Option<String>>::sse_encode(self.keywords, serializer);
+        <Option<String>>::sse_encode(self.description, serializer);
+        <Option<String>>::sse_encode(self.last_modified_by, serializer);
+        <Option<String>>::sse_encode(self.revision, serializer);
+        <Option<String>>::sse_encode(self.created, serializer);
+        <Option<String>>::sse_encode(self.modified, serializer);
+        <Option<String>>::sse_encode(self.category, serializer);
+        <Option<String>>::sse_encode(self.content_status, serializer);
+        <Option<String>>::sse_encode(self.language, serializer);
+        <Option<String>>::sse_encode(self.identifier, serializer);
+        <Option<String>>::sse_encode(self.version, serializer);
+        <Option<String>>::sse_encode(self.last_printed, serializer);
+    }
+}
+
 impl SseEncode for crate::CsvMetadata {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -10428,11 +10678,33 @@ impl SseEncode for crate::DocumentStructure {
     }
 }
 
+impl SseEncode for crate::DocxAppProperties {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <Option<String>>::sse_encode(self.application, serializer);
+        <Option<String>>::sse_encode(self.app_version, serializer);
+        <Option<String>>::sse_encode(self.template, serializer);
+        <Option<i64>>::sse_encode(self.total_time, serializer);
+        <Option<i64>>::sse_encode(self.pages, serializer);
+        <Option<i64>>::sse_encode(self.words, serializer);
+        <Option<i64>>::sse_encode(self.characters, serializer);
+        <Option<i64>>::sse_encode(self.characters_with_spaces, serializer);
+        <Option<i64>>::sse_encode(self.lines, serializer);
+        <Option<i64>>::sse_encode(self.paragraphs, serializer);
+        <Option<String>>::sse_encode(self.company, serializer);
+        <Option<i64>>::sse_encode(self.doc_security, serializer);
+        <Option<bool>>::sse_encode(self.scale_crop, serializer);
+        <Option<bool>>::sse_encode(self.links_up_to_date, serializer);
+        <Option<bool>>::sse_encode(self.shared_doc, serializer);
+        <Option<bool>>::sse_encode(self.hyperlinks_changed, serializer);
+    }
+}
+
 impl SseEncode for crate::DocxMetadata {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
-        <Option<String>>::sse_encode(self.core_properties, serializer);
-        <Option<String>>::sse_encode(self.app_properties, serializer);
+        <Option<crate::CoreProperties>>::sse_encode(self.core_properties, serializer);
+        <Option<crate::DocxAppProperties>>::sse_encode(self.app_properties, serializer);
         <Option<std::collections::HashMap<String, String>>>::sse_encode(self.custom_properties, serializer);
     }
 }
@@ -12072,6 +12344,16 @@ impl SseEncode for Option<crate::ContentFilterConfig> {
     }
 }
 
+impl SseEncode for Option<crate::CoreProperties> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::CoreProperties>::sse_encode(value, serializer);
+        }
+    }
+}
+
 impl SseEncode for Option<crate::DjotContent> {
     // Codec=Sse (Serialization based), see doc to use other codecs
     fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
@@ -12088,6 +12370,16 @@ impl SseEncode for Option<crate::DocumentStructure> {
         <bool>::sse_encode(self.is_some(), serializer);
         if let Some(value) = self {
             <crate::DocumentStructure>::sse_encode(value, serializer);
+        }
+    }
+}
+
+impl SseEncode for Option<crate::DocxAppProperties> {
+    // Codec=Sse (Serialization based), see doc to use other codecs
+    fn sse_encode(self, serializer: &mut flutter_rust_bridge::for_generated::SseSerializer) {
+        <bool>::sse_encode(self.is_some(), serializer);
+        if let Some(value) = self {
+            <crate::DocxAppProperties>::sse_encode(value, serializer);
         }
     }
 }

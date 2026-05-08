@@ -36,6 +36,7 @@ import 'dart:typed_data';
 ///   processDocument: (...) => myInstance.processDocument(...),
 /// );
 /// ```
+///
 abstract class OcrBackend {
   /// Process an image and extract text via OCR.
   ///
@@ -174,6 +175,7 @@ abstract class OcrBackend {
 ///   priority: (...) => myInstance.priority(...),
 /// );
 /// ```
+///
 abstract class PostProcessor {
   /// Process an extraction result.
   ///
@@ -312,6 +314,7 @@ abstract class PostProcessor {
 ///   priority: (...) => myInstance.priority(...),
 /// );
 /// ```
+///
 abstract class Validator {
   /// Validate an extraction result.
   ///
@@ -462,6 +465,7 @@ abstract class Validator {
 ///   embed: (...) => myInstance.embed(...),
 /// );
 /// ```
+///
 abstract class EmbeddingBackend {
   /// Embedding vector dimension. Must be `> 0` and must match the length of
   /// every vector returned by `embed`.

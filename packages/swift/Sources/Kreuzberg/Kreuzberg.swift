@@ -862,6 +862,12 @@ public typealias RecognizedTable = RustBridge.RecognizedTable
 /// Manages tessdata file downloading, caching, and manifest generation.
 public typealias TessdataManager = RustBridge.TessdataManager
 
+/// WASM-compatible Tesseract OCR backend.
+///
+/// This backend uses direct FFI calls to Tesseract for WASM compatibility.
+/// It does not depend on the OcrProcessor which requires full Tokio runtime.
+public typealias TesseractWasmBackend = RustBridge.TesseractWasmBackend
+
 /// Configuration for PaddleOCR backend.
 ///
 /// Configures PaddleOCR text detection and recognition with multi-language support.
@@ -1710,4 +1716,133 @@ public func extractFile(
     config: ExtractionConfig
 ) throws -> ExtractionResult {
     return try extractFileSync(path, mimeType, config)
+}
+// MARK: - E2e Test Convenience Wrappers
+// JSON-config and file-loading wrappers used exclusively by the generated e2e tests.
+
+private func resolveFixturePath(_ name: String) -> URL {
+    if let dir = ProcessInfo.processInfo.environment["FIXTURES_DIR"] {
+        return URL(fileURLWithPath: dir).appendingPathComponent(name)
+    }
+    return URL(fileURLWithPath: name)
+}
+
+/// E2e wrapper: reads `filePath` into bytes, deserialises `configJson` -> ExtractionConfig.
+public func extractBytesSync(
+    _ filePath: String,
+    _ mimeType: String,
+    _ configJson: String
+) throws -> ExtractionResult {
+    let url = resolveFixturePath(filePath)
+    let data = try Data(contentsOf: url)
+    let config = try extractionConfigFromJson(configJson)
+    return try extractBytesSync(makeByteVec(data.map { $0 }), mimeType, config)
+}
+
+/// E2e wrapper (async): reads `filePath` into bytes, deserialises `configJson` -> ExtractionConfig.
+public func extractBytes(
+    _ filePath: String,
+    _ mimeType: String,
+    _ configJson: String
+) async throws -> ExtractionResult {
+    let url = resolveFixturePath(filePath)
+    let data = try Data(contentsOf: url)
+    let config = try extractionConfigFromJson(configJson)
+    return try extractBytesSync(makeByteVec(data.map { $0 }), mimeType, config)
+}
+
+/// E2e wrapper: deserialises `configJson` -> ExtractionConfig, then calls extractFileSync.
+public func extractFileSync(
+    _ path: String,
+    _ mimeType: String?,
+    _ configJson: String
+) throws -> ExtractionResult {
+    let config = try extractionConfigFromJson(configJson)
+    return try extractFileSync(path, mimeType, config)
+}
+
+/// E2e wrapper: deserialises `configJson` -> ExtractionConfig, nil mimeType.
+public func extractFileSync(
+    _ path: String,
+    _ configJson: String
+) throws -> ExtractionResult {
+    let config = try extractionConfigFromJson(configJson)
+    return try extractFileSync(path, nil, config)
+}
+
+/// E2e wrapper (async): deserialises `configJson` -> ExtractionConfig, then calls extractFileSync.
+public func extractFile(
+    _ path: String,
+    _ mimeType: String?,
+    _ configJson: String
+) async throws -> ExtractionResult {
+    let config = try extractionConfigFromJson(configJson)
+    return try extractFileSync(path, mimeType, config)
+}
+
+/// E2e wrapper (async): deserialises `configJson` -> ExtractionConfig, nil mimeType.
+public func extractFile(
+    _ path: String,
+    _ configJson: String
+) async throws -> ExtractionResult {
+    let config = try extractionConfigFromJson(configJson)
+    return try extractFileSync(path, nil, config)
+}
+
+/// E2e wrapper: deserialises each JSON string in `jsonItems` -> BatchBytesItem.
+public func batchExtractBytesSync(
+    _ jsonItems: [String]
+) throws -> [ExtractionResultRef] {
+    var items = RustVec<BatchBytesItem>()
+    for json in jsonItems {
+        items.push(value: try batchBytesItemFromJson(json))
+    }
+    let config = try extractionConfigFromJson("{}")
+
+    return try batchExtractBytesSync(items, config).map { $0 }
+}
+
+/// E2e wrapper (async): deserialises each JSON string in `jsonItems` -> BatchBytesItem.
+public func batchExtractBytes(
+    _ jsonItems: [String]
+) async throws -> [ExtractionResultRef] {
+    var items = RustVec<BatchBytesItem>()
+    for json in jsonItems {
+        items.push(value: try batchBytesItemFromJson(json))
+    }
+    let config = try extractionConfigFromJson("{}")
+    return try batchExtractBytesSync(items, config).map { $0 }
+}
+
+/// E2e wrapper: deserialises each JSON string in `jsonItems` -> BatchFileItem.
+public func batchExtractFilesSync(
+    _ jsonItems: [String]
+) throws -> [ExtractionResultRef] {
+    var items = RustVec<BatchFileItem>()
+    for json in jsonItems {
+        items.push(value: try batchFileItemFromJson(json))
+    }
+    let config = try extractionConfigFromJson("{}")
+    return try batchExtractFilesSync(items, config).map { $0 }
+}
+
+/// E2e wrapper (async): deserialises each JSON string in `jsonItems` -> BatchFileItem.
+public func batchExtractFiles(
+    _ jsonItems: [String]
+) async throws -> [ExtractionResultRef] {
+    var items = RustVec<BatchFileItem>()
+    for json in jsonItems {
+        items.push(value: try batchFileItemFromJson(json))
+    }
+    let config = try extractionConfigFromJson("{}")
+    return try batchExtractFilesSync(items, config).map { $0 }
+}
+
+/// E2e wrapper: reads `filePath` into bytes and calls detectMimeTypeFromBytes.
+public func detectMimeTypeFromBytes(
+    _ filePath: String
+) throws -> String {
+    let url = resolveFixturePath(filePath)
+    let data = try Data(contentsOf: url)
+    return try detectMimeTypeFromBytes(makeByteVec(data.map { $0 })).toString()
 }

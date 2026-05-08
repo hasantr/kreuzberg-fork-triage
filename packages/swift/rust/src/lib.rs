@@ -2172,6 +2172,10 @@ mod ffi {
     }
 
     extern "Rust" {
+        type TesseractWasmBackend;
+    }
+
+    extern "Rust" {
         type PaddleOcrConfig;
         #[swift_bridge(init)]
         fn new(
@@ -2543,6 +2547,16 @@ mod ffi {
         fn alef_phantom_vec_embedding_backend() -> Vec<EmbeddingBackendBox>;
         fn embedding_backend_call_dimensions(this: &EmbeddingBackendBox) -> usize;
         fn embedding_backend_call_embed(this: &EmbeddingBackendBox, texts: Vec<String>) -> Result<String, String>;
+    }
+
+    extern "Rust" {
+
+        #[swift_bridge(swift_name = "extractionConfigFromJson")]
+        fn extraction_config_from_json(json: String) -> Result<ExtractionConfig, String>;
+        #[swift_bridge(swift_name = "batchBytesItemFromJson")]
+        fn batch_bytes_item_from_json(json: String) -> Result<BatchBytesItem, String>;
+        #[swift_bridge(swift_name = "batchFileItemFromJson")]
+        fn batch_file_item_from_json(json: String) -> Result<BatchFileItem, String>;
     }
 }
 
@@ -4325,7 +4339,7 @@ impl HwpImage {
     pub fn new(name: String, data: Vec<u8>) -> HwpImage {
         let mut __target: kreuzberg::extraction::hwp::model::HwpImage = ::std::default::Default::default();
         // alef: name — String fallback in non-serde struct, left at default
-        __target.data = data;
+        __target.data = data.into();
         HwpImage(__target)
     }
     pub fn name(&self) -> String {
@@ -9489,6 +9503,8 @@ impl RecognizedTable {
 
 pub struct TessdataManager(pub kreuzberg::ocr::TessdataManager);
 
+pub struct TesseractWasmBackend(pub kreuzberg::ocr::TesseractWasmBackend);
+
 pub struct PaddleOcrConfig(pub kreuzberg::PaddleOcrConfig);
 impl PaddleOcrConfig {
     pub fn new(
@@ -10908,4 +10924,25 @@ pub fn embedding_backend_call_embed(this: &EmbeddingBackendBox, texts: Vec<Strin
                 .map(|v| serde_json::to_string(&v).expect("serializable return"))
                 .map_err(|e| e.to_string())
         })
+}
+
+// JSON factory shims for e2e test layer.
+// These let generated tests deserialise fixture JSON into opaque swift-bridge types.
+
+pub fn extraction_config_from_json(json: String) -> Result<ExtractionConfig, String> {
+    serde_json::from_str::<kreuzberg::ExtractionConfig>(&json)
+        .map_err(|e| e.to_string())
+        .map(ExtractionConfig)
+}
+
+pub fn batch_bytes_item_from_json(json: String) -> Result<BatchBytesItem, String> {
+    serde_json::from_str::<kreuzberg::BatchBytesItem>(&json)
+        .map_err(|e| e.to_string())
+        .map(BatchBytesItem)
+}
+
+pub fn batch_file_item_from_json(json: String) -> Result<BatchFileItem, String> {
+    serde_json::from_str::<kreuzberg::BatchFileItem>(&json)
+        .map_err(|e| e.to_string())
+        .map(BatchFileItem)
 }

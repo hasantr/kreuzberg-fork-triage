@@ -3669,6 +3669,7 @@ dependencies = [
  "async-trait",
  "flutter_rust_bridge",
  "kreuzberg",
+ "serde_json",
  "tokio",
 ]
 

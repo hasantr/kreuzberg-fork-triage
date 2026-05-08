@@ -2085,6 +2085,18 @@ void* __swift_bridge__$Vec_TessdataManager$get_mut(void* vec_ptr, uintptr_t inde
 uintptr_t __swift_bridge__$Vec_TessdataManager$len(void* vec_ptr);
 void* __swift_bridge__$Vec_TessdataManager$as_ptr(void* vec_ptr);
 
+typedef struct TesseractWasmBackend TesseractWasmBackend;
+void __swift_bridge__$TesseractWasmBackend$_free(void* self);
+
+void* __swift_bridge__$Vec_TesseractWasmBackend$new(void);
+void __swift_bridge__$Vec_TesseractWasmBackend$drop(void* vec_ptr);
+void __swift_bridge__$Vec_TesseractWasmBackend$push(void* vec_ptr, void* item_ptr);
+void* __swift_bridge__$Vec_TesseractWasmBackend$pop(void* vec_ptr);
+void* __swift_bridge__$Vec_TesseractWasmBackend$get(void* vec_ptr, uintptr_t index);
+void* __swift_bridge__$Vec_TesseractWasmBackend$get_mut(void* vec_ptr, uintptr_t index);
+uintptr_t __swift_bridge__$Vec_TesseractWasmBackend$len(void* vec_ptr);
+void* __swift_bridge__$Vec_TesseractWasmBackend$as_ptr(void* vec_ptr);
+
 typedef struct PaddleOcrConfig PaddleOcrConfig;
 void __swift_bridge__$PaddleOcrConfig$_free(void* self);
 
@@ -3688,5 +3700,8 @@ int32_t __swift_bridge__$validator_call_priority(void* this);
 void* __swift_bridge__$alef_phantom_vec_embedding_backend(void);
 uintptr_t __swift_bridge__$embedding_backend_call_dimensions(void* this);
 struct __private__ResultPtrAndPtr __swift_bridge__$embedding_backend_call_embed(void* this, void* texts);
+struct __private__ResultPtrAndPtr __swift_bridge__$extraction_config_from_json(void* json);
+struct __private__ResultPtrAndPtr __swift_bridge__$batch_bytes_item_from_json(void* json);
+struct __private__ResultPtrAndPtr __swift_bridge__$batch_file_item_from_json(void* json);
 
 

@@ -1,5 +1,5 @@
 [workspace]
-alef_version = "0.15.0"
+alef_version = "0.15.1"
 languages = [
   "python",
   "node",
@@ -12,6 +12,7 @@ languages = [
   "elixir",
   "wasm",
   "r",
+  "dart",
   "kotlin",
   "swift",
   "gleam",
@@ -394,7 +395,7 @@ exclude_types = [
 
 [crates.gleam]
 app_name = "kreuzberg"
-nif_module = "Elixir.Kreuzberg.Native"
+nif_module = "kreuzberg_gleam_ffi"
 
 [crates.go]
 module = "github.com/kreuzberg-dev/kreuzberg/v5"
@@ -1090,9 +1091,9 @@ e2e = "cd e2e/dart && DYLD_FALLBACK_LIBRARY_PATH=$PWD/../../target/release LD_LI
 
 [crates.test.gleam]
 precondition = "command -v gleam >/dev/null 2>&1"
-before = "cd packages/elixir && mix deps.get && mix compile"
+before = "cd packages/elixir && KREUZBERG_BUILD=1 mix deps.get && KREUZBERG_BUILD=1 mix compile"
 command = "cd packages/gleam && gleam test"
-e2e = "cd e2e/gleam && gleam test"
+e2e = "export ELIXIR_LIB_DIR=$(dirname \"$(elixir -e 'IO.puts(:code.lib_dir(:elixir) |> to_string())' 2>/dev/null)\") && export ERL_LIBS=$ELIXIR_LIB_DIR:$PWD/packages/elixir/_build/dev/lib && cd e2e/gleam && gleam test"
 
 [crates.test.zig]
 precondition = "command -v zig >/dev/null 2>&1"
@@ -1239,6 +1240,13 @@ options_type = "ExtractionConfig"
 [crates.e2e.call.overrides.zig]
 function = "extract_file_sync"
 async = false
+result_is_json_struct = true
+
+[crates.e2e.call.overrides.dart]
+# Dart reads files to bytes before passing to Rust; use extractBytes (bytes+mime)
+# instead of extractFile (path string). The file_path arg type generates readAsBytesSync().
+function = "extractBytes"
+arg_name_map = { path = "content" }
 
 [crates.e2e.calls.extract_file]
 function = "extract_file"
@@ -1276,6 +1284,7 @@ arg_name_map = { data = "content" }
 [crates.e2e.calls.extract_bytes.overrides.zig]
 function = "extract_bytes_sync"
 async = false
+result_is_json_struct = true
 
 [crates.e2e.calls.extract_file_sync]
 function = "extract_file_sync"
@@ -1300,6 +1309,7 @@ json_object_types = { chunking = "ChunkingConfig", ocr = "OcrConfig", images = "
 [crates.e2e.calls.extract_file_sync.overrides.zig]
 function = "extract_file_sync"
 async = false
+result_is_json_struct = true
 
 [crates.e2e.calls.extract_bytes_sync]
 function = "extract_bytes_sync"
@@ -1327,6 +1337,7 @@ arg_name_map = { data = "content" }
 [crates.e2e.calls.extract_bytes_sync.overrides.zig]
 function = "extract_bytes_sync"
 async = false
+result_is_json_struct = true
 
 [crates.e2e.calls.render_html.overrides.python]
 result_is_simple = true

@@ -2058,6 +2058,13 @@ pub const RecognizedTable = struct {
 pub const TessdataManager = struct {
 };
 
+/// WASM-compatible Tesseract OCR backend.
+///
+/// This backend uses direct FFI calls to Tesseract for WASM compatibility.
+/// It does not depend on the OcrProcessor which requires full Tokio runtime.
+pub const TesseractWasmBackend = struct {
+};
+
 /// Configuration for PaddleOCR backend.
 ///
 /// Configures PaddleOCR text detection and recognition with multi-language support.
@@ -2669,7 +2676,7 @@ pub const LayoutClass = enum {
 ///
 /// This function is only available with the `tokio-runtime` feature. For WASM targets,
 /// use a truly synchronous extraction approach instead.
-pub fn extract_file_sync(path: []const u8, mime_type: ?[]const u8, config: []const u8) (KreuzbergError||error{OutOfMemory})!ExtractionResult {
+pub fn extract_file_sync(path: []const u8, mime_type: ?[]const u8, config: []const u8) (KreuzbergError||error{OutOfMemory})![]u8 {
     const path_z = try std.fmt.allocPrintSentinel(
         std.heap.c_allocator, "{s}", .{path}, 0);
     const mime_type_z: ?[:0]u8 = if (mime_type) |v| try std.fmt.allocPrintSentinel(
@@ -2685,7 +2692,14 @@ pub fn extract_file_sync(path: []const u8, mime_type: ?[]const u8, config: []con
     if (mime_type_z) |z| std.heap.c_allocator.free(z);
     std.heap.c_allocator.free(config_z);
     if (config_handle) |h| c.kreuzberg_extraction_config_free(h);
-    return _result;
+    return blk: {
+        const _json_ptr = c.kreuzberg_extraction_result_to_json(_result.?);
+        defer _free_string(_json_ptr);
+        c.kreuzberg_extraction_result_free(_result.?);
+        const slice = std.mem.sliceTo(_json_ptr, 0);
+        const owned = try std.heap.c_allocator.dupe(u8, slice);
+        break :blk owned;
+    };
 }
 
 /// Synchronous wrapper for `extract_bytes`.
@@ -2695,7 +2709,7 @@ pub fn extract_file_sync(path: []const u8, mime_type: ?[]const u8, config: []con
 ///
 /// With the `tokio-runtime` feature, this blocks the current thread using the global
 /// Tokio runtime. Without it (WASM), this calls a truly synchronous implementation.
-pub fn extract_bytes_sync(content: []const u8, mime_type: []const u8, config: []const u8) (KreuzbergError||error{OutOfMemory})!ExtractionResult {
+pub fn extract_bytes_sync(content: []const u8, mime_type: []const u8, config: []const u8) (KreuzbergError||error{OutOfMemory})![]u8 {
     const mime_type_z = try std.fmt.allocPrintSentinel(
         std.heap.c_allocator, "{s}", .{mime_type}, 0);
     const config_z = try std.fmt.allocPrintSentinel(
@@ -2708,7 +2722,14 @@ pub fn extract_bytes_sync(content: []const u8, mime_type: []const u8, config: []
     std.heap.c_allocator.free(mime_type_z);
     std.heap.c_allocator.free(config_z);
     if (config_handle) |h| c.kreuzberg_extraction_config_free(h);
-    return _result;
+    return blk: {
+        const _json_ptr = c.kreuzberg_extraction_result_to_json(_result.?);
+        defer _free_string(_json_ptr);
+        c.kreuzberg_extraction_result_free(_result.?);
+        const slice = std.mem.sliceTo(_json_ptr, 0);
+        const owned = try std.heap.c_allocator.dupe(u8, slice);
+        break :blk owned;
+    };
 }
 
 /// Synchronous wrapper for `batch_extract_files`.

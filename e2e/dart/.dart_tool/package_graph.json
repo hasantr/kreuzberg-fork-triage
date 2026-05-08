@@ -59,7 +59,9 @@
       "name": "kreuzberg",
       "version": "5.0.0-rc.1",
       "dependencies": [
-        "flutter_rust_bridge"
+        "flutter_rust_bridge",
+        "freezed_annotation",
+        "meta"
       ]
     },
     {
@@ -331,6 +333,15 @@
       ]
     },
     {
+      "name": "freezed_annotation",
+      "version": "2.4.4",
+      "dependencies": [
+        "collection",
+        "json_annotation",
+        "meta"
+      ]
+    },
+    {
       "name": "flutter_rust_bridge",
       "version": "2.12.0",
       "dependencies": [
@@ -459,6 +470,13 @@
       "dependencies": [
         "meta",
         "source_span"
+      ]
+    },
+    {
+      "name": "json_annotation",
+      "version": "4.11.0",
+      "dependencies": [
+        "meta"
       ]
     },
     {
