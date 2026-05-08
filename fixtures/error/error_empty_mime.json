@@ -6,7 +6,8 @@
   "call": "extract_bytes_sync",
   "input": {
     "data": "text/plain.txt",
-    "mime_type": ""
+    "mime_type": "",
+    "config": {}
   },
   "assertions": [
     {
