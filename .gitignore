@@ -254,3 +254,4 @@ e2e/zig/.zig-cache/
 .github/copilot-instructions.md
 .github/skills/
 # END ai-rulez
+erl_crash.dump
