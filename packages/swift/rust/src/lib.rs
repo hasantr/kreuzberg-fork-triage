@@ -73,6 +73,7 @@ mod ffi {
             security_limits: Option<SecurityLimits>,
             output_format: OutputFormat,
             layout: Option<LayoutDetectionConfig>,
+            use_layout_for_markdown: bool,
             include_document_structure: bool,
             acceleration: Option<AccelerationConfig>,
             cache_namespace: Option<String>,
@@ -107,6 +108,7 @@ mod ffi {
         fn security_limits(&self) -> Option<SecurityLimits>;
         fn output_format(&self) -> OutputFormat;
         fn layout(&self) -> Option<LayoutDetectionConfig>;
+        fn use_layout_for_markdown(&self) -> bool;
         fn include_document_structure(&self) -> bool;
         fn acceleration(&self) -> Option<AccelerationConfig>;
         fn cache_namespace(&self) -> Option<String>;
@@ -2677,6 +2679,7 @@ impl ExtractionConfig {
         security_limits: Option<SecurityLimits>,
         output_format: OutputFormat,
         layout: Option<LayoutDetectionConfig>,
+        use_layout_for_markdown: bool,
         include_document_structure: bool,
         acceleration: Option<AccelerationConfig>,
         cache_namespace: Option<String>,
@@ -2748,6 +2751,7 @@ impl ExtractionConfig {
         if let Some(w) = layout {
             __target.layout = Some(w.0);
         }
+        __target.use_layout_for_markdown = use_layout_for_markdown;
         __target.include_document_structure = include_document_structure;
         if let Some(w) = acceleration {
             __target.acceleration = Some(w.0);
@@ -2878,6 +2882,12 @@ impl ExtractionConfig {
     }
     pub fn layout(&self) -> Option<LayoutDetectionConfig> {
         self.0.layout.clone().map(LayoutDetectionConfig)
+    }
+    pub fn use_layout_for_markdown(&self) -> bool {
+        ::serde_json::to_value(&self.0.use_layout_for_markdown)
+            .ok()
+            .and_then(|j| ::serde_json::from_value(j).ok())
+            .unwrap_or_default()
     }
     pub fn include_document_structure(&self) -> bool {
         ::serde_json::to_value(&self.0.include_document_structure)

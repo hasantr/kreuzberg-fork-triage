@@ -1681,40 +1681,6 @@ public func extractBytes(
     return try extractBytesSync(makeByteVec(content), mimeType, config)
 }
 
-/// Convenience overload: accepts a UTF-8 `String` and converts it to bytes.
-public func detectMimeTypeFromBytes(
-    content: String
-) throws -> String {
-    return try detectMimeTypeFromBytes(makeByteVec(Array(content.utf8))).toString()
-}
-
-/// Convenience overload: accepts a `[UInt8]` byte array.
-public func detectMimeTypeFromBytes(
-    content: [UInt8]
-) throws -> String {
-    return try detectMimeTypeFromBytes(makeByteVec(content)).toString()
-}
-
-/// Convenience overload: accepts a UTF-8 `String` and converts it to bytes.
-public func renderPdfPageToPng(
-    content: String,
-    pageIndex: UInt,
-    dpi: Int32?,
-    password: String?
-) throws -> [UInt8] {
-    return try renderPdfPageToPng(makeByteVec(Array(content.utf8)), pageIndex, dpi, password).map { $0 }
-}
-
-/// Convenience overload: accepts a `[UInt8]` byte array.
-public func renderPdfPageToPng(
-    content: [UInt8],
-    pageIndex: UInt,
-    dpi: Int32?,
-    password: String?
-) throws -> [UInt8] {
-    return try renderPdfPageToPng(makeByteVec(content), pageIndex, dpi, password).map { $0 }
-}
-
 /// Convenience overload: accepts a file path as a `String`.
 public func extractFile(
     path: String,
