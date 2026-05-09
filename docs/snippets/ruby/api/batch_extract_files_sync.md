@@ -1,12 +1,15 @@
 ```ruby title="Ruby"
 require 'kreuzberg'
 
-files = ['doc1.pdf', 'doc2.docx', 'doc3.pptx']
-config = Kreuzberg::Config::Extraction.new(
-  use_cache: true
-)
+items = [
+  Kreuzberg::BatchFileItem.new(path: 'doc1.pdf'),
+  Kreuzberg::BatchFileItem.new(path: 'doc2.docx'),
+  Kreuzberg::BatchFileItem.new(path: 'doc3.pptx')
+]
 
-results = Kreuzberg.batch_extract_files_sync(files, config: config)
+config = Kreuzberg::ExtractionConfig.new(use_cache: true)
+
+results = Kreuzberg.batch_extract_files_sync(items, config: config)
 
 results.each_with_index do |result, idx|
   puts "Document #{idx + 1}:"

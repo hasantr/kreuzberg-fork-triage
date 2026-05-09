@@ -4,13 +4,18 @@ require 'kreuzberg'
 begin
   result = Kreuzberg.extract_file_sync('missing.pdf')
   puts result.content
-rescue Kreuzberg::ValidationError => e
-  puts "Validation error: #{e.message}"
-rescue Kreuzberg::IOError => e
-  puts "IO error: #{e.message}"
-  raise
-rescue Kreuzberg::Error => e
-  puts "Extraction failed: #{e.message}"
-  raise
+rescue RuntimeError => e
+  # All extraction errors are raised as RuntimeError
+  # Check error message for specific error details
+  case e.message
+  when /validation/i
+    puts "Validation error: #{e.message}"
+  when /io|not found/i
+    puts "IO error: #{e.message}"
+    raise
+  else
+    puts "Extraction failed: #{e.message}"
+    raise
+  end
 end
 ```

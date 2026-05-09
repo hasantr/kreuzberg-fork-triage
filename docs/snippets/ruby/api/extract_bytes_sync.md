@@ -2,7 +2,7 @@
 require 'kreuzberg'
 
 pdf_bytes = File.read('document.pdf')
-config = Kreuzberg::Config::Extraction.new(
+config = Kreuzberg::ExtractionConfig.new(
   use_cache: true
 )
 

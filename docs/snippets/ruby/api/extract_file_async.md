@@ -1,16 +1,14 @@
 ```ruby title="Ruby"
 require 'kreuzberg'
 
-config = Kreuzberg::Config::Extraction.new(
+config = Kreuzberg::ExtractionConfig.new(
   use_cache: false,
   enable_quality_processing: true
 )
 
-result = Kreuzberg.extract_file_async('document.pdf', config: config).then do |res|
-  puts "Async extraction complete"
-  puts "Extracted #{res.content.length} characters"
-  puts "Quality: #{res.quality_score}"
-end
+result = Kreuzberg.extract_file_async('document.pdf', config: config)
 
-result.wait
+puts "Async extraction complete"
+puts "Extracted #{result.content.length} characters"
+puts "Quality: #{result.quality_score}"
 ```

@@ -2,7 +2,7 @@
 import dev.kreuzberg.Kreuzberg;
 import dev.kreuzberg.ExtractionResult;
 import dev.kreuzberg.BatchBytesItem;
-import dev.kreuzberg.config.ExtractionConfig;
+import dev.kreuzberg.ExtractionConfig;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;

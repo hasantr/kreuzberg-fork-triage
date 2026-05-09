@@ -2,7 +2,7 @@
 import dev.kreuzberg.Kreuzberg;
 import dev.kreuzberg.ExtractionResult;
 import dev.kreuzberg.BatchFileItem;
-import dev.kreuzberg.config.ExtractionConfig;
+import dev.kreuzberg.ExtractionConfig;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Arrays;
@@ -17,6 +17,6 @@ ExtractionConfig config = ExtractionConfig.builder().build();
 List<ExtractionResult> results = Kreuzberg.batchExtractFilesSync(items, config);
 
 for (ExtractionResult result : results) {
-    System.out.println("Content length: " + result.getContent().length());
+    System.out.println("Content length: " + result.content().length());
 }
 ```

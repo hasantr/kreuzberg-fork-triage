@@ -25,7 +25,7 @@ fn main() -> kreuzberg::Result<()> {
         output_format: OutputFormat::Markdown,
         include_document_structure: true,
         // Images: extract embedded images
-        image_extraction: Some(ImageExtractionConfig {
+        images: Some(ImageExtractionConfig {
             extract_images: true,
             ..Default::default()
         }),

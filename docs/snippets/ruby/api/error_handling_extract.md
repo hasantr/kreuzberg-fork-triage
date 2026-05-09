@@ -3,17 +3,22 @@ require 'kreuzberg'
 
 begin
   pdf_bytes = File.read('document.pdf')
-  config = Kreuzberg::Config::Extraction.new
+  config = Kreuzberg::ExtractionConfig.new
   
   result = Kreuzberg.extract_bytes_sync(pdf_bytes, 'application/pdf', config: config)
   puts "Extracted #{result.content.length} characters"
-rescue Kreuzberg::ParsingError => e
-  puts "Failed to parse document: #{e.message}"
-rescue Kreuzberg::OCRError => e
-  puts "OCR processing failed: #{e.message}"
-rescue Kreuzberg::ValidationError => e
-  puts "Invalid configuration: #{e.message}"
-rescue Kreuzberg::Error => e
-  puts "Extraction error: #{e.message}"
+rescue RuntimeError => e
+  # All extraction errors are raised as RuntimeError
+  # Check error message for details
+  case e.message
+  when /parse|parsing/i
+    puts "Failed to parse document: #{e.message}"
+  when /ocr/i
+    puts "OCR processing failed: #{e.message}"
+  when /validation|invalid/i
+    puts "Invalid configuration: #{e.message}"
+  else
+    puts "Extraction error: #{e.message}"
+  end
 end
 ```
