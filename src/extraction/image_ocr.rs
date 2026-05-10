@@ -41,7 +41,11 @@ use crate::types::{ExtractedImage, ExtractionResult};
 pub async fn process_images_with_ocr(
     mut images: Vec<ExtractedImage>,
     config: &crate::core::config::ExtractionConfig,
+    _warnings: &mut Vec<crate::types::ProcessingWarning>,
 ) -> crate::Result<Vec<ExtractedImage>> {
+    // The registry-aware path surfaces backend failures via `KreuzbergError::Ocr`
+    // rather than per-image warning entries, so the `warnings` argument is
+    // accepted for upstream signature compatibility but currently unused.
     if images.is_empty() || config.ocr.is_none() {
         return Ok(images);
     }
