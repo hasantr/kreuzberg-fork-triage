@@ -2,7 +2,6 @@
 
 pub mod external;
 pub mod kreuzberg;
-pub mod native;
 pub mod subprocess;
 
 pub use external::{
@@ -10,16 +9,6 @@ pub use external::{
     create_pdfminer_adapter, create_pdfplumber_adapter, create_pdftotext_adapter, create_playa_pdf_adapter,
     create_pymupdf4llm_adapter, create_pypdf_adapter, create_tika_adapter, create_unstructured_adapter,
 };
-pub use kreuzberg::{
-    create_c_adapter, create_c_batch_adapter, create_csharp_adapter, create_csharp_batch_adapter,
-    create_elixir_adapter, create_elixir_batch_adapter, create_go_adapter, create_go_batch_adapter,
-    create_java_adapter, create_java_batch_adapter, create_node_adapter, create_node_batch_adapter, create_php_adapter,
-    create_php_batch_adapter, create_python_adapter, create_python_batch_adapter, create_r_adapter,
-    create_r_batch_adapter, create_ruby_adapter, create_ruby_batch_adapter, create_rust_batch_adapter,
-    create_rust_oxide_batch_adapter, create_rust_oxide_subprocess_adapter, create_rust_paddle_subprocess_adapter,
-    create_rust_subprocess_adapter, create_wasm_adapter, create_wasm_batch_adapter,
-};
-pub use native::NativeAdapter;
 pub use subprocess::SubprocessAdapter;
 
 /// Returns the OCR flag string based on the provided boolean

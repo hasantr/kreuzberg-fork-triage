@@ -1001,8 +1001,6 @@ impl BenchmarkRunner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::adapters::NativeAdapter;
-    use crate::types::ErrorKind;
 
     #[tokio::test]
     async fn test_benchmark_runner_creation() {
@@ -1022,18 +1020,6 @@ mod tests {
         let result = runner.run(&[]).await;
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("No frameworks available"));
-    }
-
-    #[tokio::test]
-    async fn test_run_with_native_adapter() {
-        let config = BenchmarkConfig::default();
-        let mut registry = AdapterRegistry::new();
-        registry.register(Arc::new(NativeAdapter::new())).unwrap();
-
-        let mut runner = BenchmarkRunner::new(config, registry);
-
-        let results = runner.run(&[]).await.unwrap();
-        assert_eq!(results.len(), 0);
     }
 
     #[test]

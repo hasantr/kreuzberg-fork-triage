@@ -66,7 +66,6 @@ pub mod types;
 pub mod validate_gt;
 
 pub use adapter::FrameworkAdapter;
-pub use adapters::NativeAdapter;
 pub use aggregate::{
     ComparisonData, ConsolidationMetadata, DeltaMetrics, DurationPercentiles, FileTypeAggregation,
     FrameworkModeAggregation, NewConsolidatedResults, PerFixtureRow, Percentiles, PerformancePercentiles,

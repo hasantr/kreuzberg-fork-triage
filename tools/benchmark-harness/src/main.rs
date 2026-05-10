@@ -339,8 +339,7 @@ async fn main() -> Result<()> {
             output_format,
             shard,
         } => {
-            use benchmark_harness::{AdapterRegistry, BenchmarkRunner, NativeAdapter};
-            use kreuzberg::{ExtractionConfig, OcrConfig};
+            use benchmark_harness::{AdapterRegistry, BenchmarkRunner};
             use std::sync::Arc;
 
             // Validate framework names: alphanumeric, hyphens, underscores only
@@ -366,20 +365,6 @@ async fn main() -> Result<()> {
             };
 
             config.validate()?;
-
-            let mut extraction_config = if ocr {
-                ExtractionConfig {
-                    ocr: Some(OcrConfig {
-                        backend: "tesseract".to_string(),
-                        language: "eng".to_string(),
-                        ..Default::default()
-                    }),
-                    ..Default::default()
-                }
-            } else {
-                ExtractionConfig::default()
-            };
-            extraction_config.max_concurrent_extractions = Some(config.max_concurrent);
 
             let mut registry = AdapterRegistry::new();
 
@@ -407,133 +392,16 @@ async fn main() -> Result<()> {
                 };
             }
 
-            // Register kreuzberg-rust adapter
-            // Batch mode: use batch subprocess adapter (fair comparison with other binding batch adapters)
-            // Single-file mode: persistent subprocess (fair comparison with other frameworks)
-            // Fallback: in-process NativeAdapter if kreuzberg-extract binary is not built
-            let mut kreuzberg_count = 0;
-            if should_init("kreuzberg-rust") {
-                if matches!(config.benchmark_mode, BenchmarkMode::Batch) {
-                    use benchmark_harness::adapters::create_rust_batch_adapter;
-                    match create_rust_batch_adapter(ocr) {
-                        Ok(adapter) => {
-                            registry.register(Arc::new(adapter))?;
-                            eprintln!("[adapter] ✓ kreuzberg-rust (batch subprocess mode)");
-                            kreuzberg_count += 1;
-                        }
-                        Err(err) => {
-                            eprintln!("[adapter] ✗ kreuzberg-rust batch (initialization failed: {})", err);
-                        }
-                    }
-                } else {
-                    use benchmark_harness::adapters::create_rust_subprocess_adapter;
-                    match create_rust_subprocess_adapter(ocr) {
-                        Ok(adapter) => {
-                            registry.register(Arc::new(adapter))?;
-                            eprintln!("[adapter] ✓ kreuzberg-rust (subprocess mode)");
-                            kreuzberg_count += 1;
-                        }
-                        Err(_) => {
-                            registry.register(Arc::new(NativeAdapter::with_config(extraction_config)))?;
-                            eprintln!(
-                                "[adapter] ✓ kreuzberg-rust (in-process fallback, build kreuzberg-extract for fair benchmarks)"
-                            );
-                            kreuzberg_count += 1;
-                        }
-                    }
-                }
-            }
+            // Wave 2: kreuzberg-cli adapter registration (replaces 3 rust flavor adapters)
+            // Placeholder for: kreuzberg-rust, kreuzberg-rust-paddle, kreuzberg-rust-oxide
+            // See adapters/kreuzberg.rs for Wave 2 implementation details
+            let kreuzberg_count = 0;
+            eprintln!("[adapter] Kreuzberg CLI adapters: Wave 2 pending (benchmarks for 3rd-party only)");
 
-            // Register kreuzberg-rust-paddle adapter (PaddleOCR backend)
-            if should_init("kreuzberg-rust-paddle") {
-                use benchmark_harness::adapters::create_rust_paddle_subprocess_adapter;
-                match create_rust_paddle_subprocess_adapter(ocr) {
-                    Ok(adapter) => {
-                        registry.register(Arc::new(adapter))?;
-                        eprintln!("[adapter] ✓ kreuzberg-rust-paddle (subprocess mode)");
-                        kreuzberg_count += 1;
-                    }
-                    Err(err) => {
-                        eprintln!("[adapter] ✗ kreuzberg-rust-paddle (initialization failed: {})", err);
-                    }
-                }
-            }
-
-            // Register kreuzberg-rust-oxide adapter (pdf_oxide backend)
-            if should_init("kreuzberg-rust-oxide") {
-                if matches!(config.benchmark_mode, BenchmarkMode::Batch) {
-                    use benchmark_harness::adapters::create_rust_oxide_batch_adapter;
-                    match create_rust_oxide_batch_adapter(ocr) {
-                        Ok(adapter) => {
-                            registry.register(Arc::new(adapter))?;
-                            eprintln!("[adapter] ✓ kreuzberg-rust-oxide (batch subprocess mode)");
-                            kreuzberg_count += 1;
-                        }
-                        Err(err) => {
-                            eprintln!(
-                                "[adapter] ✗ kreuzberg-rust-oxide batch (initialization failed: {})",
-                                err
-                            );
-                        }
-                    }
-                } else {
-                    use benchmark_harness::adapters::create_rust_oxide_subprocess_adapter;
-                    match create_rust_oxide_subprocess_adapter(ocr) {
-                        Ok(adapter) => {
-                            registry.register(Arc::new(adapter))?;
-                            eprintln!("[adapter] ✓ kreuzberg-rust-oxide (subprocess mode)");
-                            kreuzberg_count += 1;
-                        }
-                        Err(err) => {
-                            eprintln!("[adapter] ✗ kreuzberg-rust-oxide (initialization failed: {})", err);
-                        }
-                    }
-                }
-            }
-
-            // Register batch adapters in batch mode (real batch API), single-file adapters otherwise
-            if matches!(config.benchmark_mode, BenchmarkMode::Batch) {
-                use benchmark_harness::adapters::{
-                    create_c_batch_adapter, create_csharp_batch_adapter, create_elixir_batch_adapter,
-                    create_go_batch_adapter, create_java_batch_adapter, create_node_batch_adapter,
-                    create_php_batch_adapter, create_python_batch_adapter, create_r_batch_adapter,
-                    create_ruby_batch_adapter, create_wasm_batch_adapter,
-                };
-
-                try_register!("kreuzberg-python", || create_python_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-go", || create_go_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-node", || create_node_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-wasm", || create_wasm_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-ruby", || create_ruby_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-java", || create_java_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-csharp", || create_csharp_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-php", || create_php_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-elixir", || create_elixir_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-r", || create_r_batch_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-c", || create_c_batch_adapter(ocr), kreuzberg_count);
-            } else {
-                use benchmark_harness::adapters::{
-                    create_c_adapter, create_csharp_adapter, create_elixir_adapter, create_go_adapter,
-                    create_java_adapter, create_node_adapter, create_php_adapter, create_python_adapter,
-                    create_r_adapter, create_ruby_adapter, create_wasm_adapter,
-                };
-
-                try_register!("kreuzberg-python", || create_python_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-go", || create_go_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-node", || create_node_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-wasm", || create_wasm_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-ruby", || create_ruby_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-java", || create_java_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-csharp", || create_csharp_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-php", || create_php_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-elixir", || create_elixir_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-r", || create_r_adapter(ocr), kreuzberg_count);
-                try_register!("kreuzberg-c", || create_c_adapter(ocr), kreuzberg_count);
-            }
-
-            let total_requested = if frameworks.is_empty() { 13 } else { frameworks.len() };
+            // Wave 2: binding adapters removed. Only kreuzberg-rust (CLI) and 3rd-party frameworks remain.
+            let total_requested = if frameworks.is_empty() { 1 } else { frameworks.iter().filter(|f| f.contains("kreuzberg")).count() };
             eprintln!(
-                "[adapter] Kreuzberg bindings: {}/{} available",
+                "[adapter] Kreuzberg CLI: {}/{} available",
                 kreuzberg_count, total_requested
             );
 
