@@ -1,6 +1,6 @@
 # Extraction Basics
 
-Kreuzberg provides 8 core extraction functions organized by input type (file path vs in-memory bytes), cardinality (single vs batch), and execution model (sync vs async). Pick the function that matches your situation — the extraction logic is identical across all variants.
+Eight core extraction functions are available, organized by input type (file path vs bytes), cardinality (single vs batch), and execution model (sync vs async).
 
 | Input         | Single sync          | Single async    | Batch sync                 | Batch async           |
 | ------------- | -------------------- | --------------- | -------------------------- | --------------------- |
@@ -322,7 +322,7 @@ When a batch contains a mix of document types that need different settings (for 
 
     ```rust title="mixed_batch.rs"
     use kreuzberg::{
-        batch_extract_file, ExtractionConfig, FileExtractionConfig,
+        batch_extract_files, ExtractionConfig, FileExtractionConfig,
         OcrConfig, OutputFormat,
     };
     use std::path::PathBuf;
@@ -355,7 +355,7 @@ When a batch contains a mix of document types that need different settings (for 
         }),
     ];
 
-    let results = batch_extract_file(paths, &config, Some(&file_configs)).await?;
+    let results = batch_extract_files(paths, &config, Some(&file_configs)).await?;
     ```
 
 Fields set to `None` in `FileExtractionConfig` inherit the batch default. Batch-level concerns like `max_concurrent_extractions`, `use_cache`, and `security_limits` cannot be overridden per file. See the [Configuration Reference](../reference/configuration.md#fileextractionconfig) for the full list of overridable fields.
@@ -364,7 +364,7 @@ Fields set to `None` in `FileExtractionConfig` inherit the batch default. Batch-
 
 Kreuzberg strips running headers, footers, watermarks, and cross-page repeating text by default so that downstream RAG and LLM pipelines see clean body content. `ContentFilterConfig` lets you opt back in to any of these when you need them, for example when extracting legal forms where the header carries the case number, or when running text analysis on a PDF whose brand name was being incorrectly removed by the repeating-text heuristic.
 
-The defaults match the field defaults documented in [ContentFilterConfig](../reference/configuration.md#contentfilterconfig): `include_headers=False`, `include_footers=False`, `strip_repeating_text=True`, `include_watermarks=False`.
+By default headers, footers, and watermarks are stripped and cross-page repeating text is deduplicated; see [ContentFilterConfig](../reference/configuration.md#contentfilterconfig) for field-level defaults and per-format behavior.
 
 === "Python"
 
@@ -460,22 +460,9 @@ See [PageConfig Reference](../reference/configuration.md#pageconfig) for all opt
 
 ## Code File Extraction
 
-When extracting source code files (`.py`, `.rs`, `.ts`, `.go`, etc.), Kreuzberg uses tree-sitter to produce structured code intelligence. The result is available in `ExtractionResult.code_intelligence` as a `ProcessResult` containing:
+Source code files (`.py`, `.rs`, `.ts`, `.go`, etc.) go through tree-sitter and produce a `ProcessResult` on `ExtractionResult.code_intelligence` (structure, imports/exports, symbols, docstrings, diagnostics, semantic chunks). Code files bypass text chunking — TSLP's function/class-aware `CodeChunks` map directly to Kreuzberg `Chunk`s with semantic `chunk_type` and heading context.
 
-- **Structure** -- Functions, classes, methods, interfaces, and their nesting hierarchy
-- **Imports/Exports** -- Module dependencies and reexports
-- **Symbols** -- Variables, constants, type aliases
-- **Docstrings** -- Parsed documentation in 10+ formats (Google, NumPy, JSDoc, RustDoc, etc.)
-- **Diagnostics** -- Parse errors with line/column positions
-- **Chunks** -- Semantic code chunks split at function/class boundaries
-
-Code files bypass the text-splitter chunking pipeline entirely. Instead, TSLP's `CodeChunks` (function/class-aware) map directly to Kreuzberg `Chunk`s with semantic `chunk_type` and heading context.
-
-Control the content mode with `TreeSitterProcessConfig.content_mode`:
-
-- `chunks` (default) -- Semantic TSLP chunks as the content output
-- `raw` -- Source code as-is, no transformation
-- `structure` -- Headings and docstrings only
+See [Code Intelligence](code-intelligence.md) for usage and [`TreeSitterProcessConfig`](../reference/configuration.md#treesitterprocessconfig) for fields.
 
 ## PDF Page Rendering
 

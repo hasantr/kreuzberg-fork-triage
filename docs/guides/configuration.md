@@ -1,8 +1,6 @@
 # Configuration Guide <span class="version-badge">v4.0.0</span>
 
-For complete field documentation, see [Configuration Reference](../reference/configuration.md).
-
-All extraction behavior is controlled through `ExtractionConfig`. Every field is optional with sensible defaults — configure only what you need. You can pass config objects directly in code, or load them from TOML/YAML/JSON files.
+All extraction behavior is controlled through `ExtractionConfig`. Pass it directly in code or load it from a TOML/YAML/JSON file. Every field is optional. For per-field documentation, see the [Configuration Reference](../reference/configuration.md).
 
 ## Quick Start
 
@@ -40,7 +38,7 @@ All extraction behavior is controlled through `ExtractionConfig`. Every field is
 
 ## Configuration Files
 
-Kreuzberg supports three file formats. TOML is recommended for readability.
+Three formats are supported. TOML is recommended.
 
 === "TOML (Recommended)"
 
@@ -87,13 +85,7 @@ Kreuzberg supports three file formats. TOML is recommended for readability.
 
 ### Automatic Discovery
 
-Kreuzberg searches for configuration files in this order:
-
-1. **Current directory** — `./kreuzberg.{toml,yaml,yml,json}`
-2. **User config** — `~/.config/kreuzberg/config.{toml,yaml,yml,json}`
-3. **System config** — `/etc/kreuzberg/config.{toml,yaml,yml,json}`
-
-The first file found is merged with defaults. If no file exists, defaults are used.
+When no `--config` path is supplied, Kreuzberg walks up from the current working directory looking for `kreuzberg.toml` and uses the first match. YAML and JSON files are supported only when passed explicitly via `--config`. If nothing is found, defaults are used.
 
 === "Python"
 
@@ -135,8 +127,6 @@ The first file found is merged with defaults. If no file exists, defaults are us
 
 ### Setting Up OCR
 
-Enable OCR for scanned documents and images:
-
 === "Python"
 
     --8<-- "snippets/python/config/config_ocr.md"
@@ -173,8 +163,6 @@ For backend selection and language packs, see [OCR Guide](ocr.md). For fine-grai
 
 ### Chunking for RAG
 
-Split extracted text into overlapping chunks for vector database ingestion:
-
 === "Python"
 
     --8<-- "snippets/python/utils/chunking.md"
@@ -209,18 +197,14 @@ Split extracted text into overlapping chunks for vector database ingestion:
 
 ## All Configuration Categories
 
-Kreuzberg's configuration covers extraction behavior, OCR, formatting, chunking, and hardware acceleration:
-
-- [ExtractionConfig](../reference/configuration.md#extractionconfig) — top-level options (cache, quality processing, output format, security limits)
-- [OcrConfig](../reference/configuration.md#ocrconfig) — OCR backend, language, GPU acceleration
-- [TesseractConfig](../reference/configuration.md#tesseractconfig) — Tesseract PSM mode, confidence, table detection
-- [ChunkingConfig](../reference/configuration.md#chunkingconfig) — chunk size, overlap, strategy for RAG
-- [TokenReductionConfig](../reference/configuration.md#tokenreductionconfig) — token count optimization for LLM prompts
+- [ExtractionConfig](../reference/configuration.md#extractionconfig) — top-level options
+- [OcrConfig](../reference/configuration.md#ocrconfig) — OCR backend, language, acceleration
+- [TesseractConfig](../reference/configuration.md#tesseractconfig) — Tesseract PSM, confidence, table detection
+- [ChunkingConfig](../reference/configuration.md#chunkingconfig) — chunk size, overlap
+- [TokenReductionConfig](../reference/configuration.md#tokenreductionconfig) — LLM prompt token reduction
 - [ContentFilterConfig](../reference/configuration.md#contentfilterconfig) — header/footer/watermark filtering
 - [PageConfig](../reference/configuration.md#pageconfig) — page tracking and markers
-- [AccelerationConfig](../reference/configuration.md#accelerationconfig) — hardware acceleration (GPU, ONNX Runtime)
-
-See [Configuration Reference](../reference/configuration.md) for the complete field documentation.
+- [AccelerationConfig](../reference/configuration.md#accelerationconfig) — ONNX Runtime execution provider
 
 ## Next Steps
 

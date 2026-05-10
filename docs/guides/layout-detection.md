@@ -94,17 +94,20 @@ _171-document PDF corpus, CPU only. GPU acceleration significantly reduces the t
     kreuzberg extract document.pdf --layout --acceleration coreml
     ```
 
+See [LayoutDetectionConfig](../reference/configuration.md#layoutdetectionconfig) for all fields.
+
 ## Table Structure Models <span class="version-badge">v4.5.3</span>
 
-When layout detection identifies a table region, a table structure model analyzes rows, columns, headers, and spanning cells.
+When layout detection identifies a table region, a table structure model analyzes rows, columns, headers, and spanning cells. Set `LayoutDetectionConfig.table_model` to one of:
 
-| Model            | Config value        | Size    | Speed    | Best for                                   |
-| ---------------- | ------------------- | ------- | -------- | ------------------------------------------ |
-| **TATR**         | `"tatr"` (default)  | 30 MB   | Fast     | General-purpose, consistent results        |
-| SLANeXT Wired    | `"slanet_wired"`    | 365 MB  | Moderate | Bordered/gridlined tables                  |
-| SLANeXT Wireless | `"slanet_wireless"` | 365 MB  | Moderate | Borderless tables                          |
-| SLANeXT Auto     | `"slanet_auto"`     | ~737 MB | Slower   | Mixed documents (auto-classifies per page) |
-| SLANet-plus      | `"slanet_plus"`     | 7.78 MB | Fastest  | Resource-constrained environments          |
+| Value             | Notes                                                       |
+| ----------------- | ----------------------------------------------------------- |
+| `tatr`            | Default. Fast (~30 MB). General-purpose.                    |
+| `slanet_wired`    | Higher accuracy for bordered/gridlined tables (~365 MB).    |
+| `slanet_wireless` | Higher accuracy for borderless tables (~365 MB).            |
+| `slanet_auto`     | Auto-classifies per page (~737 MB). Slowest.                |
+| `slanet_plus`     | Smallest (~7.78 MB). For resource-constrained environments. |
+| `disabled`        | Skip table structure recognition.                           |
 
 !!! Note "Model Download" SLANeXT models are not downloaded by default. Use `cache warm --all-table-models` to pre-download, or they download automatically on first use.
 
@@ -132,27 +135,11 @@ See [AccelerationConfig reference](../reference/configuration.md#accelerationcon
 
 ## Layout Classes
 
-The RT-DETR v2 model detects 17 layout classes:
+The RT-DETR v2 model detects 17 classes. Each `LayoutRegion.class_name` is one of:
 
-| Class                | Description               |
-| -------------------- | ------------------------- |
-| `Caption`            | Figure or table caption   |
-| `Footnote`           | Page footnote             |
-| `Formula`            | Mathematical formula      |
-| `ListItem`           | List item or bullet point |
-| `PageFooter`         | Running page footer       |
-| `PageHeader`         | Running page header       |
-| `Picture`            | Image, chart, or diagram  |
-| `SectionHeader`      | Section heading           |
-| `Table`              | Tabular data region       |
-| `Text`               | Body text paragraph       |
-| `Title`              | Document or page title    |
-| `DocumentIndex`      | Table of contents         |
-| `Code`               | Code block                |
-| `CheckboxSelected`   | Checked checkbox          |
-| `CheckboxUnselected` | Unchecked checkbox        |
-| `Form`               | Form region               |
-| `KeyValueRegion`     | Key-value pair region     |
+`caption`, `footnote`, `formula`, `list_item`, `page_footer`, `page_header`, `picture`, `section_header`, `table`, `text`, `title`, `document_index`, `code`, `checkbox_selected`, `checkbox_unselected`, `form`, `key_value_region`.
+
+See [`LayoutRegion`](../reference/types.md#layoutregion) in the types reference for the full field shape.
 
 ## Accessing Layout Regions
 
@@ -172,12 +159,12 @@ When layout detection is enabled AND page extraction is enabled, each page in th
     )
 
     for page in result.pages:
-        if page.get("layout_regions"):
-            for region in page["layout_regions"]:
-                if region["class"] == "picture" and region["confidence"] > 0.9:
-                    print(f"Page {page['page_number']}: diagram detected "
-                          f"(confidence={region['confidence']:.2f}, "
-                          f"area={region['area_fraction']:.0%})")
+        if page.layout_regions:
+            for region in page.layout_regions:
+                if region.class_name == "picture" and region.confidence > 0.9:
+                    print(f"Page {page.page_number}: diagram detected "
+                          f"(confidence={region.confidence:.2f}, "
+                          f"area={region.area_fraction:.0%})")
     ```
 
 === "TypeScript"
@@ -191,7 +178,7 @@ When layout detection is enabled AND page extraction is enabled, each page in th
     for (const page of result.pages ?? []) {
       if (page.layoutRegions) {
         for (const region of page.layoutRegions) {
-          if (region.class === "picture" && region.confidence > 0.9) {
+          if (region.className === "picture" && region.confidence > 0.9) {
             console.log(
               `Page ${page.pageNumber}: diagram detected ` +
               `(confidence=${region.confidence.toFixed(2)}, ` +
@@ -223,7 +210,7 @@ When layout detection is enabled AND page extraction is enabled, each page in th
     for page in &result.pages {
         if let Some(regions) = &page.layout_regions {
             for region in regions {
-                if region.class == "picture" && region.confidence > 0.9 {
+                if region.class_name == "picture" && region.confidence > 0.9 {
                     println!(
                         "Page {}: diagram detected (confidence={:.2}, area={:.0}%)",
                         page.page_number,
@@ -235,39 +222,6 @@ When layout detection is enabled AND page extraction is enabled, each page in th
         }
     }
     ```
-
-### Region Fields
-
-Each region in `layout_regions` contains:
-
-| Field           | Type         | Description                               |
-| --------------- | ------------ | ----------------------------------------- |
-| `class`         | string       | Layout class (see table below)            |
-| `confidence`    | float        | Detection confidence 0.0–1.0            |
-| `bbox`          | object/array | Bounding box (format varies by binding)   |
-| `area_fraction` | float        | Region area as fraction of page 0.0–1.0 |
-
-### Available Classes
-
-The available layout classes are:
-
-- `picture` — Image, chart, or diagram
-- `table` — Tabular data region
-- `text` — Body text paragraph
-- `title` — Document or page title
-- `section_header` — Section heading
-- `list_item` — List item or bullet point
-- `code` — Code block
-- `formula` — Mathematical formula
-- `caption` — Figure or table caption
-- `footnote` — Page footnote
-- `page_header` — Running page header
-- `page_footer` — Running page footer
-- `document_index` — Table of contents
-- `checkbox_selected` — Checked checkbox
-- `checkbox_unselected` — Unchecked checkbox
-- `form` — Form region
-- `key_value_region` — Key-value pair region
 
 ### Tips
 

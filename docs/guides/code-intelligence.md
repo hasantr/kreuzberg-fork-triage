@@ -46,7 +46,8 @@ Code intelligence is enabled by default when the `tree-sitter` feature flag is a
     ```python title="basic.py"
     import kreuzberg
 
-    result = kreuzberg.extract_file_sync("app.py")
+    config = kreuzberg.ExtractionConfig()
+    result = kreuzberg.extract_file_sync("app.py", config=config)
 
     # The content field has the raw source text
     print(result.content)
@@ -175,97 +176,11 @@ Use `TreeSitterConfig` to control which analysis features are enabled. Set `enab
 
 ### Configuration Fields
 
-| Field            | Type              | Default  | Description                                                              |
-| ---------------- | ----------------- | -------- | ------------------------------------------------------------------------ |
-| `structure`      | `bool`            | `true`   | Extract structural items (functions, classes, structs, etc.)             |
-| `imports`        | `bool`            | `true`   | Extract import/include/require statements                                |
-| `exports`        | `bool`            | `true`   | Extract export statements                                                |
-| `comments`       | `bool`            | `false`  | Extract comments                                                         |
-| `docstrings`     | `bool`            | `false`  | Extract docstrings with parsed sections                                  |
-| `symbols`        | `bool`            | `false`  | Extract symbol definitions (variables, constants, type aliases)          |
-| `diagnostics`    | `bool`            | `false`  | Include parse diagnostics (errors and warnings)                          |
-| `chunk_max_size` | `usize?`          | `None`   | Maximum chunk size in bytes. `None` uses the default chunk size          |
-| `content_mode`   | `CodeContentMode` | `chunks` | Controls how code content is rendered in the `content` field (see below) |
-
-### CodeContentMode
-
-Controls how the extracted `content` field is populated for code files:
-
-| Value       | Description                                                                  |
-| ----------- | ---------------------------------------------------------------------------- |
-| `chunks`    | Semantic chunks joined as content (default). Best for RAG and embeddings.    |
-| `raw`       | Raw source code as-is. Best when you need the original file content.         |
-| `structure` | Function/class headings with docstrings, no code bodies. Best for summaries. |
+See [`TreeSitterConfig`](../reference/configuration.md#treesitterconfig) and [`TreeSitterProcessConfig`](../reference/configuration.md#treesitterprocessconfig) for all fields.
 
 ## ProcessResult Fields
 
-The `ProcessResult` (accessed via `FormatMetadata::Code` in Rust, or `metadata.format` in other languages) contains:
-
-### `language`
-
-The detected programming language name (for example, `"python"`, `"rust"`, `"typescript"`).
-
-### `metrics`
-
-File-level statistics:
-
-| Field           | Type    | Description                     |
-| --------------- | ------- | ------------------------------- |
-| `total_lines`   | `usize` | Total number of lines           |
-| `code_lines`    | `usize` | Lines containing code           |
-| `comment_lines` | `usize` | Lines containing comments       |
-| `blank_lines`   | `usize` | Empty or whitespace-only lines  |
-| `total_bytes`   | `usize` | Total file size in bytes        |
-| `node_count`    | `usize` | Number of tree-sitter AST nodes |
-| `error_count`   | `usize` | Number of parse error nodes     |
-| `max_depth`     | `usize` | Maximum AST nesting depth       |
-
-### `structure`
-
-A tree of structural items (functions, classes, methods, modules, etc.). Each `StructureItem` has:
-
-- `kind` -- the type of structure (`function`, `class`, `struct`, `method`, `module`, `interface`, `enum`, `trait`, `impl`, etc.)
-- `name` -- the identifier name (if available)
-- `visibility` -- visibility modifier (`public`, `private`, `protected`, etc.)
-- `span` -- source location (start/end line, column, byte offset)
-- `children` -- nested structural items (for example, methods inside a class)
-- `decorators` -- decorator/attribute names
-- `doc_comment` -- associated documentation comment text
-- `signature` -- function/method signature string
-- `body_span` -- span of the body (excluding signature)
-
-### `imports`
-
-Import/include/require statements. Each `ImportInfo` has:
-
-- `source` -- the module path or file being imported
-- `items` -- specific items imported (for example, `["foo", "bar"]`)
-- `alias` -- import alias (for example, `import numpy as np` yields alias `"np"`)
-- `is_wildcard` -- whether this is a wildcard import (`import *`)
-- `span` -- source location
-
-### `exports`
-
-Exported symbols. Each `ExportInfo` has:
-
-- `name` -- the exported symbol name
-- `kind` -- export kind (`function`, `class`, `variable`, `type`, `default`)
-- `span` -- source location
-
-### `chunks`
-
-Semantically meaningful code chunks, suitable for RAG and embedding pipelines. Each `CodeChunk` has:
-
-- `content` -- the chunk text
-- `language` -- the programming language
-- `span` -- source location
-- `context` -- optional parent context (`parent_name`, `parent_kind`)
-
-Chunks are split at structural boundaries (function/class boundaries) rather than arbitrary line counts, preserving semantic coherence.
-
-### `comments`, `docstrings`, `symbols`, `diagnostics`
-
-These fields are populated only when their corresponding configuration flags are enabled.
+Code intelligence results are returned as a `ProcessResult` from the upstream [`tree-sitter-language-pack`](https://docs.rs/tree-sitter-language-pack) crate. Top-level fields: `language`, `metrics`, `structure`, `imports`, `exports`, `chunks`, plus `comments` / `docstrings` / `symbols` / `diagnostics` (populated only when their `TreeSitterProcessConfig` flag is on). See the upstream crate docs for full field shapes.
 
 ## Semantic Chunking for RAG
 
