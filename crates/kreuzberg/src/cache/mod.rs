@@ -10,7 +10,7 @@ mod utilities;
 // Re-export all public types and functions for backward compatibility
 pub use cleanup::{clear_cache_directory, get_cache_metadata};
 pub use core::{CacheStats, GenericCache};
-#[cfg(any(feature = "ocr", feature = "ocr-wasm"))]
+#[cfg(feature = "ocr")]
 pub(crate) use utilities::blake3_hash_bytes;
 pub(crate) use utilities::blake3_hash_file;
 #[cfg(test)]

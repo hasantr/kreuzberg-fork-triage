@@ -34,7 +34,7 @@ use std::borrow::Cow;
 ///
 /// Uses a single-pass scan: if no special characters are found, returns a
 /// borrowed `Cow` with no allocation.
-#[cfg(feature = "pdf")]
+#[cfg(feature = "layout-detection")]
 #[inline]
 pub(crate) fn escape_html_entities(text: &str) -> Cow<'_, str> {
     let needs_amp = text.contains('&');

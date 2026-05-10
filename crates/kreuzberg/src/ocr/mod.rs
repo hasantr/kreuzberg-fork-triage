@@ -38,34 +38,44 @@
 //! kreuzberg = { version = "4.0", features = ["ocr"] }
 //! ```
 mod backends;
+#[cfg(feature = "ocr")]
 pub mod cache;
+#[cfg(any(feature = "ocr", feature = "paddle-ocr"))]
 pub mod conversion;
 pub mod error;
+#[cfg(feature = "ocr")]
 pub mod hocr_parser;
 pub mod language_registry;
 #[cfg(feature = "layout-detection")]
 pub mod layout_assembly;
 #[cfg(feature = "ocr")]
 pub mod processor;
+#[cfg(feature = "ocr")]
 pub mod table;
+#[cfg(feature = "ocr")]
 pub mod tessdata_manager;
 #[cfg(feature = "ocr")]
 pub mod tesseract_backend;
 #[cfg(all(feature = "ocr-wasm", not(feature = "ocr")))]
 pub mod tesseract_wasm_backend;
 pub mod types;
+#[cfg(feature = "ocr")]
 pub mod utils;
+#[cfg(feature = "ocr")]
 pub mod validation;
 
+#[cfg(feature = "ocr")]
 pub use cache::{OcrCache, OcrCacheStats};
 pub use error::OcrError;
 pub use language_registry::LanguageRegistry;
 #[cfg(feature = "ocr")]
 pub use processor::OcrProcessor;
+#[cfg(feature = "ocr")]
 pub use tessdata_manager::TessdataManager;
 #[cfg(feature = "ocr")]
 pub use tesseract_backend::TesseractBackend;
 #[cfg(all(feature = "ocr-wasm", not(feature = "ocr")))]
 pub use tesseract_wasm_backend::TesseractWasmBackend;
 pub use types::{BatchItemResult, ExtractionResult, PSMMode, Table, TesseractConfig};
+#[cfg(feature = "ocr")]
 pub use utils::compute_hash;

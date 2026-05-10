@@ -309,6 +309,7 @@ where
     /// ```text
     /// let config = ChunkConfig::new(512).with_sizer(Characters);
     /// ```
+    #[cfg(feature = "chunking-tokenizers")]
     #[must_use]
     pub fn with_sizer<S: ChunkSizer>(self, sizer: S) -> ChunkConfig<S> {
         ChunkConfig {

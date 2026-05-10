@@ -13,22 +13,17 @@ use crate::types::ExtractionResult;
 use async_trait::async_trait;
 use std::borrow::Cow;
 use std::path::Path;
-use std::sync::OnceLock;
 
 /// WASM-compatible Tesseract OCR backend.
 ///
 /// This backend uses direct FFI calls to Tesseract for WASM compatibility.
 /// It does not depend on the OcrProcessor which requires full Tokio runtime.
-pub struct TesseractWasmBackend {
-    available_languages: OnceLock<Vec<String>>,
-}
+pub struct TesseractWasmBackend;
 
 impl TesseractWasmBackend {
     /// Create a new Tesseract WASM backend.
     pub(crate) fn new() -> Result<Self> {
-        Ok(Self {
-            available_languages: OnceLock::new(),
-        })
+        Ok(Self)
     }
 }
 

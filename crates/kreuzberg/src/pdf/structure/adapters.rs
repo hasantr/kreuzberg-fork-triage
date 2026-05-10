@@ -1,5 +1,6 @@
 //! OCR-to-structure adapters: convert kreuzberg internal types into the PDF
 //! structure pipeline's paragraph representation.
+#[cfg(feature = "ocr")]
 use super::types;
 
 /// Convert an OCR-produced [`crate::types::internal::InternalDocument`] into a vec of [`types::PdfParagraph`]s

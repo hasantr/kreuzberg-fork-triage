@@ -117,18 +117,6 @@ impl Default for TesseractConfig {
     }
 }
 
-impl TesseractConfig {
-    pub(crate) fn validate(&self) -> Result<(), String> {
-        match self.output_format.as_str() {
-            "text" | "markdown" | "hocr" | "tsv" => Ok(()),
-            _ => Err(format!(
-                "Invalid output_format: '{}'. Must be one of: text, markdown, hocr, tsv",
-                self.output_format
-            )),
-        }
-    }
-}
-
 /// Convert from public API TesseractConfig to internal OCR TesseractConfig.
 ///
 /// This conversion handles type differences (i32 → u8/u32) and clones
@@ -250,31 +238,6 @@ mod tests {
         assert_eq!(config.psm, 6, "WASM default must be PSM_SINGLE_BLOCK (6)");
         #[cfg(not(target_arch = "wasm32"))]
         assert_eq!(config.psm, 3, "native default must be PSM_AUTO (3)");
-    }
-
-    #[test]
-    fn test_tesseract_config_validate_valid() {
-        let valid_formats = ["text", "markdown", "hocr", "tsv"];
-
-        for format in valid_formats {
-            let config = TesseractConfig {
-                output_format: format.to_string(),
-                ..Default::default()
-            };
-            assert!(config.validate().is_ok());
-        }
-    }
-
-    #[test]
-    fn test_tesseract_config_validate_invalid() {
-        let config = TesseractConfig {
-            output_format: "invalid".to_string(),
-            ..Default::default()
-        };
-
-        let result = config.validate();
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Invalid output_format"));
     }
 
     #[test]

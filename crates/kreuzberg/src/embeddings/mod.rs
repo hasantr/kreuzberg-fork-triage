@@ -166,6 +166,7 @@ pub(crate) fn get_preset(name: &str) -> Option<EmbeddingPreset> {
 }
 
 /// Get the chunk_size for a preset by name.
+#[cfg(feature = "embeddings")]
 pub(crate) fn preset_chunk_size(name: &str) -> Option<usize> {
     get_preset(name).map(|p| p.chunk_size)
 }
@@ -176,6 +177,7 @@ pub(crate) fn list_presets() -> Vec<String> {
 }
 
 /// Returns installation instructions for ONNX Runtime.
+#[cfg(feature = "embeddings")]
 fn onnx_runtime_install_message() -> String {
     #[cfg(all(windows, target_env = "gnu"))]
     {
@@ -204,6 +206,7 @@ fn onnx_runtime_install_message() -> String {
 }
 
 /// Resolve the cache directory for embedding models.
+#[cfg(feature = "embeddings")]
 fn resolve_cache_dir(cache_dir: Option<std::path::PathBuf>) -> std::path::PathBuf {
     cache_dir.unwrap_or_else(|| crate::cache_dir::resolve_cache_dir("embeddings"))
 }
@@ -240,6 +243,7 @@ fn resolve_model_info(
 /// Load a tokenizer from HuggingFace model files.
 ///
 /// Adapted from the vendored embedding engine's tokenizer initialization.
+#[cfg(feature = "embeddings")]
 fn load_tokenizer(
     tokenizer_path: &std::path::Path,
     config_path: &std::path::Path,
@@ -322,6 +326,7 @@ fn load_tokenizer(
 /// hf-hub writes to the `.part` file continuously during an active download.
 /// If the file has not been modified in this window, no live process is writing
 /// to it and the corresponding lock is safe to remove.
+#[cfg(feature = "embeddings")]
 const STALE_DOWNLOAD_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(30 * 60);
 
 /// Remove stale `.lock` and `.part` files left behind by interrupted downloads.
@@ -342,6 +347,7 @@ const STALE_DOWNLOAD_TIMEOUT: std::time::Duration = std::time::Duration::from_se
 /// the `.lock` file when no `.part` exists): if neither has been written in
 /// [`STALE_DOWNLOAD_TIMEOUT`], no live process is actively downloading and
 /// it is safe to remove both files so that the next `repo.get()` can proceed.
+#[cfg(feature = "embeddings")]
 fn cleanup_stale_locks(cache_dir: &std::path::Path, repo_name: &str) {
     // hf-hub folder_name(): "models--" + repo_id.replace('/', "--")
     let folder = format!("models--{}", repo_name.replace('/', "--"));
@@ -387,6 +393,7 @@ fn cleanup_stale_locks(cache_dir: &std::path::Path, repo_name: &str) {
 }
 
 /// Build a human-readable hint to attach to a LockAcquisition error.
+#[cfg(feature = "embeddings")]
 fn lock_acquisition_hint(cache_dir: &std::path::Path, repo_name: &str) -> String {
     let folder = format!("models--{}", repo_name.replace('/', "--"));
     format!(
@@ -406,6 +413,7 @@ fn lock_acquisition_hint(cache_dir: &std::path::Path, repo_name: &str) -> String
 /// Before downloading, stale lock/part files left by interrupted or concurrent
 /// invocations are removed automatically so that the download can proceed
 /// without requiring manual intervention.
+#[cfg(feature = "embeddings")]
 fn download_model_files(
     repo_name: &str,
     model_file: &str,
@@ -468,6 +476,7 @@ fn download_model_files(
 ///
 /// Downloads model files from HuggingFace if needed, loads the tokenizer,
 /// creates an ORT session, and caches the engine for reuse.
+#[cfg(feature = "embeddings")]
 fn get_or_init_engine(
     repo_name: &str,
     model_file: &str,
@@ -579,6 +588,7 @@ fn get_or_init_engine(
 }
 
 /// Check if an error message looks like an ONNX Runtime missing dependency.
+#[cfg(feature = "embeddings")]
 fn looks_like_ort_error(msg: &str) -> bool {
     msg.contains("onnxruntime")
         || msg.contains("ORT")
@@ -591,6 +601,7 @@ fn looks_like_ort_error(msg: &str) -> bool {
 }
 
 /// Convert a panic payload to a string message.
+#[cfg(feature = "embeddings")]
 fn panic_to_string(payload: Box<dyn std::any::Any + Send>) -> String {
     if let Some(s) = payload.downcast_ref::<&str>() {
         s.to_string()
@@ -618,6 +629,7 @@ pub fn warm_model(
 }
 
 /// Normalize an embedding vector in-place (L2 normalization).
+#[cfg(feature = "embeddings")]
 fn normalize_in_place(embedding: &mut [f32]) {
     let magnitude: f32 = embedding.iter().map(|x| x * x).sum::<f32>().sqrt();
     if magnitude > f32::EPSILON {
@@ -638,6 +650,7 @@ fn normalize_in_place(embedding: &mut [f32]) {
 ///
 /// - [`crate::KreuzbergError::Validation`] if `embeddings.len() != expected_count`.
 /// - [`crate::KreuzbergError::Validation`] if any `embeddings[i].len() != expected_dim`.
+#[cfg(feature = "embeddings")]
 fn validate_embedding_shape(
     embeddings: &[Vec<f32>],
     expected_count: usize,
@@ -671,6 +684,7 @@ fn validate_embedding_shape(
 }
 
 /// Apply normalization to a batch of embeddings (parallel for large batches).
+#[cfg(feature = "embeddings")]
 fn normalize_embeddings(embeddings: &mut [Vec<f32>]) {
     const PARALLEL_THRESHOLD: usize = 64;
     if embeddings.len() >= PARALLEL_THRESHOLD {

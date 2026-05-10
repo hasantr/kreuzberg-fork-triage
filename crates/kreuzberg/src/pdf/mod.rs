@@ -21,7 +21,7 @@ pub mod hierarchy;
 pub mod metadata;
 #[cfg(feature = "pdf")]
 pub(crate) mod oxide;
-#[cfg(feature = "pdf")]
+#[cfg(all(feature = "pdf", feature = "tokio-runtime"))]
 pub(crate) mod oxide_text;
 #[cfg(feature = "pdf")]
 pub mod render;
