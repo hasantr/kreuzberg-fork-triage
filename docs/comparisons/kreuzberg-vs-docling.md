@@ -53,7 +53,7 @@ Both handle image-based documents, with different engine choices.
 
 How you integrate each tool into your stack.
 
-- **Kreuzberg** -- Native bindings for **10 languages** (Python, TypeScript, Go, Ruby, Java, C#, PHP, Elixir, Rust, Wasm). Same performance and features from every language.
+- **Kreuzberg** -- Native bindings for **17 languages** (Python, TypeScript, Rust, Go, Java, Kotlin, C#, Ruby, PHP, Elixir, Gleam, R, Dart, Swift, Zig, C, Wasm). Same performance and features from every language.
 - **Docling** -- **Python only**. If your backend is in Go, Java, or TypeScript, you'd need to wrap Docling in an HTTP service.
 
 ---

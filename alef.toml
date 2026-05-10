@@ -736,9 +736,8 @@ types = [
   "PageLayoutRegion",
   "ListItemMetadata",
 
-  # Plugin traits — Renderer excluded (no Plugin super-trait, sync-only)
-  # OcrBackend, Plugin, PostProcessor, Validator are kept for trait bridge generation
-  "Renderer",
+  # Plugin traits — OcrBackend, Plugin, PostProcessor, Renderer, Validator
+  # are kept for trait bridge generation (all extend Plugin).
 
   # Internal docx/hwp parser types — missing Serialize/Deserialize derives
   "kreuzberg::extraction::docx::parser::Table",
@@ -861,10 +860,12 @@ functions = [
   "register_post_processor",
   "register_validator",
   "register_embedding_backend",
+  "register_renderer",
   "unregister_ocr_backend",
   "unregister_post_processor",
   "unregister_validator",
   "unregister_embedding_backend",
+  "unregister_renderer",
   # warm_model — used by kreuzberg-cli `kreuzberg cache warm` and by the api/mcp
   # `cache.warm` endpoints. Not part of the public binding surface.
   "warm_model",
@@ -2076,7 +2077,7 @@ badge_url = "https://img.shields.io/github/v/tag/kreuzberg-dev/kreuzberg?label=G
 docs_url = "https://kreuzberg.dev/"
 description = "Extract text, tables, images, and metadata from 91+ file formats and 248 programming languages including PDF, Office documents, and images. Go bindings with context-aware async support, idiomatic Go API, and CGO-based native performance."
 package_manager = ["go get"]
-features = { ocr = true, async = true, plugin_system = true, embeddings = false, code_intelligence = true }
+features = { ocr = true, async = true, plugin_system = true, embeddings = true, code_intelligence = true }
 ocr_backends = ["tesseract", "paddleocr"]
 optional_sections = ["system_requirements", "ffi_build_instructions"]
 snippets = { basic_extraction = "getting-started/basic_usage.md", async_extraction = "getting-started/extract_file.md", batch_processing = "getting-started/extract_with_ocr.md", ocr_configuration = "getting-started/hello_world.md" }
@@ -2283,4 +2284,11 @@ trait_name = "EmbeddingBackend"
 super_trait = "kreuzberg::plugins::Plugin"
 registry_getter = "kreuzberg::plugins::registry::get_embedding_backend_registry"
 register_fn = "register_embedding_backend"
+exclude_languages = ["r"]
+
+[[crates.trait_bridges]]
+trait_name = "Renderer"
+super_trait = "kreuzberg::plugins::Plugin"
+registry_getter = "kreuzberg::plugins::registry::get_renderer_registry"
+register_fn = "register_renderer"
 exclude_languages = ["r"]

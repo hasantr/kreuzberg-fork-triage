@@ -107,7 +107,7 @@ No SDK, no code — just your terminal.
   ***
 
   ```bash
-  go get github.com/kreuzberg-dev/kreuzberg/packages/go/v5@latest
+  go get github.com/kreuzberg-dev/kreuzberg/v5@latest
   ```
 
   [API Reference](../reference/api-go.md){ .install-btn .install-btn--ghost }
@@ -118,7 +118,7 @@ No SDK, no code — just your terminal.
   ***
 
   ```gradle
-  implementation 'dev.kreuzberg:kreuzberg:4.9.5'
+  implementation 'dev.kreuzberg:kreuzberg:5.0.0-rc.1'
   ```
 
   [API Reference](../reference/api-java.md){ .install-btn .install-btn--ghost }
@@ -184,7 +184,7 @@ No SDK, no code — just your terminal.
   ***
 
   ```elixir
-  {:kreuzberg, "~> 4.0"}
+  {:kreuzberg, "~> 5.0.0-rc.1"}
   ```
 
   [API Reference](../reference/api-elixir.md){ .install-btn .install-btn--ghost }
@@ -353,14 +353,14 @@ Both work with **pnpm** (`pnpm add`) and **Yarn** (`yarn add`) as well.
     <dependency>
         <groupId>dev.kreuzberg</groupId>
         <artifactId>kreuzberg</artifactId>
-        <version>4.9.5</version>
+        <version>5.0.0-rc.1</version>
     </dependency>
     ```
 
 === "Gradle"
 
     ```gradle
-    implementation 'dev.kreuzberg:kreuzberg:4.9.5'
+    implementation 'dev.kreuzberg:kreuzberg:5.0.0-rc.1'
     ```
 
 Requires Java 25+ (FFM/Panama API). Native libraries are bundled in the JAR.
@@ -372,7 +372,7 @@ Add to `mix.exs`:
 ```elixir
 def deps do
   [
-    {:kreuzberg, "~> 4.0"}
+    {:kreuzberg, "~> 5.0.0-rc.1"}
   ]
 end
 ```
@@ -388,7 +388,7 @@ Ships prebuilt NIF binaries via RustlerPrecompiled. Falls back to compiling from
 ### Go
 
 ```bash
-go get github.com/kreuzberg-dev/kreuzberg/packages/go/v5@latest
+go get github.com/kreuzberg-dev/kreuzberg/v5@latest
 ```
 
 !!! Warning "Windows" The Go binding links against ONNX Runtime dynamically on Windows. `onnxruntime.dll` must be on your `PATH` at runtime — see the note at the top of this page.

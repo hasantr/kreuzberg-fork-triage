@@ -1,5 +1,5 @@
 ---
-description: "Kreuzberg – Extract text, tables, and metadata from 91+ file formats with a Rust core and native bindings for 12 languages. No GPU required."
+description: "Kreuzberg – Extract text, tables, and metadata from 91+ file formats with a Rust core and native bindings for 17 languages. No GPU required."
 ---
 
 <div class="hero-banner" markdown>
@@ -8,7 +8,7 @@ description: "Kreuzberg – Extract text, tables, and metadata from 91+ file for
 
 # Kreuzberg
 
-Document intelligence with a Rust core and native bindings for 12 languages. Extract text, tables, and metadata from 91+ formats with optional OCR — usable as an SDK, CLI, REST API, MCP server, or Docker image.
+Document intelligence with a Rust core and native bindings for 17 languages. Extract text, tables, and metadata from 91+ formats with optional OCR — usable as an SDK, CLI, REST API, MCP server, or Docker image.
 
 <div class="hero-badges" markdown>
 
@@ -43,11 +43,11 @@ Document intelligence with a Rust core and native bindings for 12 languages. Ext
 
     Tesseract and PaddleOCR work across all language bindings. EasyOCR is available for Python only.
 
-- :material-translate:{ .lg .middle } **12 Language Bindings**
+- :material-translate:{ .lg .middle } **17 Language Bindings**
 
 ---
 
-    Native bindings for Python, TypeScript, Rust, Go, Java, C#, Ruby, PHP, Elixir, R, C, and WebAssembly.
+    Native bindings for Python, TypeScript, Rust, Go, Java, Kotlin, C#, Ruby, PHP, Elixir, Gleam, R, Dart, Swift, Zig, C, and WebAssembly.
 
 - :material-code-tags:{ .lg .middle } **Code Intelligence**
 
@@ -81,13 +81,18 @@ Document intelligence with a Rust core and native bindings for 12 languages. Ext
 | **TypeScript (Native)** | `npm install @kreuzberg/node`              | [API Reference](reference/api-typescript.md) |
 | **TypeScript (WASM)**   | `npm install @kreuzberg/wasm`              | [API Reference](reference/api-wasm.md)       |
 | **Rust**                | `cargo add kreuzberg`                      | [API Reference](reference/api-rust.md)       |
-| **Go**                  | `go get .../kreuzberg/packages/go/v5`      | [API Reference](reference/api-go.md)         |
+| **Go**                  | `go get github.com/kreuzberg-dev/kreuzberg/v5` | [API Reference](reference/api-go.md)     |
 | **Java**                | Maven Central `dev.kreuzberg:kreuzberg`    | [API Reference](reference/api-java.md)       |
+| **Kotlin**              | Maven Central `dev.kreuzberg:kreuzberg-kotlin` | [API Reference](reference/api-kotlin.md) |
 | **C#**                  | `dotnet add package Kreuzberg`             | [API Reference](reference/api-csharp.md)     |
 | **Ruby**                | `gem install kreuzberg`                    | [API Reference](reference/api-ruby.md)       |
 | **PHP**                 | `composer require kreuzberg/kreuzberg`     | [API Reference](reference/api-php.md)        |
-| **Elixir**              | `{:kreuzberg, "~> 4.0"}`                   | [API Reference](reference/api-elixir.md)     |
+| **Elixir**              | `{:kreuzberg, "~> 5.0.0-rc.1"}`            | [API Reference](reference/api-elixir.md)     |
+| **Gleam**               | `gleam add kreuzberg`                      | [API Reference](reference/api-gleam.md)      |
 | **R**                   | r-universe `kreuzberg`                     | [API Reference](reference/api-r.md)          |
+| **Dart / Flutter**      | `dart pub add kreuzberg`                   | [API Reference](reference/api-dart.md)       |
+| **Swift**               | Swift Package Manager                      | [API Reference](reference/api-swift.md)      |
+| **Zig**                 | `zig fetch --save` from GitHub             | [API Reference](reference/api-zig.md)        |
 | **C (FFI)**             | Shared library + header                    | [API Reference](reference/api-c.md)          |
 | **CLI**                 | `brew install kreuzberg-dev/tap/kreuzberg` | [CLI Guide](cli/usage.md)                    |
 | **Docker**              | `ghcr.io/kreuzberg-dev/kreuzberg`          | [Docker Guide](guides/docker.md)             |

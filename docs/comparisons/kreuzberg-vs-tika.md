@@ -39,7 +39,7 @@ Tika's format detection is unmatched in breadth. Kreuzberg focuses on extraction
 
 How each tool fits into your codebase.
 
-- **Kreuzberg** -- Native bindings for **10 languages**. Each binding calls directly into the Rust core -- same performance, same features, no network round-trips. Also runs in the browser via Wasm.
+- **Kreuzberg** -- Native bindings for **17 languages**. Each binding calls directly into the Rust core -- same performance, same features, no network round-trips. Also runs in the browser via Wasm.
 - **Tika** -- Native only in **Java**. Every other language goes through Tika Server over HTTP. This adds latency, requires running a separate service, and means your application depends on the JVM being available.
 
 ### OCR

@@ -50,7 +50,7 @@ Different runtime characteristics.
 
 How you integrate each tool.
 
-- **Kreuzberg** -- Native bindings for **10 languages**. Same performance from Python, TypeScript, Go, Ruby, Java, C#, PHP, Elixir, Rust, or Wasm in the browser.
+- **Kreuzberg** -- Native bindings for **17 languages**. Same performance from Python, TypeScript, Rust, Go, Java, Kotlin, C#, Ruby, PHP, Elixir, Gleam, R, Dart, Swift, Zig, C, or Wasm in the browser.
 - **MinerU** -- **Python CLI and library** only. No language bindings, no API server out of the box.
 
 ### Embeddings and Chunking

@@ -46,7 +46,7 @@ Different approaches to image-based text extraction.
 
 A significant difference in how you integrate each tool.
 
-- **Kreuzberg** -- Native bindings for **10 languages**. Same performance and API from Python, TypeScript, Go, Ruby, Java, C#, PHP, Elixir, Rust, or Wasm in the browser.
+- **Kreuzberg** -- Native bindings for **17 languages**. Same performance and API from Python, TypeScript, Rust, Go, Java, Kotlin, C#, Ruby, PHP, Elixir, Gleam, R, Dart, Swift, Zig, C, or Wasm in the browser.
 - **MarkItDown** -- **Python only**. If your backend is in Go or TypeScript, you'd need to wrap MarkItDown in an HTTP service or call it as a subprocess.
 
 ### Downstream Processing

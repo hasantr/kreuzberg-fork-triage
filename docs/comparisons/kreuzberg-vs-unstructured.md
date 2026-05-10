@@ -39,7 +39,7 @@ If your pipeline only deals with PDFs and Word docs, both work. To ingest Jupyte
 
 How you integrate each tool into your stack.
 
-- **Kreuzberg** -- Native bindings for **10 languages** (Python, TypeScript, Go, Ruby, Java, C#, PHP, Elixir, Rust, Wasm). Each binding calls directly into the Rust core -- same performance, same features. Also runs in the browser via Wasm.
+- **Kreuzberg** -- Native bindings for **17 languages** (Python, TypeScript, Rust, Go, Java, Kotlin, C#, Ruby, PHP, Elixir, Gleam, R, Dart, Swift, Zig, C, Wasm). Each binding calls directly into the Rust core -- same performance, same features. Also runs in the browser via Wasm.
 - **Unstructured** -- Python-first. Other languages go through a **REST API**, either self-hosted or via their managed cloud. The managed API is a genuine advantage if you don't want to run infrastructure.
 
 ### OCR and Layout Analysis
