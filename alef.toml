@@ -389,10 +389,41 @@ exclude_types = [
   # causing E0609 "no field" build errors. Excluded until the public CacheStats is consolidated.
   "CacheStats",
 ]
+# Plugin trait-bridge error construction. The generated FFI plugin shims
+# (`plugin_impl_initialize`, `plugin_impl_shutdown`) need to construct a
+# `KreuzbergError` from a runtime String. KreuzbergError::Plugin is a struct
+# variant with two fields and cannot be built via `From<String>`, so we
+# provide the literal here. The placeholder local `msg` carries the message.
+plugin_error_constructor = "kreuzberg::KreuzbergError::Plugin { message: msg, plugin_name: String::new() }"
 
 [crates.gleam]
 app_name = "kreuzberg"
 nif_module = "kreuzberg_gleam_ffi"
+# When a fixture's json_object arg has no element_type recipe, wrap the
+# JSON-string emission in this Gleam call. kreuzberg's gleam binding parses
+# the string into an `ExtractionConfig` at runtime — alef does not need to
+# know the fields, defaults, or enum variants of that type.
+json_object_wrapper = "kreuzberg.config_from_json_string({json})"
+
+# Per-element_type recipes for json_object array args. Restores the
+# pre-iter15 BatchFileItem / BatchBytesItem branches; alef interprets the
+# `kind` of each field to derive the correct Gleam expression.
+[[crates.gleam.element_constructors]]
+element_type = "BatchFileItem"
+constructor = "kreuzberg.BatchFileItem"
+fields = [
+  { gleam_field = "path", kind = "file_path", json_field = "path" },
+  { gleam_field = "config", kind = "literal", value = "option.None" },
+]
+
+[[crates.gleam.element_constructors]]
+element_type = "BatchBytesItem"
+constructor = "kreuzberg.BatchBytesItem"
+fields = [
+  { gleam_field = "content", kind = "byte_array", json_field = "content" },
+  { gleam_field = "mime_type", kind = "string", json_field = "mime_type", default = "text/plain" },
+  { gleam_field = "config", kind = "literal", value = "option.None" },
+]
 
 [crates.go]
 module = "github.com/kreuzberg-dev/kreuzberg/v5"
