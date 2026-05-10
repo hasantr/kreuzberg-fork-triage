@@ -447,12 +447,9 @@ fn collect_annotation_uris(
             && !url.is_empty()
         {
             let label = if ann.start < ann.end && (ann.end as usize) <= text.len() {
-                let slice = &text[ann.start as usize..ann.end as usize];
-                if slice.is_empty() {
-                    None
-                } else {
-                    Some(slice.to_string())
-                }
+                text.get(ann.start as usize..ann.end as usize)
+                    .filter(|slice| !slice.is_empty())
+                    .map(|slice| slice.to_string())
             } else {
                 None
             };
