@@ -49,9 +49,10 @@ impl ImageExtractor {
             registry.get(&ocr_config.backend)?
         };
 
-        // Thread output_format from ExtractionConfig to OcrConfig
+        // Thread output_format and acceleration from ExtractionConfig to OcrConfig
         let mut ocr_config_with_format = ocr_config.clone();
         ocr_config_with_format.output_format = Some(config.output_format.clone());
+        ocr_config_with_format.acceleration = config.acceleration.clone();
 
         // Always request OCR elements so that build_pages can populate pages[].
         // Backends that gate element output behind include_elements (e.g. paddle-ocr)
@@ -160,11 +161,12 @@ impl ImageExtractor {
             source: None,
         })?;
 
-        // 1. Decode image
-        let img = image::load_from_memory(content).map_err(|e| crate::KreuzbergError::Parsing {
-            message: format!("Failed to decode image for layout detection: {e}"),
-            source: None,
-        })?;
+        // 1. Decode image (pixel-capped to prevent OOM on crafted inputs)
+        let img =
+            crate::utils::image_decode::decode_with_pixel_cap(content).map_err(|e| crate::KreuzbergError::Parsing {
+                message: format!("Failed to decode image for layout detection: {e}"),
+                source: None,
+            })?;
         let rgb = img.to_rgb8();
 
         // 2. Run layout detection (reuse cached engine when available)
@@ -216,6 +218,9 @@ impl ImageExtractor {
         // Use plain text for per-region OCR (we build markdown structure ourselves)
         let mut region_ocr_config = ocr_config.clone();
         region_ocr_config.output_format = Some(crate::core::config::OutputFormat::Plain);
+        if region_ocr_config.acceleration.is_none() {
+            region_ocr_config.acceleration = config.acceleration.clone();
+        }
 
         // 5. Per-region OCR + formatting into InternalDocument
         let mut builder = InternalDocumentBuilder::new("image");

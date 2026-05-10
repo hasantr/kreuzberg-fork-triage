@@ -621,7 +621,7 @@ impl PdfExtractor {
         let mut ocr_tables: Vec<crate::types::Table> = Vec::new();
         #[cfg(feature = "ocr")]
         #[allow(unused_assignments)]
-        let mut _ocr_elements_from_ocr: Vec<crate::types::OcrElement> = Vec::new();
+        let mut ocr_elements: Vec<crate::types::OcrElement> = Vec::new();
         #[cfg(feature = "ocr")]
         let mut ocr_internal_doc: Option<crate::types::internal::InternalDocument> = None;
         #[cfg(feature = "ocr")]
@@ -633,7 +633,7 @@ impl PdfExtractor {
             let (ocr_text, ocr_tbls, ocr_elems, ocr_doc, llm_usage) =
                 run_ocr_with_layout(content, config, path).await?;
             ocr_tables = ocr_tbls;
-            _ocr_elements_from_ocr = ocr_elems;
+            ocr_elements = ocr_elems;
             ocr_internal_doc = ocr_doc;
             ocr_llm_usage = llm_usage;
             (ocr_text, true)
@@ -738,7 +738,7 @@ impl PdfExtractor {
                 match run_ocr_with_layout(content, config, path).await {
                     Ok((ocr_text, ocr_tbls, ocr_elems, ocr_doc, llm_usage)) => {
                         ocr_tables = ocr_tbls;
-                        _ocr_elements_from_ocr = ocr_elems;
+                        ocr_elements = ocr_elems;
                         ocr_internal_doc = ocr_doc;
                         ocr_llm_usage = llm_usage;
                         (ocr_text, true)
@@ -801,15 +801,27 @@ impl PdfExtractor {
         }
 
         let (images, image_fallback_warning) = if config.images.as_ref().map(|c| c.extract_images).unwrap_or(false) {
-            match crate::pdf::images::extract_images_from_pdf(content) {
-                Ok(mut pdf_images) => {
-                    // Fallback: re-extract unusable images via pdfium bitmap rendering
-                    #[cfg(feature = "pdf")]
-                    let fallback_count =
-                        crate::pdf::images::reextract_raw_images_via_pdfium(content, &mut pdf_images).unwrap_or(0);
-                    #[cfg(not(feature = "pdf"))]
-                    let fallback_count = 0u32;
+            let content_owned = content.to_vec();
+            let max_images_per_page = config.images.as_ref().and_then(|i| i.max_images_per_page);
+            let extract = move || -> std::result::Result<(Vec<crate::pdf::images::PdfImage>, u32), crate::pdf::error::PdfError> {
+                let mut pdf_images = crate::pdf::images::extract_images_from_pdf(&content_owned, max_images_per_page)?;
+                // Fallback: re-extract unusable images via pdfium bitmap rendering.
+                #[cfg(feature = "pdf")]
+                let fallback_count =
+                    crate::pdf::images::reextract_raw_images_via_pdfium(&content_owned, &mut pdf_images).unwrap_or(0);
+                #[cfg(not(feature = "pdf"))]
+                let fallback_count = 0u32;
+                Ok((pdf_images, fallback_count))
+            };
+            #[cfg(feature = "tokio-runtime")]
+            let result = tokio::task::spawn_blocking(extract)
+                .await
+                .map_err(|e| crate::error::KreuzbergError::Other(format!("image extraction task panicked: {e}")))?;
+            #[cfg(not(feature = "tokio-runtime"))]
+            let result = extract();
 
+            match result {
+                Ok((pdf_images, fallback_count)) => {
                     let warning = if fallback_count > 0 {
                         Some(crate::types::ProcessingWarning {
                             source: std::borrow::Cow::Borrowed("image_extraction"),
@@ -960,9 +972,11 @@ impl PdfExtractor {
                         pre_doc.tables.push(table);
                     }
                 }
-                if let Some(imgs) = images {
-                    pre_doc.images = imgs;
-                }
+                // Do NOT overwrite pre_doc.images here. The structure pipeline already
+                // populated it via populate_images_from_pdfium with images indexed to match
+                // the ElementKind::Image { image_index } values in pre_doc.elements. Overwriting
+                // with the lopdf-extracted images (indexed 0, 1, 2...) would break that
+                // correspondence and cause image links to silently disappear from markdown output.
                 if let Some(warning) = image_fallback_warning.clone() {
                     pre_doc.processing_warnings.push(warning);
                 }
@@ -1068,6 +1082,10 @@ impl PdfExtractor {
                 doc.processing_warnings.push(warning);
             }
             doc.annotations = pdf_annotations;
+            #[cfg(feature = "ocr")]
+            if !ocr_elements.is_empty() {
+                doc.prebuilt_ocr_elements = Some(ocr_elements);
+            }
             doc
         };
 
@@ -1232,7 +1250,7 @@ impl PdfExtractor {
         let mut ocr_tables: Vec<crate::types::Table> = Vec::new();
         #[cfg(feature = "ocr")]
         #[allow(unused_assignments)]
-        let mut _ocr_elements_from_ocr: Vec<crate::types::OcrElement> = Vec::new();
+        let mut ocr_elements: Vec<crate::types::OcrElement> = Vec::new();
         #[cfg(feature = "ocr")]
         let mut ocr_internal_doc: Option<InternalDocument> = None;
         #[cfg(feature = "ocr")]
@@ -1245,7 +1263,7 @@ impl PdfExtractor {
             let (ocr_text, ocr_tbls, ocr_elems, ocr_doc, llm_usage) =
                 run_ocr_with_layout(content, config, path).await?;
             ocr_tables = ocr_tbls;
-            _ocr_elements_from_ocr = ocr_elems;
+            ocr_elements = ocr_elems;
             ocr_internal_doc = ocr_doc;
             ocr_llm_usage = llm_usage;
             (ocr_text, true)
@@ -1262,7 +1280,7 @@ impl PdfExtractor {
                 match run_ocr_with_layout(content, config, path).await {
                     Ok((ocr_text, ocr_tbls, ocr_elems, ocr_doc, llm_usage)) => {
                         ocr_tables = ocr_tbls;
-                        _ocr_elements_from_ocr = ocr_elems;
+                        ocr_elements = ocr_elems;
                         ocr_internal_doc = ocr_doc;
                         ocr_llm_usage = llm_usage;
                         (ocr_text, true)
@@ -1293,7 +1311,17 @@ impl PdfExtractor {
 
         // --- Image extraction (shared with pdfium path) ---
         let (images, image_fallback_warning) = if config.images.as_ref().map(|c| c.extract_images).unwrap_or(false) {
-            match crate::pdf::images::extract_images_from_pdf(content) {
+            let content_owned = content.to_vec();
+            let max_images_per_page = config.images.as_ref().and_then(|i| i.max_images_per_page);
+            let extract = move || crate::pdf::images::extract_images_from_pdf(&content_owned, max_images_per_page);
+            #[cfg(feature = "tokio-runtime")]
+            let result = tokio::task::spawn_blocking(extract)
+                .await
+                .map_err(|e| crate::error::KreuzbergError::Other(format!("image extraction task panicked: {e}")))?;
+            #[cfg(not(feature = "tokio-runtime"))]
+            let result = extract();
+
+            match result {
                 Ok(pdf_images) => {
                     let extracted: Vec<crate::types::ExtractedImage> = pdf_images
                         .into_iter()
@@ -1417,6 +1445,10 @@ impl PdfExtractor {
             doc.processing_warnings.push(warning);
         }
         doc.annotations = pdf_annotations;
+        #[cfg(feature = "ocr")]
+        if !ocr_elements.is_empty() {
+            doc.prebuilt_ocr_elements = Some(ocr_elements);
+        }
 
         // Extract URIs from annotations (links).
         {

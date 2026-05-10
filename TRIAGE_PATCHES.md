@@ -1,14 +1,16 @@
 # kreuzberg-fork-triage
 
-[Kreuzberg 4.9.2](https://github.com/kreuzberg-dev/kreuzberg) fork'u **üç
-additive patch** ile. Bu patch'ler
+[Kreuzberg 4.9.7](https://github.com/kreuzberg-dev/kreuzberg) fork'u **üç
+additive triage patch + iki UTF-8 safety patch** ile. Triage patch'ler
 [`kreuzberg-ocr-triage`](https://github.com/hasantr/kreuzberg-ocr-triage)
-adapter'ının çalışması için gerekli. Upstream'e PR olarak henüz sunulmadı; bu
-fork public olarak kullanılabilir durumda.
+adapter'ının çalışması için gerekli. UTF-8 safety patch'leri Türkçe/Arapça/CJK
+gibi multi-byte UTF-8 karakter içeren dökümanlarda byte-slice panic'lerini
+önler. Upstream'e PR olarak henüz sunulmadı; bu fork public olarak kullanılabilir
+durumda.
 
 > **Not:** Upstream repository 2026-04'te `Goldziher/kreuzberg` →
-> `kreuzberg-dev/kreuzberg`'ye taşındı. Bu fork yeni org'un v4.9.2 etiketine
-> dayanıyor (~2026-04-19). Requires **Rust 1.95+** (upstream gereksinimi).
+> `kreuzberg-dev/kreuzberg`'ye taşındı. Bu fork v4.9.7 etiketine
+> dayanıyor (~2026-05-08). Requires **Rust 1.95+** (upstream gereksinimi).
 
 ## Patch listesi
 
@@ -38,12 +40,47 @@ boşa gidiyordu). Bu patch PNG encode aşamasını bypass'ler ve `process_image_
 kullanır. Kreuzberg Cargo.toml'a ek olarak `[dependencies.png] = "0.18"`
 eklenmiştir (zaten transitive olarak vardı, artık explicit).
 
+### 4. EPUB byte-slicing UTF-8 safety
+
+Dosya: `src/extractors/epub/mod.rs`
+
+`collect_annotation_uris` link annotation çıkarırken `&text[ann.start..ann.end]`
+raw byte slicing yapıyordu. `ann.start` / `ann.end` byte offset'leri
+multi-byte UTF-8 karakter (Türkçe `ı`/`ş`/`ü`, Arapça, CJK, vb.) ortasından
+geçtiğinde Rust panic ediyordu — Türkçe epub'lar 1231/1497 dosya scope'unda
+sıfır indexing ile sonuçlanıyordu.
+
+Fix: `text.get(start..end).filter(|s| !s.is_empty()).map(|s| s.to_string())`.
+Char-boundary mismatch'inde slient `None` döner, link `label: None` ile push
+edilir, indexing devam eder.
+
+### 5. Cross-extractor UTF-8 safety audit
+
+Patch 4 çıkışında kreuzberg-fork ve upstream src/extractors/ üzerinde
+`&text[..]`, `&body[..]`, `&content[..]` benzeri raw byte slicing pattern'i
+audit edildi. Aynı sınıf bug'ı barındıran 3 ek dosya tespit edildi:
+
+- `src/extractors/html.rs` — annotation link label extraction (epub ile identical)
+- `src/extractors/jats/mod.rs` — JATS XML inline element span trimming
+- `src/extractors/docbook.rs` — DocBook inline element span trimming (jats ile identical)
+
+Hepsine `text.get(start..end)` pattern'i uygulandı. RTF span'ları (8 hit),
+email word boundaries (1 hit), ve internal pipeline byte_offset slicing
+(transform/, pdf metadata — 5 hit) **kapsam dışı bırakıldı** — bu patch
+extractor-side annotation/span pattern'iyle sınırlı tutuldu.
+
 ## Sürüm ve upgrade notları
 
-- **v4.9.2** baseline (2026-04-19, `kreuzberg-dev/kreuzberg` org).
-- Önceki baseline v4.8.4 (2026-04-13); 8 günlük gap'te bug fix'ler +
-  LLM usage tracking + smart document chunking eklendi.
-- Üç patch'in site'ları değişmedi; minor offset (5-7 satır) ile clean apply.
+- **v4.9.7** baseline (2026-05-08, `kreuzberg-dev/kreuzberg` org).
+- Önceki baseline v4.9.2 (2026-04-19); v4.9.2→v4.9.7 arası 70 commit, çoğu
+  fix: PDF tagged-block + image OOM cap + ocr_elements propagation +
+  PST attachments + HWP MIME + email HTML fallback + chunking semantic.
+- Triage patch'lerinin uygulandığı 3 dosyadan ikisi (image_ocr.rs, pdf/ocr.rs)
+  v4.9.7'de upstream tarafından da değiştirildi → conflict. Patch sürümü
+  korundu (registry-aware + raw-RGB davranışı patch'in zaten yeniden yazdığı
+  bölgeleri kapsıyor).
+- Üç patch'in core site'ları değişmedi; minor offset ile clean apply.
+- Audit patch (#5) v4.9.7'de yeni eklendi.
 
 ## Upstream PR durumu
 

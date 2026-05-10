@@ -104,13 +104,13 @@ fn extract_para_with_annotations_jats(
                     && open_depth == depth
                 {
                     let end = text.len() as u32;
-                    // Skip any leading whitespace separator that was prepended
-                    let actual_start = if (start as usize) < text.len() {
-                        let span = &text[start as usize..end as usize];
-                        let trimmed = span.trim_start();
-                        end - trimmed.len() as u32
-                    } else {
-                        start
+                    // Skip any leading whitespace separator that was prepended.
+                    // Use `text.get(..)` instead of raw byte slicing so an offset
+                    // that lands inside a multi-byte UTF-8 character (Turkish ı,
+                    // Arabic, CJK, etc.) yields None rather than panicking.
+                    let actual_start = match text.get(start as usize..end as usize) {
+                        Some(span) => end - span.trim_start().len() as u32,
+                        None => start,
                     };
                     if end > actual_start {
                         let href_clone = href.clone();

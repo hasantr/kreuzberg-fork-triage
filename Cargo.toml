@@ -13,7 +13,7 @@
 edition = "2024"
 rust-version = "1.91"
 name = "kreuzberg"
-version = "4.9.2"
+version = "4.9.7"
 authors = ["Na'aman Hirschfeld <naaman@kreuzberg.dev>"]
 build = "build.rs"
 autolib = false
@@ -425,6 +425,10 @@ name = "docx_mime_detection_test"
 path = "tests/docx_mime_detection_test.rs"
 
 [[test]]
+name = "docx_ocr_integration_test"
+path = "tests/docx_ocr_integration_test.rs"
+
+[[test]]
 name = "email_integration"
 path = "tests/email_integration.rs"
 
@@ -445,12 +449,20 @@ name = "error_handling"
 path = "tests/error_handling.rs"
 
 [[test]]
+name = "extraction_timeout_tests"
+path = "tests/extraction_timeout_tests.rs"
+
+[[test]]
 name = "fictionbook_extractor_tests"
 path = "tests/fictionbook_extractor_tests.rs"
 
 [[test]]
 name = "format_integration"
 path = "tests/format_integration.rs"
+
+[[test]]
+name = "gpu_acceleration"
+path = "tests/gpu_acceleration.rs"
 
 [[test]]
 name = "html_output_quality"
@@ -483,6 +495,10 @@ path = "tests/issue_670_content_filter_layout_regression.rs"
 [[test]]
 name = "issue_671_pptx_image_config_regression"
 path = "tests/issue_671_pptx_image_config_regression.rs"
+
+[[test]]
+name = "issue_797_preset_embedding_regression"
+path = "tests/issue_797_preset_embedding_regression.rs"
 
 [[test]]
 name = "iwork_integration"
@@ -701,6 +717,10 @@ name = "stopwords_integration_test"
 path = "tests/stopwords_integration_test.rs"
 
 [[test]]
+name = "test_batch_extract_schema"
+path = "tests/test_batch_extract_schema.rs"
+
+[[test]]
 name = "typst_behavioral_tests"
 path = "tests/typst_behavioral_tests.rs"
 
@@ -825,7 +845,7 @@ default-features = false
 version = "0.4.3"
 
 [dependencies.html-to-markdown-rs]
-version = "3.2.5"
+version = "3.3.1"
 features = [
     "inline-images",
     "metadata",
@@ -861,14 +881,14 @@ version = "2.14.0"
 version = "0.19.0"
 
 [dependencies.jotdown]
-version = "0.9"
+version = "0.10"
 
 [dependencies.kamadak-exif]
 version = "0.6.1"
 optional = true
 
 [dependencies.kreuzberg-tesseract]
-version = "4.9.2"
+version = "4.9.7"
 optional = true
 
 [dependencies.libc]
@@ -952,7 +972,7 @@ version = "0.12.5"
 version = "0.2"
 
 [dependencies.pdf_oxide]
-version = "0.3.34"
+version = "0.3.37"
 optional = true
 default-features = false
 
@@ -1202,7 +1222,7 @@ optional = true
 default-features = false
 
 [target.'cfg(all(not(target_os = "windows"), not(target_arch = "wasm32")))'.dependencies.kreuzberg-paddle-ocr]
-version = "4.9.2"
+version = "4.9.7"
 optional = true
 
 [target.'cfg(all(not(target_os = "windows"), not(target_arch = "wasm32")))'.dependencies.pprof]
@@ -1226,7 +1246,7 @@ optional = true
 default-features = false
 
 [target.'cfg(all(target_os = "windows", not(target_arch = "wasm32")))'.dependencies.kreuzberg-paddle-ocr]
-version = "4.9.2"
+version = "4.9.7"
 optional = true
 
 [target.'cfg(all(target_os = "windows", not(target_arch = "wasm32")))'.dependencies.ureq]
@@ -1239,7 +1259,7 @@ optional = true
 default-features = false
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies.tree-sitter-language-pack]
-version = "1.6.2"
+version = "1.7.0"
 features = [
     "serde",
     "dynamic-loading",
@@ -1254,7 +1274,7 @@ version = "0.4.2"
 features = ["wasm_js"]
 
 [target.'cfg(target_arch = "wasm32")'.dependencies.tree-sitter-language-pack]
-version = "1.6.2"
+version = "1.7.0"
 features = [
     "serde",
     "serde",

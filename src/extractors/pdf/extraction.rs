@@ -121,7 +121,21 @@ pub(crate) fn extract_all_from_document(
             .map(|cf| (cf.strip_repeating_text, cf.include_headers, cf.include_footers))
             .unwrap_or((true, false, false)); // defaults match current behavior
 
-        tracing::debug!(k_clusters = k, "PDF structure path: calling extract_document_structure");
+        // Image extraction must be explicitly enabled before we inject placeholders.
+        // Checking both config paths so that either flag (`images.extract_images` or
+        // `pdf_options.extract_images`) correctly suppresses image rendering in the
+        // structure pipeline. When disabled, `populate_images_from_pdfium` is skipped
+        // entirely, preventing base64 image data from leaking into the result.
+        let images_extraction_enabled = config.images.as_ref().map(|c| c.extract_images).unwrap_or(false)
+            || config.pdf_options.as_ref().map(|p| p.extract_images).unwrap_or(false);
+        let inject_placeholders =
+            images_extraction_enabled && config.images.as_ref().map(|c| c.inject_placeholders).unwrap_or(true);
+
+        tracing::debug!(
+            k_clusters = k,
+            inject_placeholders,
+            "PDF structure path: calling extract_document_structure"
+        );
         match crate::pdf::structure::extract_document_structure(
             document,
             k,
@@ -149,6 +163,9 @@ pub(crate) fn extract_all_from_document(
             strip_repeating_text,
             include_headers,
             include_footers,
+            config.images.as_ref().and_then(|i| i.max_images_per_page),
+            config.cancel_token.as_ref(),
+            inject_placeholders,
         ) {
             Ok((doc, has_encoding_issues)) if !doc.elements.is_empty() => {
                 tracing::debug!(
@@ -501,6 +518,14 @@ pub(crate) fn extract_all_from_oxide_document(
                 "oxide structure: extracted segments for heading detection"
             );
 
+            // Same gate as the pdfium path: only inject placeholders when image extraction
+            // is explicitly enabled. Prevents base64 data from leaking into results when
+            // the caller sets extract_images=false (fixes #796).
+            let images_extraction_enabled = config.images.as_ref().map(|c| c.extract_images).unwrap_or(false)
+                || config.pdf_options.as_ref().map(|p| p.extract_images).unwrap_or(false);
+            let inject_placeholders =
+                images_extraction_enabled && config.images.as_ref().map(|c| c.inject_placeholders).unwrap_or(true);
+
             match crate::pdf::structure::extract_document_structure_from_segments(
                 segments,
                 crate::pdf::structure::SegmentStructureConfig {
@@ -511,8 +536,10 @@ pub(crate) fn extract_all_from_oxide_document(
                     include_footers,
                     used_structure_tree,
                     image_positions: &image_positions,
+                    inject_placeholders,
                     layout_hints,
                     allow_single_column,
+                    cancel_token: config.cancel_token.as_ref(),
                     #[cfg(feature = "layout-detection")]
                     layout_images,
                     #[cfg(feature = "layout-detection")]
