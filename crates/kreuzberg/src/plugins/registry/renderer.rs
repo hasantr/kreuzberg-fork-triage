@@ -316,7 +316,7 @@ mod tests {
         });
         registry.register(renderer).unwrap();
 
-        registry.remove("to-remove");
+        let _ = registry.remove("to-remove");
         assert_eq!(registry.list().len(), 0);
     }
 
