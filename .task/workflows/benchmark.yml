@@ -46,7 +46,7 @@ tasks:
       # info). A plain --release build strips Rust symbols, leaving the
       # flamegraph full of __mh_execute_header / raw addresses and unable
       # to surface kreuzberg::* hotspots. See docs/perf/profiling.md.
-      - cargo build --profile profiling -p kreuzberg-cli --features full
+      - cargo build --profile profiling -p kreuzberg-cli --features all
       - cargo build --profile profiling -p benchmark-harness --features profiling
       - mkdir -p "{{.FLAMEGRAPH_DIR}}/{{.SHA}}"
       - |

@@ -1,6 +1,6 @@
 # Performance Iteration Log
 
-Per-iteration tracker for kreuzberg perf optimization rounds. Append one row per accepted or rejected candidate. Follows the protocol in `profiling.md`. The institutional memory replacement for the `feedback_perf_subagent_verification.md` failure-mode warning.
+Per-iteration tracker for Kreuzberg perf optimization rounds. Append one row per accepted or rejected candidate. Follows the protocol in `profiling.md`. The institutional memory replacement for the `feedback_perf_subagent_verification.md` failure-mode warning.
 
 ## Format
 
@@ -21,27 +21,50 @@ Per-iteration tracker for kreuzberg perf optimization rounds. Append one row per
 |--------|-----------|-------------------|-------|-------|-------|---------|-------|
 | REVERTED | normalize_whitespace rewrite | not measured | n/a | n/a | n/a | REJECT | perf-engineer agent ACCEPT'd without measurement; correctness regression on leading/trailing spaces. See `feedback_perf_subagent_verification.md`. |
 | REVERTED | split_embedded bullet-count fast path | not measured | +5% | +5% | 0 | REJECT | speculation-driven; ~5% wall-time *regression*. Don't optimize without a flamegraph. |
+| b51472c1c | layout_runner: stream DynamicImage→RgbImage + drop redundant clones in table_recognition/layout_validation | n/a (memory, not CPU) | n/a | n/a | 0 | ACCEPT | No pre-M baseline; post-M anchor: 292 MB peak RSS on 60 MB PDF (plain, no layout). Q gates: 143/143 regression, 3/3 smoke, 18/18 guardrail failures identical to pre-M (all pre-existing pdf_oxide upstream). |
+| 86a706959 | rendering::markdown: Cow single-pass scans replacing 6 eager .replace() chains | 0.02% self-time post-M (flamegraph fa356cb7e) | n/a | n/a | 0 | ACCEPT | M.2 confirmed effective — render_markdown dropped to 0.02% in post-M flamegraph; was queue candidate #2. |
 
-## Queue (next session)
+## Queue — CLEARED (stopping condition met)
 
-The following candidates are pending the first flamegraph round. Each must be flamegraph-confirmed as a top-15 self-time hotspot before being implemented.
+**Flamegraph `flamegraphs/fa356cb7e/baseline.svg`** (2026-05-11, 88,524 samples, `--profile profiling`, `--features all`):
 
-1. **`pdf::structure::pipeline::fuse_paragraphs`** — known to do per-paragraph clones; verify it's still in the top-15 after the layout-hints fix shifted the call graph.
-2. **`rendering::markdown` escape passes** — six successive `.replace()` calls always allocate; candidate for `Cow::Borrowed` until needle found.
-3. **`pdf::structure::text_repair::*`** — `split_whitespace` byte iteration; potential `memchr` win.
+| rank | self-time | function |
+|------|-----------|----------|
+| 1 | 0.50% | `kreuzberg::pdf::oxide::table::extract_tables_native` |
+| 2 | 0.33% | `kreuzberg::pdf::oxide::text::extract_text_fast_path` |
+| 3 | 0.14% | `kreuzberg::pdf::oxide::hierarchy::extract_all_segments` |
+| 4 | 0.12% | `kreuzberg::cache::core::GenericCache::set` |
+| 5 | 0.11% | `kreuzberg::pdf::oxide::images::extract_image_positions` |
+| 6 | 0.11% | `kreuzberg::pdf::structure::pipeline::extract_document_structure_from_segments` |
+| 7 | 0.09% | `kreuzberg::cache::cleanup::scan_cache_directory` |
+| 8 | 0.08% | `kreuzberg::pdf::structure::classify::mark_arxiv_noise` |
+| 9 | 0.02% | `kreuzberg::rendering::markdown::render_markdown` |
 
-### Blocker for the queue
+**Breakdown by crate (aggregate, 88,524 total samples):**
+- system/other: 48.4%
+- std/core/alloc: 25.3%
+- benchmark_harness (quality scorer): 9.9%
+- pdf_oxide: 9.3%
+- rayon: 3.7%
+- **kreuzberg: 3.4%**
+- tokio: 0.1%
 
-A first attempt at flamegraph generation produced `flamegraphs/61170f7f6/baseline.svg` (~466KB, 2218 stack rectangles), but only system symbols (`__mh_execute_header`, `__os_lock_handoff_lock_slow`, raw addresses) are resolved. The kreuzberg crate's symbols are stripped by the default release profile.
+**Stopping condition:** kreuzberg layer accounts for only 3.4% of total wall time. The previous queue candidates (fuse_paragraphs, text_repair, normalize_key, classify::merge_consecutive_pages) do not appear in the top-25 kreuzberg frames — confirmed not hot on the baseline pipeline path. Dominant cost is pdf_oxide text/table extraction (9.3%) + system allocator + OS overhead (48.4%) — these are outside kreuzberg's optimization surface.
 
-**Next session must:**
+**Further kreuzberg-layer CPU gains require upstream pdf_oxide work** (table extraction at 0.50% is the single largest kreuzberg-visible hotspot; it delegates to pdf_oxide). Cache I/O (scan_cache_directory) at 0.09% is the next actionable target if cache efficiency becomes a priority, but it's below the noise floor for extraction pipelines.
 
-1. Rebuild with `cargo build --profile profiling -p kreuzberg-cli --features full` (the `profiling` profile inherits `release` but keeps debug info per `feature-flag-policy` in CLAUDE.md).
-2. Rebuild `benchmark-harness` with `--features profiling --profile profiling`.
-3. Re-run `pipeline-benchmark --profile-dir flamegraphs/<sha>/`.
-4. Re-extract the top-15 from the resulting SVG; confirm or reorder the queue above.
+### Previous blockers resolved
 
-Until that lands, the three candidates listed are *intuition-confirmed only* (from prior code review); they must NOT be implemented until they're flamegraph-confirmed. This is the rule the prior `split_embedded` REJECT was designed to enforce.
+- Symbol-strip blocker from `flamegraphs/61170f7f6/baseline.svg` is fixed: `.task/workflows/benchmark.yml` patched from `--features full` → `--features all` (kreuzberg-cli has no `full` feature). The `fa356cb7e` flamegraph has 87 kreuzberg symbols resolved.
+
+### Post-M RSS anchor
+
+Measured 2026-05-11 on `target/profiling/kreuzberg` (post-M, `--features all`, `--profile profiling`):
+
+- **Fixture**: `test_documents/pdf/proof_of_concept_or_gtfo_v13_october_18th_2016.pdf` (60 MB, plain extraction, no layout detection)
+- **Peak RSS**: 292 MB (`maximum resident set size: 305,954,816 bytes`)
+- **Wall time**: 1.09 real seconds
+- **Note**: No pre-M baseline captured; this is the forward anchor. M.1+M.3 impact on layout pipeline RSS requires a separate run with `use_layout_for_markdown=true` on a multi-page PDF.
 
 ## Stopping conditions
 
