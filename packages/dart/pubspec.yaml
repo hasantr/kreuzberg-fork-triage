@@ -16,3 +16,11 @@ dev_dependencies:
   freezed: ^3.2.5
   build_runner: '^2.4.0'
   json_serializable: '^6.8.0'
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+      ios:
+        ffiPlugin: true

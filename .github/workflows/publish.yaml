@@ -953,6 +953,34 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  kotlin-android-natives:
+    name: Build Kotlin Android natives (${{ matrix.abi }})
+    needs: [prepare, check-maven]
+    if: ${{ needs.prepare.outputs.release_kotlin == 'true' && (needs.check-maven.outputs.kotlin_exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { abi: arm64-v8a }
+          - { abi: x86_64 }
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
+          fetch-depth: 0
+      - uses: kreuzberg-dev/actions/setup-rust@v1
+      - uses: kreuzberg-dev/actions/build-android-natives@v1
+        with:
+          crate-name: kreuzberg-ffi
+          abis: ${{ matrix.abi }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: kotlin-android-${{ matrix.abi }}
+          path: dist/android-natives
+          if-no-files-found: error
+          retention-days: 14
+
   csharp-natives:
     name: Build C# natives (${{ matrix.rid }})
     needs: [prepare, check-nuget]
@@ -1121,6 +1149,94 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+  dart-android-natives:
+    name: Build Dart Android natives (${{ matrix.abi }})
+    needs: [prepare, check-pub]
+    if: ${{ needs.prepare.outputs.release_dart == 'true' && (needs.check-pub.outputs.exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { abi: arm64-v8a }
+          - { abi: x86_64 }
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
+          fetch-depth: 0
+      - uses: kreuzberg-dev/actions/setup-rust@v1
+      - uses: kreuzberg-dev/actions/build-android-natives@v1
+        with:
+          crate-name: kreuzberg-dart
+          abis: ${{ matrix.abi }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dart-android-${{ matrix.abi }}
+          path: dist/android-natives
+          if-no-files-found: error
+          retention-days: 14
+
+  dart-ios-xcframework:
+    name: Build Dart iOS XCFramework
+    needs: [prepare, check-pub]
+    if: ${{ needs.prepare.outputs.release_dart == 'true' && (needs.check-pub.outputs.exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
+          fetch-depth: 0
+      - uses: kreuzberg-dev/actions/setup-rust@v1
+      - uses: kreuzberg-dev/actions/build-ios-xcframework@v1
+        with:
+          crate-name: kreuzberg-dart
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dart-ios-xcframework
+          path: dist/ios-xcframework
+          if-no-files-found: error
+          retention-days: 14
+
+  dart-server-natives:
+    name: Build Dart server native (${{ matrix.blob }})
+    needs: [prepare, check-pub]
+    if: ${{ needs.prepare.outputs.release_dart == 'true' && (needs.check-pub.outputs.exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,    target: x86_64-unknown-linux-gnu,  blob: linux-x86_64,    lib: libkreuzberg_dart.so  }
+          - { os: ubuntu-24.04-arm, target: aarch64-unknown-linux-gnu, blob: linux-aarch64,   lib: libkreuzberg_dart.so  }
+          - { os: macos-latest,     target: aarch64-apple-darwin,      blob: macos-arm64,     lib: libkreuzberg_dart.dylib }
+          - { os: windows-latest,   target: x86_64-pc-windows-msvc,    blob: windows-x86_64,  lib: kreuzberg_dart.dll    }
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
+          fetch-depth: 0
+      - uses: kreuzberg-dev/actions/setup-rust@v1
+        with:
+          target: ${{ matrix.target }}
+      - name: Build Dart server native
+        run: cargo build -p kreuzberg-dart --release --target ${{ matrix.target }}
+        shell: bash
+      - name: Stage native library
+        shell: bash
+        env:
+          TARGET: ${{ matrix.target }}
+          LIB: ${{ matrix.lib }}
+        run: |
+          mkdir -p dist/server-natives
+          cp "target/${TARGET}/release/${LIB}" "dist/server-natives/${LIB}"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dart-server-${{ matrix.blob }}
+          path: dist/server-natives
+          if-no-files-found: error
+          retention-days: 14
+
   dart-package:
     name: Build Dart package
     needs: [prepare, check-pub]
@@ -1144,6 +1260,29 @@ jobs:
         with:
           name: dart-package
           path: packages/dart
+          retention-days: 14
+
+  swift-artifactbundle:
+    name: Build Swift artifact bundle
+    needs: [prepare, check-spi-swift]
+    if: ${{ needs.prepare.outputs.release_swift == 'true' && (needs.check-spi-swift.outputs.exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.checkout_ref }}
+          fetch-depth: 0
+      - uses: kreuzberg-dev/actions/setup-rust@v1
+      - uses: kreuzberg-dev/actions/build-swift-artifactbundle@v1
+        id: bundle
+        with:
+          crate-name: kreuzberg-swift
+          artifact-name: KreuzbergSwift
+      - uses: actions/upload-artifact@v7
+        with:
+          name: swift-artifactbundle
+          path: ${{ steps.bundle.outputs.bundle-zip }}
+          if-no-files-found: error
           retention-days: 14
 
   swift-package:
@@ -1290,6 +1429,24 @@ jobs:
             php_*.tgz.sha256
             php_*.zip
             php_*.zip.sha256
+
+  upload-swift-bundle:
+    name: Upload Swift artifact bundle to GitHub Release
+    needs: [prepare, swift-artifactbundle]
+    if: ${{ needs.prepare.outputs.is_tag == 'true' && needs.swift-artifactbundle.result == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: swift-artifactbundle
+          path: dist/swift-bundle
+
+      - uses: kreuzberg-dev/actions/upload-release-assets@v1
+        with:
+          tag: ${{ needs.prepare.outputs.tag }}
+          working-directory: dist/swift-bundle
+          dry-run: ${{ needs.prepare.outputs.dry_run }}
+          assets: "*.zip"
 
   # Verifies every expected release asset is present on the GitHub release
   # before the publish-* fan-out depends on those URLs.
@@ -1583,6 +1740,45 @@ jobs:
           MAVEN_GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
+  publish-kotlin-android:
+    name: Publish Kotlin Android (Maven Central via Gradle)
+    needs: [prepare, kotlin-android-natives, check-maven]
+    if: ${{ needs.prepare.outputs.release_kotlin == 'true' && needs.prepare.outputs.is_tag == 'true' && (needs.check-maven.outputs.kotlin_exists != 'true' || needs.prepare.outputs.force_republish == 'true') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.prepare.outputs.ref }}
+
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: kotlin-android-*
+          path: kotlin-android-artifacts
+          merge-multiple: true
+
+      - name: Stage Android natives into Kotlin Android module
+        shell: bash
+        run: |
+          for abi in arm64-v8a x86_64; do
+            dest="packages/kotlin-android/src/main/jniLibs/${abi}"
+            mkdir -p "$dest"
+            src="kotlin-android-artifacts/${abi}/libkreuzberg_ffi.so"
+            if [[ -f "$src" ]]; then
+              cp -v "$src" "$dest/"
+            fi
+          done
+
+      - uses: kreuzberg-dev/actions/publish-maven-gradle@v1
+        with:
+          working-directory: packages/kotlin-android
+          gradle-task: publishAndReleaseToMavenCentral
+          dry-run: ${{ needs.prepare.outputs.dry_run }}
+        env:
+          MAVEN_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+          MAVEN_GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
   publish-nuget:
     name: Publish NuGet package
     needs: [prepare, csharp-natives, csharp-natives-musl, check-nuget]
@@ -1685,7 +1881,7 @@ jobs:
 
   publish-pub:
     name: Publish Dart package to pub.dev
-    needs: [prepare, dart-package, check-pub]
+    needs: [prepare, dart-package, dart-android-natives, dart-ios-xcframework, dart-server-natives, check-pub]
     if: ${{ needs.prepare.outputs.release_dart == 'true' && needs.prepare.outputs.is_tag == 'true' && needs.check-pub.outputs.exists != 'true' }}
     runs-on: ubuntu-latest
     permissions:
@@ -1697,6 +1893,69 @@ jobs:
           name: dart-package
           path: packages/dart
 
+      - name: Download Android natives
+        uses: actions/download-artifact@v8
+        with:
+          pattern: dart-android-*
+          path: dart-android-artifacts
+          merge-multiple: true
+
+      - name: Download iOS XCFramework
+        uses: actions/download-artifact@v8
+        with:
+          name: dart-ios-xcframework
+          path: dart-ios-xcframework
+
+      - name: Download server natives (linux-x86_64)
+        uses: actions/download-artifact@v8
+        with:
+          name: dart-server-linux-x86_64
+          path: dart-server-artifacts/linux-x86_64
+
+      - name: Download server natives (linux-aarch64)
+        uses: actions/download-artifact@v8
+        with:
+          name: dart-server-linux-aarch64
+          path: dart-server-artifacts/linux-aarch64
+
+      - name: Download server natives (macos-arm64)
+        uses: actions/download-artifact@v8
+        with:
+          name: dart-server-macos-arm64
+          path: dart-server-artifacts/macos-arm64
+
+      - name: Download server natives (windows-x86_64)
+        uses: actions/download-artifact@v8
+        with:
+          name: dart-server-windows-x86_64
+          path: dart-server-artifacts/windows-x86_64
+
+      - name: Stage native libraries into Dart package
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Android JNI libs
+          for abi in arm64-v8a x86_64; do
+            dest="packages/dart/android/src/main/jniLibs/${abi}"
+            mkdir -p "$dest"
+            src="dart-android-artifacts/${abi}/libkreuzberg_dart.so"
+            [[ -f "$src" ]] && cp -v "$src" "$dest/"
+          done
+          # iOS XCFramework
+          mkdir -p packages/dart/ios/Frameworks
+          for xcf in dart-ios-xcframework/*.xcframework; do
+            [[ -d "$xcf" ]] && cp -r "$xcf" packages/dart/ios/Frameworks/
+          done
+          # Server blobs
+          for entry in "linux-x86_64:libkreuzberg_dart.so" "linux-aarch64:libkreuzberg_dart.so" "macos-arm64:libkreuzberg_dart.dylib" "windows-x86_64:kreuzberg_dart.dll"; do
+            blob="${entry%%:*}"
+            lib="${entry##*:}"
+            dest="packages/dart/blobs/${blob}"
+            mkdir -p "$dest"
+            src="dart-server-artifacts/${blob}/${lib}"
+            [[ -f "$src" ]] && cp -v "$src" "$dest/"
+          done
+
       - uses: kreuzberg-dev/actions/publish-pub@v1
         with:
           package-dir: packages/dart
@@ -1704,7 +1963,7 @@ jobs:
 
   publish-swift:
     name: Notify Swift Package Index
-    needs: [prepare, swift-package, check-spi-swift]
+    needs: [prepare, swift-package, swift-artifactbundle, upload-swift-bundle, check-spi-swift]
     if: ${{ needs.prepare.outputs.release_swift == 'true' && needs.prepare.outputs.is_tag == 'true' && needs.check-spi-swift.outputs.exists != 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -1905,6 +2164,7 @@ jobs:
       - publish-packagist
       - publish-maven
       - publish-kotlin
+      - publish-kotlin-android
       - publish-nuget
       - publish-hex
       - publish-gleam
@@ -1943,6 +2203,7 @@ jobs:
       - publish-packagist
       - publish-maven
       - publish-kotlin
+      - publish-kotlin-android
       - publish-nuget
       - publish-hex
       - publish-gleam
@@ -1956,6 +2217,7 @@ jobs:
       - upload-c-ffi-release
       - upload-elixir-release
       - upload-php-pie-release
+      - upload-swift-bundle
       - release-finalize
     if: |
       always() &&
