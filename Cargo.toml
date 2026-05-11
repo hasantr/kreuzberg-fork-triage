@@ -73,13 +73,7 @@ once_cell = "1.21.4"
 
 ort = { version = "2.0.0-rc.12", default-features = false, features = ["std", "api-18"] }
 parking_lot = "0.12.5"
-# Tracking yfedoseev/pdf_oxide PR #491 (release/v0.3.46) — closes upstream #484 with the
-# extraction-quality fixes covering our PDFIUM_KNOWN_REGRESSIONS list (annotation double-emit,
-# CJK spacing, ligature/CJK span merging, sub/superscript merging, CIDFont width fallback).
-# `legacy-crypto` re-enabled (pdf_oxide ships it in `default`; kreuzberg's `default-features = false`
-# was over-trimming) so R=4-encrypted PDFs (e.g. pr-138-example) parse instead of failing with
-# "compiled without legacy-crypto". Switch back to a stable crates.io version once 0.3.46 ships.
-pdf_oxide = { git = "https://github.com/yfedoseev/pdf_oxide", branch = "release/v0.3.46", default-features = false, features = ["rendering", "legacy-crypto"] }
+pdf_oxide = { version = "0.3.46", default-features = false, features = ["rendering", "legacy-crypto"] }
 rayon = "1.12.0"
 reqwest = { version = "0.13.3", default-features = false }
 

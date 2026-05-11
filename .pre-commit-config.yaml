@@ -189,7 +189,7 @@ repos:
       - id: cpd
   # Alef: verify bindings and sync versions
   - repo: https://github.com/kreuzberg-dev/alef
-    rev: v0.14.30
+    rev: v0.15.31
     hooks:
       - id: alef-verify
       - id: alef-sync-versions
@@ -202,7 +202,7 @@ repos:
 
   # Spelling: fast Rust-based spell checker (last — runs after all formatters)
   - repo: https://github.com/crate-ci/typos
-    rev: v1.46.0
+    rev: v1.46.1
     hooks:
       - id: typos
         args: [--force-exclude]

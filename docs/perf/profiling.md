@@ -1,6 +1,6 @@
 # Performance Profiling Workflow
 
-Reproducible flamegraph-driven workflow for kreuzberg PDF performance work. The infrastructure (pprof, the `--profile-dir` harness flag, the `task benchmark:profile` command) already exists; this page codifies how to use it as the entry gate for any optimization.
+Reproducible flamegraph-driven workflow for Kreuzberg PDF performance work. The infrastructure (pprof, the `--profile-dir` harness flag, the `task benchmark:profile` command) already exists; this page codifies how to use it as the entry gate for any optimization.
 
 ## When to use
 
@@ -87,9 +87,9 @@ The protocol below is enforced for every perf candidate. Skipping a step has cos
 1. Generate flamegraph on current HEAD (`task benchmark:profile`).
 2. Identify the top-15 self-time `kreuzberg::*` functions. Filter out `pdf_oxide` / `image` / `tokio` / system libs.
 3. Pick **one** candidate. Document:
-    - File:line of the function.
-    - Approximate self-time percentage.
-    - The shape of the optimization (e.g., "replace `Vec::clone` with `Cow::Borrowed`").
+   - File:line of the function.
+   - Approximate self-time percentage.
+   - The shape of the optimization (e.g., "replace `Vec::clone` with `Cow::Borrowed`").
 
 ### Implement (subagent — `performance-engineer`)
 
@@ -110,10 +110,10 @@ The protocol below is enforced for every perf candidate. Skipping a step has cos
     ```
 
 9. Compare `bench/iter-N.json` vs the most recent committed baseline JSON in `bench/`:
-    - **SF1 must NOT regress** (any drop > 0.1pt → revert).
-    - Lift on at least one of `{p50 ms/MB, p95 ms/MB, peak RSS}` ≥ 3% → **accept**.
-    - Lift < 3%, no regression → mark commit body `marginal`, accept.
-    - Regression on perf metrics → **revert**.
+   - **SF1 must NOT regress** (any drop > 0.1pt → revert).
+   - Lift on at least one of `{p50 ms/MB, p95 ms/MB, peak RSS}` ≥ 3% → **accept**.
+   - Lift < 3%, no regression → mark commit body `marginal`, accept.
+   - Regression on perf metrics → **revert**.
 
 10. Generate post-fix flamegraph; commit `before.svg` + `after.svg` + the iter-N JSON.
 
@@ -126,4 +126,4 @@ The protocol below is enforced for every perf candidate. Skipping a step has cos
 
 - **Don't trust subagent ACCEPT verdicts without measuring.** A `performance-engineer` agent has previously declared an optimization accepted with a correctness regression baked in. Always rerun the test suite locally after the agent reports done.
 - **Behavior probes catch what F1 doesn't.** F1 metrics aggregate; a small regression on a corner case can wash out. When the optimization touches text-shape code (whitespace, escape, punctuation), write a 4-input mini-test asserting exact byte equality vs the unoptimized version.
-- **Cache invalidation.** When you change the kreuzberg crate, rebuild *both* `kreuzberg-cli` and `benchmark-harness` (the harness links the crate in-process for `compare`). A build that "finished in 1.10s" without recompiling the kreuzberg crate is a sign the change wasn't picked up.
+- **Cache invalidation.** When you change the Kreuzberg crate, rebuild *both* `kreuzberg-cli` and `benchmark-harness` (the harness links the crate in-process for `compare`). A build that "finished in 1.10s" without recompiling the Kreuzberg crate is a sign the change wasn't picked up.
