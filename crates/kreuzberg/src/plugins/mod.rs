@@ -233,5 +233,5 @@ pub mod document_extractor {
     };
 }
 
-#[cfg(any(feature = "embeddings", feature = "api", feature = "mcp"))]
+#[cfg(feature = "embeddings")]
 pub(crate) use registry::get_embedding_backend_registry;

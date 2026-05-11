@@ -62,7 +62,7 @@ impl OcrBoundingGeometry {
     /// # Returns
     ///
     /// Tuple of `(left, top, width, height)` in pixels.
-    #[cfg(any(feature = "ocr", feature = "paddle-ocr", feature = "layout-detection"))]
+    #[cfg(any(feature = "paddle-ocr", feature = "layout-detection"))]
     pub(crate) fn to_aabb(&self) -> (u32, u32, u32, u32) {
         match self {
             Self::Rectangle {
@@ -82,7 +82,7 @@ impl OcrBoundingGeometry {
     }
 
     /// Get the center point of the bounding geometry.
-    #[cfg(feature = "ocr")]
+    #[cfg(feature = "layout-detection")]
     pub(crate) fn center(&self) -> (f64, f64) {
         let (left, top, width, height) = self.to_aabb();
         (left as f64 + width as f64 / 2.0, top as f64 + height as f64 / 2.0)
@@ -140,7 +140,7 @@ impl OcrConfidence {
     /// Both scores should be in 0.0-1.0 range, but PaddleOCR may occasionally return
     /// values slightly above 1.0 due to model calibration. This method clamps both
     /// values to ensure they stay within the valid 0.0-1.0 range.
-    #[cfg(any(feature = "ocr", feature = "paddle-ocr"))]
+    #[cfg(feature = "paddle-ocr")]
     pub(crate) fn from_paddle(box_score: f32, text_score: f32) -> Self {
         Self {
             detection: Some((box_score as f64).clamp(0.0, 1.0)),
@@ -174,7 +174,7 @@ impl OcrRotation {
     /// # Errors
     ///
     /// Returns an error if `angle_index` is not in the valid range (0-3).
-    #[cfg(any(feature = "ocr", feature = "paddle-ocr"))]
+    #[cfg(feature = "paddle-ocr")]
     pub(crate) fn from_paddle(angle_index: i32, angle_score: f32) -> std::result::Result<Self, String> {
         if !(0..=3).contains(&angle_index) {
             return Err(format!(
@@ -359,6 +359,7 @@ pub struct OcrElementConfig {
 mod tests {
     use super::*;
 
+    #[cfg(any(feature = "paddle-ocr", feature = "layout-detection"))]
     #[test]
     fn test_rectangle_to_aabb() {
         let geom = OcrBoundingGeometry::Rectangle {
@@ -370,6 +371,7 @@ mod tests {
         assert_eq!(geom.to_aabb(), (10, 20, 100, 50));
     }
 
+    #[cfg(any(feature = "paddle-ocr", feature = "layout-detection"))]
     #[test]
     fn test_quadrilateral_to_aabb() {
         // Slightly rotated quad
@@ -477,6 +479,7 @@ mod tests {
         assert!(!geom1.overlaps(&geom3));
     }
 
+    #[cfg(feature = "layout-detection")]
     #[test]
     fn test_geometry_center() {
         let geom = OcrBoundingGeometry::Rectangle {

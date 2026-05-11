@@ -27,6 +27,7 @@ use crate::error::{KreuzbergError, Result};
 #[cfg(feature = "paddle-ocr")]
 use kreuzberg_paddle_ocr::TextBlock;
 
+#[cfg(feature = "paddle-ocr")]
 use super::table::HocrWord;
 
 /// Convert a PaddleOCR TextBlock to a unified OcrElement.
@@ -295,6 +296,7 @@ pub(crate) fn iterator_word_to_element(
 /// # Returns
 ///
 /// An `HocrWord` suitable for table reconstruction algorithms.
+#[cfg(feature = "paddle-ocr")]
 pub(crate) fn element_to_hocr_word(element: &OcrElement) -> HocrWord {
     let (left, top, width, height) = element.geometry.to_aabb();
 
@@ -322,6 +324,7 @@ pub(crate) fn element_to_hocr_word(element: &OcrElement) -> HocrWord {
 /// # Returns
 ///
 /// A vector of HocrWords filtered by confidence and element level.
+#[cfg(feature = "paddle-ocr")]
 pub(crate) fn elements_to_hocr_words(elements: &[OcrElement], min_confidence: f64) -> Vec<HocrWord> {
     elements
         .iter()
@@ -375,14 +378,18 @@ mod tests {
         assert_eq!(element.parent_id.as_ref().unwrap(), "p1_b1_par1_l2");
 
         // Check geometry
-        let (left, top, width, height) = element.geometry.to_aabb();
-        assert_eq!((left, top, width, height), (100, 50, 80, 20));
+        #[cfg(any(feature = "paddle-ocr", feature = "layout-detection"))]
+        {
+            let (left, top, width, height) = element.geometry.to_aabb();
+            assert_eq!((left, top, width, height), (100, 50, 80, 20));
+        }
 
         // Check confidence
         assert!((element.confidence.recognition - 0.95).abs() < 0.001);
         assert!(element.confidence.detection.is_none());
     }
 
+    #[cfg(feature = "paddle-ocr")]
     #[test]
     fn test_element_to_hocr_word() {
         let geometry = OcrBoundingGeometry::Rectangle {
@@ -404,6 +411,7 @@ mod tests {
         assert!((word.confidence - 92.5).abs() < 0.001);
     }
 
+    #[cfg(feature = "paddle-ocr")]
     #[test]
     fn test_quadrilateral_to_hocr_word() {
         // Test conversion of rotated quad to AABB
@@ -425,6 +433,7 @@ mod tests {
         assert!((word.confidence - 88.0).abs() < 0.1);
     }
 
+    #[cfg(feature = "paddle-ocr")]
     #[test]
     fn test_elements_to_hocr_words_filtering() {
         let elements = vec![

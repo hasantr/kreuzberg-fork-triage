@@ -26,6 +26,7 @@ pub struct ExtractionRequest {
 
 impl ExtractionRequest {
     /// Create a file-based extraction request.
+    #[cfg(feature = "mcp")]
     pub(crate) fn file(path: impl Into<PathBuf>, config: ExtractionConfig) -> Self {
         Self {
             source: ExtractionSource::File {
@@ -38,6 +39,7 @@ impl ExtractionRequest {
     }
 
     /// Create a file-based extraction request with a MIME type hint.
+    #[cfg(feature = "mcp")]
     pub(crate) fn file_with_mime(
         path: impl Into<PathBuf>,
         mime_hint: impl Into<String>,
@@ -77,6 +79,7 @@ impl ExtractionRequest {
 mod tests {
     use super::*;
 
+    #[cfg(feature = "mcp")]
     #[test]
     fn file_creates_file_source() {
         let req = ExtractionRequest::file("/tmp/doc.pdf", ExtractionConfig::default());
@@ -102,6 +105,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "mcp")]
     #[test]
     fn file_with_mime_sets_hint() {
         let req = ExtractionRequest::file_with_mime("/tmp/doc.pdf", "application/pdf", ExtractionConfig::default());
@@ -113,6 +117,7 @@ mod tests {
         }
     }
 
+    #[cfg(feature = "mcp")]
     #[test]
     fn with_overrides_sets_file_overrides() {
         let overrides = FileExtractionConfig::default();
