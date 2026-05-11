@@ -33,5 +33,7 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
-    environment("java.library.path", "../../target/release")
+    val libPath = System.getProperty("kb.lib.path") ?: "${rootDir}/../../target/release"
+    systemProperty("java.library.path", libPath)
+    systemProperty("jna.library.path", libPath)
 }

@@ -104,6 +104,7 @@ typedef struct KREUZBERGHtmlMetadata KREUZBERGHtmlMetadata;
 typedef struct KREUZBERGHtmlOutputConfig KREUZBERGHtmlOutputConfig;
 typedef struct KREUZBERGHtmlTheme KREUZBERGHtmlTheme;
 typedef struct KREUZBERGHwpImage KREUZBERGHwpImage;
+typedef struct KREUZBERGHwpxExtractor KREUZBERGHwpxExtractor;
 typedef struct KREUZBERGImageExtractionConfig KREUZBERGImageExtractionConfig;
 typedef struct KREUZBERGImageKind KREUZBERGImageKind;
 typedef struct KREUZBERGImageMetadata KREUZBERGImageMetadata;
@@ -4462,6 +4463,87 @@ KREUZBERGSecurityLimits *kreuzberg_security_limits_default(void);
  * Pointer must have been returned by this library, or be null.
  */
 void kreuzberg_zip_bomb_validator_free(KREUZBERGZipBombValidator *ptr);
+
+/**
+ * Free a `HwpxExtractor` handle.
+ * # Safety
+ * Pointer must have been returned by this library, or be null.
+ */
+void kreuzberg_hwpx_extractor_free(KREUZBERGHwpxExtractor *ptr);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+KREUZBERGHwpxExtractor *kreuzberg_hwpx_extractor_default(void);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+char *kreuzberg_hwpx_extractor_name(const KREUZBERGHwpxExtractor *this_);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+char *kreuzberg_hwpx_extractor_version(const KREUZBERGHwpxExtractor *this_);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+int32_t kreuzberg_hwpx_extractor_initialize(const KREUZBERGHwpxExtractor *this_);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+int32_t kreuzberg_hwpx_extractor_shutdown(const KREUZBERGHwpxExtractor *this_);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+char *kreuzberg_hwpx_extractor_description(const KREUZBERGHwpxExtractor *this_);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+char *kreuzberg_hwpx_extractor_author(const KREUZBERGHwpxExtractor *this_);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+char *kreuzberg_hwpx_extractor_extract_bytes(const KREUZBERGHwpxExtractor *_this,
+                                             const uint8_t *_content,
+                                             uintptr_t _content_len,
+                                             const char *_mime_type,
+                                             const KREUZBERGExtractionConfig *_config);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+char *kreuzberg_hwpx_extractor_supported_mime_types(const KREUZBERGHwpxExtractor *this_);
+
+/**
+ * # Safety
+ * Caller must ensure all pointer arguments are valid or null.
+ * Returned pointers must be freed with the appropriate free function.
+ */
+int32_t kreuzberg_hwpx_extractor_priority(const KREUZBERGHwpxExtractor *this_);
 
 /**
  * Create a `TokenReductionConfig` from a JSON string. Returns null on failure.

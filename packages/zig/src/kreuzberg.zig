@@ -734,6 +734,11 @@ pub const SecurityLimits = struct {
 /// Helper struct for validating ZIP archives for security issues.
 pub const ZipBombValidator = struct {};
 
+/// Extractor for Hangul Word Processor XML (.hwpx) files.
+///
+/// Supports HWPX (Open HWPML), the ZIP-based XML successor to the binary HWP 5.0 format.
+pub const HwpxExtractor = struct {};
+
 /// Trait for in-process embedding backend plugins.
 ///
 /// Async to match the convention used by `OcrBackend`,

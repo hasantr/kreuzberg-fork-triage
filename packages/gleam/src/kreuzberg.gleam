@@ -745,6 +745,13 @@ pub type ZipBombValidator {
   ZipBombValidator
 }
 
+/// Extractor for Hangul Word Processor XML (.hwpx) files.
+///
+/// Supports HWPX (Open HWPML), the ZIP-based XML successor to the binary HWP 5.0 format.
+pub type HwpxExtractor {
+  HwpxExtractor
+}
+
 /// Trait for in-process embedding backend plugins.
 ///
 /// Async to match the convention used by `OcrBackend`,
@@ -3945,7 +3952,7 @@ pub fn clear_document_extractors() -> Result(Nil, String)
 @external(erlang, "kreuzberg_gleam_ffi", "document_extractor_extract_bytes_response")
 pub fn document_extractor_extract_bytes_response(
   call_id: Dynamic,
-  result: Result(InternalDocument, KreuzbergError),
+  result: Result(String, KreuzbergError),
 ) -> Nil
 
 /// Send the `extract_file` response back to the Rustler reply-registry.
@@ -3968,7 +3975,7 @@ pub fn document_extractor_extract_bytes_response(
 @external(erlang, "kreuzberg_gleam_ffi", "document_extractor_extract_file_response")
 pub fn document_extractor_extract_file_response(
   call_id: Dynamic,
-  result: Result(InternalDocument, KreuzbergError),
+  result: Result(String, KreuzbergError),
 ) -> Nil
 
 /// Send the `supported_mime_types` response back to the Rustler reply-registry.
@@ -4060,7 +4067,7 @@ pub fn document_extractor_can_handle_response(
 @external(erlang, "kreuzberg_gleam_ffi", "document_extractor_as_sync_extractor_response")
 pub fn document_extractor_as_sync_extractor_response(
   call_id: Dynamic,
-  result: Result(Option(SyncExtractor), String),
+  result: Result(Option(String), String),
 ) -> Nil
 
 /// Trait bridge shims for `Renderer`.

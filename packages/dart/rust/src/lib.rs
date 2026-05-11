@@ -550,6 +550,11 @@ pub struct ZipBombValidator {
     pub(crate) inner: kreuzberg::ZipBombValidator,
 }
 
+#[frb(opaque)]
+pub struct HwpxExtractor {
+    pub(crate) inner: kreuzberg::HwpxExtractor,
+}
+
 #[frb(mirror(TokenReductionConfig))]
 pub struct TokenReductionConfig {
     pub level: ReductionLevel,

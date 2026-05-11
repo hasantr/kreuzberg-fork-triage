@@ -56,6 +56,7 @@ typealias CustomProperties = dev.kreuzberg.CustomProperties
 typealias OdtProperties = dev.kreuzberg.OdtProperties
 typealias SecurityLimits = dev.kreuzberg.SecurityLimits
 typealias ZipBombValidator = dev.kreuzberg.ZipBombValidator
+typealias HwpxExtractor = dev.kreuzberg.HwpxExtractor
 typealias EmbeddingBackend = dev.kreuzberg.IEmbeddingBackend
 typealias DocumentExtractor = dev.kreuzberg.IDocumentExtractor
 typealias OcrBackend = dev.kreuzberg.IOcrBackend
