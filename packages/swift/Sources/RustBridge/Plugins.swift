@@ -427,3 +427,62 @@ public final class SwiftDocumentExtractorBox {
 
   public func alef_as_sync_extractor() -> RustString { RustString(inner.asSyncExtractor()) }
 }
+
+// MARK: - Renderer
+
+/// Swift-native protocol mirroring the Rust `Renderer` plugin trait.
+///
+/// Implement `render` to convert a JSON-encoded `InternalDocument` to the
+/// renderer's target output format. The Rust bridge encodes the document
+/// before crossing the FFI boundary; on success return the rendered string.
+public protocol Renderer: AnyObject {
+  func name() -> String
+  func version() -> String
+  func initialize() throws
+  func shutdown() throws
+  /// Render the document. `doc` is a JSON-encoded `InternalDocument`; return
+  /// the rendered output as a string.
+  func render(doc: String) throws -> String
+}
+
+extension Renderer {
+  public func initialize() throws {}
+  public func shutdown() throws {}
+}
+
+public final class SwiftRendererBox {
+  private let inner: Renderer
+
+  public init(_ inner: Renderer) {
+    self.inner = inner
+  }
+
+  public func alef_name() -> RustString { RustString(inner.name()) }
+  public func alef_version() -> RustString { RustString(inner.version()) }
+
+  public func alef_initialize() -> RustString {
+    do {
+      try inner.initialize()
+      return encodeOkVoidEnvelope()
+    } catch { return encodeErrEnvelope("\(error)") }
+  }
+  public func alef_shutdown() -> RustString {
+    do {
+      try inner.shutdown()
+      return encodeOkVoidEnvelope()
+    } catch { return encodeErrEnvelope("\(error)") }
+  }
+
+  public func alef_render(doc: RustString) -> RustString {
+    do {
+      let result = try inner.render(doc: doc.toString())
+      // Wrap the rendered string in an `{"ok": "..."}` envelope. `result` is an
+      // arbitrary string (markdown/html/etc.), so JSONSerialization handles
+      // escaping safely.
+      let payload: [String: Any] = ["ok": result]
+      let data = try JSONSerialization.data(withJSONObject: payload, options: [])
+      let json = String(data: data, encoding: .utf8) ?? "{\"ok\":\"\"}"
+      return RustString(json)
+    } catch { return encodeErrEnvelope("\(error)") }
+  }
+}
