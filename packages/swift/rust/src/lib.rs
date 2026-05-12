@@ -2629,6 +2629,12 @@ mod ffi {
     }
 
     extern "Rust" {
+        type RendererBox;
+        fn alef_phantom_vec_renderer() -> Vec<RendererBox>;
+        fn renderer_call_render(this: &RendererBox, doc: String) -> String;
+    }
+
+    extern "Rust" {
         #[swift_bridge(swift_name = "registerOcrBackend")]
         fn register_ocr_backend(swift_box: SwiftOcrBackendBox) -> Result<(), String>;
         #[swift_bridge(swift_name = "unregisterOcrBackend")]
@@ -2671,6 +2677,15 @@ mod ffi {
         fn unregister_document_extractor(name: String) -> Result<(), String>;
         #[swift_bridge(swift_name = "clearDocumentExtractors")]
         fn clear_document_extractors() -> Result<(), String>;
+    }
+
+    extern "Rust" {
+        #[swift_bridge(swift_name = "registerRenderer")]
+        fn register_renderer(swift_box: SwiftRendererBox) -> Result<(), String>;
+        #[swift_bridge(swift_name = "unregisterRenderer")]
+        fn unregister_renderer(name: String) -> Result<(), String>;
+        #[swift_bridge(swift_name = "clearRenderers")]
+        fn clear_renderers() -> Result<(), String>;
     }
 
     extern "Swift" {
@@ -2735,6 +2750,15 @@ mod ffi {
         fn alef_priority(&self) -> i32;
         fn alef_can_handle(&self, path: String, mime_type: String) -> bool;
         fn alef_as_sync_extractor(&self) -> String;
+    }
+
+    extern "Swift" {
+        type SwiftRendererBox;
+        fn alef_name(&self) -> String;
+        fn alef_version(&self) -> String;
+        fn alef_initialize(&self) -> String;
+        fn alef_shutdown(&self) -> String;
+        fn alef_render(&self, doc: String) -> String;
     }
 
     extern "Rust" {
@@ -11734,6 +11758,27 @@ pub fn document_extractor_call_supported_mime_types(this: &DocumentExtractorBox)
     this.0.supported_mime_types().iter().map(|s| s.to_string()).collect()
 }
 
+pub struct RendererBox(pub Box<dyn kreuzberg::plugins::Renderer + Send + Sync>);
+#[doc(hidden)]
+pub fn alef_phantom_vec_renderer() -> Vec<RendererBox> {
+    Vec::new()
+}
+pub fn renderer_call_render(this: &RendererBox, doc: String) -> String {
+    match this
+        .0
+        .render(&serde_json::from_str::<kreuzberg::internal::InternalDocument>(&doc).expect("valid JSON for doc"))
+    {
+        Ok(v) => format!(
+            "{{\"ok\": {}}}",
+            serde_json::to_string(&v).expect("serializable return")
+        ),
+        Err(e) => format!(
+            "{{\"err\": {}}}",
+            serde_json::to_string(&e.to_string()).expect("serializable error")
+        ),
+    }
+}
+
 /// Convert a stringified Swift error into the source crate's `KreuzbergError::Plugin`.
 #[allow(dead_code)]
 fn plugin_error_from_string(message: String) -> kreuzberg::KreuzbergError {
@@ -12190,6 +12235,80 @@ pub fn unregister_document_extractor(name: String) -> Result<(), String> {
 /// Clear all registered `DocumentExtractor` plugins.
 pub fn clear_document_extractors() -> Result<(), String> {
     let registry = kreuzberg::plugins::registry::get_document_extractor_registry();
+    let mut guard = registry.write();
+    guard.clear().map_err(|e| e.to_string())
+}
+
+/// Rust-side wrapper around a Swift class implementing the `Renderer` plugin protocol.
+///
+/// The Swift instance is held via a `swift-bridge` opaque handle that retains
+/// the underlying ARC reference for the lifetime of this struct. Send + Sync are
+/// asserted unsafely: Swift classes used as kreuzberg plugins must be thread-safe
+/// (the `Plugin` super-trait requires it), and ARC handles themselves are safe to share.
+pub struct SwiftRendererWrapper {
+    inner: ffi::SwiftRendererBox,
+    /// Cached `Plugin::name()` — required because the trait returns `&str` but
+    /// the Swift FFI shim returns an owned `String`. Populated lazily on first access.
+    name_cache: ::std::sync::OnceLock<String>,
+}
+unsafe impl Send for SwiftRendererWrapper {}
+unsafe impl Sync for SwiftRendererWrapper {}
+
+impl SwiftRendererWrapper {
+    /// Construct a new wrapper from a Swift `SwiftRendererBox` handle.
+    pub fn new(inner: ffi::SwiftRendererBox) -> Self {
+        Self {
+            inner,
+            name_cache: ::std::sync::OnceLock::new(),
+        }
+    }
+}
+impl kreuzberg::plugins::Plugin for SwiftRendererWrapper {
+    fn name(&self) -> &str {
+        self.name_cache.get_or_init(|| self.inner.alef_name()).as_str()
+    }
+
+    fn version(&self) -> String {
+        self.inner.alef_version()
+    }
+
+    fn initialize(&self) -> kreuzberg::Result<()> {
+        decode_inbound_envelope::<()>(&self.inner.alef_initialize()).map(|_| ())
+    }
+
+    fn shutdown(&self) -> kreuzberg::Result<()> {
+        decode_inbound_envelope::<()>(&self.inner.alef_shutdown()).map(|_| ())
+    }
+}
+impl kreuzberg::plugins::Renderer for SwiftRendererWrapper {
+    fn render(&self, doc: &kreuzberg::internal::InternalDocument) -> kreuzberg::Result<String> {
+        let doc = ::serde_json::to_string(&doc).expect("serializable param doc");
+        let envelope = self.inner.alef_render(doc);
+        decode_inbound_envelope::<String>(&envelope)
+    }
+}
+
+/// Register a Swift class implementation as a `Renderer` plugin.
+///
+/// Wraps the Swift handle in `Arc<SwiftXxxWrapper>` and inserts it into the host registry.
+/// Errors from the registry are stringified for swift-bridge transport.
+pub fn register_renderer(swift_box: ffi::SwiftRendererBox) -> Result<(), String> {
+    let arc: ::std::sync::Arc<dyn kreuzberg::plugins::Renderer> =
+        ::std::sync::Arc::new(SwiftRendererWrapper::new(swift_box));
+    let registry = kreuzberg::plugins::registry::get_renderer_registry();
+    let mut guard = registry.write();
+    guard.register(arc).map_err(|e| e.to_string())
+}
+/// Unregister a previously-registered `Renderer` plugin by name.
+pub fn unregister_renderer(name: String) -> Result<(), String> {
+    let registry = kreuzberg::plugins::registry::get_renderer_registry();
+    let mut guard = registry.write();
+    guard.remove(&name).map_err(|e| e.to_string())
+}
+
+/// Clear all registered `Renderer` plugins.
+pub fn clear_renderers() -> Result<(), String> {
+    let registry = kreuzberg::plugins::registry::get_renderer_registry();
     let mut guard = registry.write();
     guard.clear().map_err(|e| e.to_string())
 }
