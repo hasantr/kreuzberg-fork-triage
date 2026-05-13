@@ -122,7 +122,8 @@ IO.puts("\nMetadata:")
 IO.puts("Format: #{inspect(result.metadata.format)}")
 IO.puts("Tables found: #{length(result.tables)}")
 ```
-```
+
+```text
 
 ### Common Use Cases
 
@@ -148,7 +149,8 @@ IO.puts("OCR Extracted content:")
 IO.puts(content)
 IO.puts("Metadata: #{inspect(result.metadata)}")
 ```
-```
+
+```text
 
 
 #### Table Extraction
@@ -175,7 +177,8 @@ end)
 
 IO.puts("Total files processed: #{length(results)}")
 ```
-```
+
+```text
 
 
 #### Async Processing
@@ -196,7 +199,8 @@ case Kreuzberg.extract_file("document.pdf") do
     IO.puts("Extraction failed: #{inspect(reason)}")
 end
 ```
-```
+
+```text
 
 
 ### Next Steps
@@ -334,7 +338,8 @@ IO.puts("OCR Extracted content:")
 IO.puts(content)
 IO.puts("Metadata: #{inspect(result.metadata)}")
 ```
-```
+
+```text
 
 
 ## Async Support
@@ -355,7 +360,8 @@ case Kreuzberg.extract_file("document.pdf") do
     IO.puts("Extraction failed: #{inspect(reason)}")
 end
 ```
-```
+
+```text
 
 
 ## Plugin System
@@ -445,7 +451,8 @@ end
 {:ok, processors} = Plugin.list_post_processors()
 IO.inspect(processors, label: "Registered Post-Processors")
 ```
-```
+
+```text
 
 
 ## Embeddings Support
@@ -474,7 +481,8 @@ end)
 
 IO.puts("Total files processed: #{length(results)}")
 ```
-```
+
+```text
 
 
 ## Configuration
@@ -493,7 +501,7 @@ For advanced configuration options including language detection, table extractio
 
 Contributions are welcome! See [Contributing Guide](https://github.com/kreuzberg-dev/kreuzberg/blob/main/CONTRIBUTING.md).
 
-## Part of Kreuzberg, Inc
+## Part of Kreuzberg.dev
 
 - [Kreuzberg Cloud](https://github.com/kreuzberg-dev/kreuzberg-cloud) — managed extraction API with SDKs, dashboards, and observability.
 - [kreuzcrawl](https://github.com/kreuzberg-dev/kreuzcrawl) — web crawling and scraping with HTML→Markdown and headless-Chrome fallback.

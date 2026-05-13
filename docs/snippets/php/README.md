@@ -4,7 +4,7 @@ Comprehensive code examples for the Kreuzberg PHP bindings. These snippets demon
 
 ## Directory Structure
 
-```
+```text
 php/
 ├── installation/          # Getting started, setup, requirements
 ├── quickstart/           # Basic usage examples
@@ -268,6 +268,7 @@ Each snippet is designed to be self-contained and runnable. To test:
    ```
 
 3. Run any snippet:
+
    ```bash
    php docs/snippets/php/quickstart/basic_extraction_oop.php
    ```
@@ -293,7 +294,7 @@ These snippets follow these conventions:
 
 ## Links
 
-- **Documentation**: https://kreuzberg.dev
-- **GitHub**: https://github.com/kreuzberg-dev/Kreuzberg
-- **Issues**: https://github.com/kreuzberg-dev/kreuzberg/issues
-- **Package**: https://packagist.org/packages/kreuzberg/Kreuzberg
+- **Documentation**: <https://kreuzberg.dev>
+- **GitHub**: <https://github.com/kreuzberg-dev/Kreuzberg>
+- **Issues**: <https://github.com/kreuzberg-dev/kreuzberg/issues>
+- **Package**: <https://packagist.org/packages/kreuzberg/Kreuzberg>

@@ -10,7 +10,7 @@ This directory contains extracted scripts from GitHub Actions CI workflows, orga
 
 ## Directory Structure
 
-```
+```text
 scripts/ci/
 ├── README.md               ← This file
 ├── SCRIPT_MAPPING.md       ← Detailed workflow-to-script mapping guide

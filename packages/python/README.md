@@ -563,7 +563,7 @@ PDFium adds approximately 8-15 MB to the package size depending on platform. Thi
 
 For comprehensive documentation, visit [https://kreuzberg.dev](https://kreuzberg.dev)
 
-## Part of Kreuzberg, Inc
+## Part of Kreuzberg.dev
 
 - [Kreuzberg Cloud](https://github.com/kreuzberg-dev/kreuzberg-cloud) — managed extraction API with SDKs, dashboards, and observability.
 - [kreuzcrawl](https://github.com/kreuzberg-dev/kreuzcrawl) — web crawling and scraping with HTML→Markdown and headless-Chrome fallback.

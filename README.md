@@ -310,7 +310,7 @@ The skill is located at [`skills/kreuzberg/SKILL.md`](skills/kreuzberg/SKILL.md)
 
 Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-## Part of Kreuzberg, Inc
+## Part of Kreuzberg.dev
 
 - [Kreuzberg Cloud](https://github.com/kreuzberg-dev/kreuzberg-cloud) — managed extraction API with SDKs, dashboards, and observability.
 - [kreuzcrawl](https://github.com/kreuzberg-dev/kreuzcrawl) — web crawling and scraping with HTML→Markdown and headless-Chrome fallback.
