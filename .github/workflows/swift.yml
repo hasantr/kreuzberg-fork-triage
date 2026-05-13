@@ -10,22 +10,13 @@ jobs:
   test:
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+      - uses: actions/checkout@v6
+      - uses: kreuzberg-dev/actions/setup-rust@v1
       - name: Show Swift version
         run: swift --version
-      - name: Build kreuzberg-swift Rust crate
-        run: cargo build -p kreuzberg-swift
-      - name: Copy swift-bridge generated sources
-        run: |
-          OUT=$(find target/debug/build -maxdepth 2 -name out -path '*/kreuzberg-swift-*/out' -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -1 | cut -d' ' -f2-)
-          cat "$OUT/SwiftBridgeCore.h" "$OUT/kreuzberg-swift/kreuzberg-swift.h" \
-              > packages/swift/Sources/RustBridgeC/RustBridgeC.h
-          { echo "import RustBridgeC"; cat "$OUT/SwiftBridgeCore.swift"; } \
-              > packages/swift/Sources/RustBridge/SwiftBridgeCore.swift
-          { echo "import RustBridgeC"; cat "$OUT/kreuzberg-swift/kreuzberg-swift.swift"; } \
-              > packages/swift/Sources/RustBridge/kreuzberg-swift.swift
+      - uses: kreuzberg-dev/actions/build-swift-package@v1
+        with:
+          build-profile: dev
       - name: Build Swift package
         working-directory: packages/swift
         run: swift build
