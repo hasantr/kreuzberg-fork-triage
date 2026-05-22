@@ -12,6 +12,98 @@ use crate::core::config_validation::validate_ocr_backend;
 use crate::error::KreuzbergError;
 use crate::types::OcrElementConfig;
 
+/// Decision returned by an [`OcrTriage`] predicate.
+///
+/// Determines whether an image should be passed to the OCR backend or
+/// short-circuited as having no readable text.
+#[cfg(feature = "ocr")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TriageDecision {
+    /// Image likely contains readable text — proceed with OCR backend.
+    Ocr,
+    /// Image is unlikely to contain readable text — skip the OCR backend
+    /// and record an empty result for this image. Typical use: decorative
+    /// images, blank pages, logos, gradients.
+    Skip,
+}
+
+/// Pre-OCR filter. Implementations decide whether an image is worth
+/// running through the OCR backend. Called once per image *before* the
+/// backend is dispatched. If [`TriageDecision::Skip`] is returned, the
+/// OCR backend is not invoked and an empty string is recorded for that
+/// image.
+///
+/// Designed to support cheap heuristics (Otsu binarization + edge
+/// density + projection variance) that classify "obvious no-text" pages
+/// in single-digit milliseconds, sparing the hundreds of milliseconds
+/// each full-page OCR call costs. Particularly valuable on large
+/// scanned PDFs where many pages are blank, decorative, or contain
+/// only diagrams/logos.
+///
+/// # Hot-path entry point
+///
+/// Callers with a raw RGBA8 buffer (e.g. PDF page rendered straight to
+/// pixels via `pdf_oxide`'s `RawRgba8` format) should prefer
+/// [`should_ocr_raw`](Self::should_ocr_raw) to skip the PNG roundtrip
+/// the default `should_ocr` implementation would otherwise force.
+/// Implementations override `should_ocr_raw` to read pixels directly.
+///
+/// # Example
+///
+/// ```ignore
+/// use kreuzberg::{OcrTriage, TriageDecision};
+/// use std::sync::Arc;
+///
+/// #[derive(Debug)]
+/// struct AlwaysOcr;
+/// impl OcrTriage for AlwaysOcr {
+///     fn should_ocr(&self, _: &image::DynamicImage) -> TriageDecision {
+///         TriageDecision::Ocr
+///     }
+/// }
+///
+/// let predicate: Arc<dyn OcrTriage> = Arc::new(AlwaysOcr);
+/// ```
+#[cfg(feature = "ocr")]
+pub trait OcrTriage: Send + Sync + std::fmt::Debug {
+    /// Decide whether to OCR this image.
+    ///
+    /// Called with a fully-decoded image so implementations can run any
+    /// classifier (luminance histogram, edge detection, ML model) on
+    /// the pixel data without worrying about format.
+    fn should_ocr(&self, image: &image::DynamicImage) -> TriageDecision;
+
+    /// Hot-path variant for callers with a raw RGBA8 pixel buffer.
+    ///
+    /// `pixels` is `width * height * 4` bytes, row-major, top-left
+    /// origin. `premultiplied` is `true` for pixels straight out of a
+    /// PDF renderer that emits premultiplied alpha (e.g. `pdf_oxide`'s
+    /// `RawRgba8` format), `false` for straight RGBA (e.g. image crate
+    /// decode output). Most triage classifiers ignore the alpha
+    /// channel and so do not need to un-premultiply.
+    ///
+    /// The default implementation wraps the buffer in a `DynamicImage`
+    /// and forwards to [`should_ocr`](Self::should_ocr). Backends with
+    /// native raw-pixel classifiers (e.g. Otsu binarization that reads
+    /// luminance straight from `&[u8]`) should override this to avoid
+    /// the wrap allocation.
+    fn should_ocr_raw(
+        &self,
+        pixels: &[u8],
+        width: u32,
+        height: u32,
+        _premultiplied: bool,
+    ) -> TriageDecision {
+        match image::RgbaImage::from_raw(width, height, pixels.to_vec()) {
+            Some(rgba) => self.should_ocr(&image::DynamicImage::ImageRgba8(rgba)),
+            // Invalid buffer geometry — fall through to OCR so the
+            // backend can produce a useful error rather than silently
+            // recording an empty result.
+            None => TriageDecision::Ocr,
+        }
+    }
+}
+
 /// Quality thresholds for OCR fallback decisions and pipeline quality gating.
 ///
 /// All fields default to the values that match the previous hardcoded behavior,
@@ -293,6 +385,17 @@ pub struct OcrConfig {
     /// at runtime.
     #[serde(skip)]
     pub tessdata_bytes: Option<std::collections::HashMap<String, Vec<u8>>>,
+
+    /// Pre-OCR triage filter — short-circuits the OCR backend for images
+    /// classified as having no readable text (blank pages, decorative
+    /// images, logos). When `None` (default), every OCR-enabled image
+    /// goes straight to the backend.
+    ///
+    /// Skipped by serde because trait objects can't be serialised — wire
+    /// the predicate up at runtime via the typed API.
+    #[cfg(feature = "ocr")]
+    #[serde(skip)]
+    pub triage_predicate: Option<std::sync::Arc<dyn OcrTriage>>,
 }
 
 impl Default for OcrConfig {
@@ -312,6 +415,8 @@ impl Default for OcrConfig {
             vlm_prompt: None,
             acceleration: None,
             tessdata_bytes: None,
+            #[cfg(feature = "ocr")]
+            triage_predicate: None,
         }
     }
 }

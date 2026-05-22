@@ -139,6 +139,9 @@ pub use core::config::{
 };
 pub use extractors::security::SecurityLimits;
 
+#[cfg(feature = "ocr")]
+pub use core::config::{OcrTriage, TriageDecision};
+
 #[cfg(feature = "quality")]
 pub use text::{ReductionLevel, TokenReductionConfig};
 

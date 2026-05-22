@@ -37,6 +37,8 @@ pub use html_output::{HtmlOutputConfig, HtmlTheme};
 pub use layout::{LayoutDetectionConfig, TableModel};
 pub use llm::{LlmConfig, StructuredExtractionConfig};
 pub use ocr::{OcrConfig, OcrPipelineConfig, OcrPipelineStage, OcrQualityThresholds};
+#[cfg(feature = "ocr")]
+pub use ocr::{OcrTriage, TriageDecision};
 pub use page::PageConfig;
 #[cfg(feature = "pdf")]
 pub use pdf::{HierarchyConfig, PdfConfig};
