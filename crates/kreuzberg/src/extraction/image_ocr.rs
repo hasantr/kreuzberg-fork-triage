@@ -52,6 +52,7 @@ pub(crate) async fn process_images_with_ocr(
     let ocr_config = config.ocr.as_ref().unwrap();
     let tess_config = ocr_config.tesseract_config.as_ref().cloned().unwrap_or_default();
     let output_format = config.output_format.clone();
+    let triage_predicate = ocr_config.triage_predicate.clone();
 
     use std::sync::Arc;
     use tokio::sync::Semaphore;
@@ -65,9 +66,14 @@ pub(crate) async fn process_images_with_ocr(
     // `spawn_blocking` itself may fail if the thread panics; we carry that
     // as a `Result` so we can translate it into a `KreuzbergError` in the
     // collection loop below, keeping the JoinSet item type concrete.
+    // The inner `Option` carries triage Skip decisions: `Ok(None)` means the
+    // OCR backend was short-circuited and there is no result to record.
     type OcrTaskResult = (
         usize,
-        Result<Result<crate::types::OcrExtractionResult, crate::ocr::error::OcrError>, tokio::task::JoinError>,
+        Result<
+            Result<Option<crate::types::OcrExtractionResult>, crate::ocr::error::OcrError>,
+            tokio::task::JoinError,
+        >,
     );
     let mut join_set: JoinSet<OcrTaskResult> = JoinSet::new();
 
@@ -77,6 +83,7 @@ pub(crate) async fn process_images_with_ocr(
         let span = tracing::Span::current();
         let permit = Arc::clone(&semaphore);
         let output_format = output_format.clone();
+        let triage = triage_predicate.clone();
 
         join_set.spawn(async move {
             // Acquire a semaphore permit before starting OCR work.
@@ -86,11 +93,44 @@ pub(crate) async fn process_images_with_ocr(
 
             let blocking_result = tokio::task::spawn_blocking(move || {
                 let _guard = span.entered();
+
+                // Pre-OCR triage: if a predicate is wired up and reads
+                // Skip for this image, return early with `None` so the
+                // expensive OCR backend never spins up for blank /
+                // decorative content. The PNG decode cost (~10-30 ms)
+                // is the price of admission to the classifier; payoff
+                // is the 500 ms+ OCR call we skip on a positive Skip
+                // verdict.
+                if let Some(triage) = triage.as_ref() {
+                    match image::load_from_memory(&image_data) {
+                        Ok(img) => {
+                            if triage.as_ref().should_ocr(&img)
+                                == crate::core::config::TriageDecision::Skip
+                            {
+                                tracing::debug!(image_idx = idx, "OCR triage: skipped image");
+                                return Ok(None);
+                            }
+                        }
+                        Err(e) => {
+                            // Failed to decode for triage — fall through to
+                            // OCR so the backend can either succeed (if it
+                            // accepts a format `image` doesn't) or fail
+                            // with a more informative error message.
+                            tracing::debug!(
+                                image_idx = idx,
+                                err = %e,
+                                "OCR triage: decode failed, proceeding without triage"
+                            );
+                        }
+                    }
+                }
+
                 let cache_dir = std::env::var("KREUZBERG_CACHE_DIR").ok().map(std::path::PathBuf::from);
 
                 let proc = OcrProcessor::new(cache_dir)?;
                 let ocr_tess_config: crate::ocr::types::TesseractConfig = (&tess_config_clone).into();
                 proc.process_image_with_format(&image_data, &ocr_tess_config, output_format)
+                    .map(Some)
             })
             .await;
             (idx, blocking_result)
@@ -112,7 +152,14 @@ pub(crate) async fn process_images_with_ocr(
         })?;
 
         match ocr_result {
-            Ok(ocr_extraction) => {
+            // Triage routed this image to Skip — no OCR result attached.
+            // Leave `images[idx].ocr_result` at its default `None` so
+            // downstream readers see "no OCR result" rather than empty
+            // content (which would imply OCR ran but produced nothing).
+            Ok(None) => {
+                images[idx].ocr_result = None;
+            }
+            Ok(Some(ocr_extraction)) => {
                 // Recursion prevention: the child ExtractionResult explicitly
                 // disables image extraction (`images: None`) and omits all
                 // expensive post-processing fields (chunking, language detection,
