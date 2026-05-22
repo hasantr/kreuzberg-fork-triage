@@ -290,7 +290,11 @@ pub(crate) fn render_selected_pages_for_ocr(
         source: None,
     })?;
 
-    let render_options = RenderOptions::default();
+    // Request premultiplied RGBA8 from pdf_oxide so we can wrap the
+    // tiny-skia pixmap straight into a DynamicImage without paying for a
+    // PNG encode here and a matching decode on the next line. Saves
+    // ~20-50 ms per page on typical 200 DPI A4 input.
+    let render_options = RenderOptions::default().as_raw();
     let mut images = Vec::with_capacity(page_indices.len());
     for &idx in page_indices {
         if idx >= page_count {
@@ -307,11 +311,17 @@ pub(crate) fn render_selected_pages_for_ocr(
             message: format!("Failed to render PDF page {}: {}", idx + 1, e),
             source: None,
         })?;
-        // rendered.data is PNG-encoded; decode back to DynamicImage for OCR.
-        let img = image::load_from_memory(&rendered.data).map_err(|e| crate::KreuzbergError::Parsing {
-            message: format!("Failed to decode rendered page {}: {}", idx + 1, e),
-            source: None,
-        })?;
+        let img = image::RgbaImage::from_raw(rendered.width, rendered.height, rendered.data)
+            .map(image::DynamicImage::ImageRgba8)
+            .ok_or_else(|| crate::KreuzbergError::Parsing {
+                message: format!(
+                    "Rendered page {} returned an inconsistent RGBA8 buffer for {}x{}",
+                    idx + 1,
+                    rendered.width,
+                    rendered.height
+                ),
+                source: None,
+            })?;
         images.push((idx, img));
     }
 
@@ -395,8 +405,45 @@ pub(crate) async fn extract_mixed_ocr_native(
         let batch_end = (batch_start + batch_size).min(total);
         let batch_slice = &page_images[batch_start..batch_end];
 
-        // Encode this batch's images to PNG in parallel (CPU-bound, rayon)
-        let encoded: crate::Result<Vec<(usize, Arc<Vec<u8>>)>> = batch_slice
+        // Pre-OCR triage filter: classify pages in parallel (rayon),
+        // route obvious no-text pages straight to empty result without
+        // paying any OCR cost. Predicate is `None` for the common path
+        // where the caller hasn't wired triage up.
+        let triage_predicate = ocr_config_owned.triage_predicate.as_ref();
+        let triaged: Vec<(usize, &image::DynamicImage, crate::core::config::TriageDecision)> =
+            if let Some(triage) = triage_predicate {
+                let triage = triage.as_ref();
+                batch_slice
+                    .par_iter()
+                    .map(|(page_idx, image)| (*page_idx, image, triage.should_ocr(image)))
+                    .collect()
+            } else {
+                batch_slice
+                    .iter()
+                    .map(|(page_idx, image)| {
+                        (*page_idx, image, crate::core::config::TriageDecision::Ocr)
+                    })
+                    .collect()
+            };
+
+        // Split into to-OCR vs skipped. Skips get an empty content
+        // string right now so the assembly step downstream still has an
+        // entry for that page.
+        let mut to_ocr: Vec<(usize, &image::DynamicImage)> = Vec::with_capacity(triaged.len());
+        for (page_idx, image, decision) in &triaged {
+            match decision {
+                crate::core::config::TriageDecision::Skip => {
+                    tracing::debug!(page = page_idx + 1, "OCR triage: skipped page");
+                    ocr_results.insert(page_idx + 1, String::new());
+                }
+                crate::core::config::TriageDecision::Ocr => {
+                    to_ocr.push((*page_idx, *image));
+                }
+            }
+        }
+
+        // Encode kept pages to PNG in parallel (CPU-bound, rayon)
+        let encoded: crate::Result<Vec<(usize, Arc<Vec<u8>>)>> = to_ocr
             .par_iter()
             .map(|(page_idx, image)| {
                 let rgb = image.to_rgb8();
