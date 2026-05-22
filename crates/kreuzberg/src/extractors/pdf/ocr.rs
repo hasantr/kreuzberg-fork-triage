@@ -699,38 +699,54 @@ pub(crate) async fn extract_with_ocr(
     for batch_start in (0..total_pages).step_by(batch_size) {
         let batch_end = (batch_start + batch_size).min(total_pages);
 
+        let triage_predicate = ocr_config_owned.triage_predicate.as_ref();
+
         // Render and encode pages one at a time within the batch to avoid holding
         // multiple decoded RGB buffers (~26MB each at 300 DPI) simultaneously.
         // Only the compact PNG-encoded bytes are kept for the batch's OCR phase.
+        //
+        // When `triage_predicate` is set, pages classified as Skip are
+        // dropped from `encoded_batch` here — they never reach the
+        // encoder (pre-rendered path) or get re-encoded after a raw
+        // render (lazy path), and they never reach the OCR backend
+        // either. Their `page_texts[page_idx]` stays at the default
+        // empty string, so downstream assembly sees them as empty
+        // pages.
         #[allow(unused_variables)]
         let (batch_slice, encoded_batch) = if let Some(imgs) = images {
             let slice: Cow<'_, [image::DynamicImage]> = Cow::Borrowed(&imgs[batch_start..batch_end]);
-            // Encode pre-rendered images in parallel.
+            // Encode pre-rendered images in parallel — filtering out
+            // pages the triage classifier rejected so we don't pay the
+            // PNG-encode cost for pages we'll never OCR.
             #[allow(clippy::type_complexity)]
             let encoded: crate::Result<Vec<(usize, Arc<Vec<u8>>, u32, u32)>> = slice
                 .par_iter()
                 .enumerate()
-                .map(|(offset, image)| {
+                .filter_map(|(offset, image)| {
                     let page_idx = batch_start + offset;
+                    if let Some(triage) = triage_predicate
+                        && triage.as_ref().should_ocr(image) == crate::core::config::TriageDecision::Skip
+                    {
+                        tracing::debug!(page = page_idx + 1, "OCR triage: skipped page");
+                        return None;
+                    }
                     let rgb_image = image.to_rgb8();
                     let (width, height) = rgb_image.dimensions();
                     let mut image_bytes = Cursor::new(Vec::new());
                     let encoder = PngEncoder::new(&mut image_bytes);
-                    encoder
-                        .write_image(&rgb_image, width, height, image::ColorType::Rgb8.into())
-                        .map_err(|e| crate::KreuzbergError::Parsing {
+                    match encoder.write_image(&rgb_image, width, height, image::ColorType::Rgb8.into()) {
+                        Ok(_) => Some(Ok((page_idx, Arc::new(image_bytes.into_inner()), width, height))),
+                        Err(e) => Some(Err(crate::KreuzbergError::Parsing {
                             message: format!("Failed to encode image: {}", e),
                             source: None,
-                        })?;
-                    Ok((page_idx, Arc::new(image_bytes.into_inner()), width, height))
+                        })),
+                    }
                 })
                 .collect();
             (Some(slice), encoded?)
         } else {
             #[cfg(feature = "pdf")]
             let encoded = {
-                // Render each page to PNG bytes directly via pdf_oxide.
-                // RenderedImage.data is already PNG-encoded, so no re-encode step needed.
                 let pdf_bytes = content.ok_or_else(|| crate::KreuzbergError::Parsing {
                     message: "PDF content is required for OCR rendering but was not provided".to_string(),
                     source: None,
@@ -741,19 +757,68 @@ pub(crate) async fn extract_with_ocr(
                         source: None,
                     }
                 })?;
-                let render_opts = pdf_oxide::rendering::RenderOptions::default();
                 let mut batch_encoded: Vec<(usize, Arc<Vec<u8>>, u32, u32)> =
                     Vec::with_capacity(batch_end - batch_start);
-                for i in batch_start..batch_end {
-                    let rendered = pdf_oxide::rendering::render_page(&doc, i, &render_opts).map_err(|e| {
-                        crate::KreuzbergError::Parsing {
-                            message: format!("Failed to render page {} for OCR: {:?}", i, e),
-                            source: None,
+
+                if let Some(triage) = triage_predicate {
+                    // Raw RGBA8 render so triage can read pixels straight
+                    // from tiny-skia's pixmap; only pages that pass get a
+                    // subsequent PNG encode for the OCR backend.
+                    let raw_opts = pdf_oxide::rendering::RenderOptions::default().as_raw();
+                    for i in batch_start..batch_end {
+                        let rendered =
+                            pdf_oxide::rendering::render_page(&doc, i, &raw_opts).map_err(|e| {
+                                crate::KreuzbergError::Parsing {
+                                    message: format!("Failed to render page {} for OCR: {:?}", i, e),
+                                    source: None,
+                                }
+                            })?;
+                        let w = rendered.width;
+                        let h = rendered.height;
+                        if triage.as_ref().should_ocr_raw(&rendered.data, w, h, true)
+                            == crate::core::config::TriageDecision::Skip
+                        {
+                            tracing::debug!(page = i + 1, "OCR triage: skipped page");
+                            continue;
                         }
-                    })?;
-                    // rendered.data is PNG-encoded; width and height are available directly.
-                    batch_encoded.push((i, Arc::new(rendered.data), rendered.width, rendered.height));
-                    // `rendered` is dropped here after extracting the fields.
+                        // Re-encode kept pages to RGB PNG for the OCR
+                        // backend's existing PNG-bytes entry point.
+                        let rgba = image::RgbaImage::from_raw(w, h, rendered.data).ok_or_else(|| {
+                            crate::KreuzbergError::Parsing {
+                                message: format!(
+                                    "Page {} raw render produced inconsistent RGBA8 buffer for {}x{}",
+                                    i + 1,
+                                    w,
+                                    h
+                                ),
+                                source: None,
+                            }
+                        })?;
+                        let rgb = image::DynamicImage::ImageRgba8(rgba).to_rgb8();
+                        let mut png_bytes = Cursor::new(Vec::new());
+                        PngEncoder::new(&mut png_bytes)
+                            .write_image(&rgb, w, h, image::ColorType::Rgb8.into())
+                            .map_err(|e| crate::KreuzbergError::Parsing {
+                                message: format!("Failed to encode page {} for OCR: {}", i + 1, e),
+                                source: None,
+                            })?;
+                        batch_encoded.push((i, Arc::new(png_bytes.into_inner()), w, h));
+                    }
+                } else {
+                    // No triage configured — keep the existing fast path
+                    // where pdf_oxide hands back PNG bytes ready for the
+                    // OCR backend with no re-encode step.
+                    let render_opts = pdf_oxide::rendering::RenderOptions::default();
+                    for i in batch_start..batch_end {
+                        let rendered =
+                            pdf_oxide::rendering::render_page(&doc, i, &render_opts).map_err(|e| {
+                                crate::KreuzbergError::Parsing {
+                                    message: format!("Failed to render page {} for OCR: {:?}", i, e),
+                                    source: None,
+                                }
+                            })?;
+                        batch_encoded.push((i, Arc::new(rendered.data), rendered.width, rendered.height));
+                    }
                 }
                 batch_encoded
             };
@@ -777,18 +842,29 @@ pub(crate) async fn extract_with_ocr(
         }
 
         let batch_count = encoded_batch.len();
+        // Triage may have removed some pages from `encoded_batch`, so the old
+        // `page_idx - batch_start` offset formula no longer holds. Build an
+        // explicit page_idx → offset lookup driven off `encoded_batch[i].0`.
+        let page_idx_to_offset: ahash::AHashMap<usize, usize> = encoded_batch
+            .iter()
+            .enumerate()
+            .map(|(i, (page_idx, _, _, _))| (*page_idx, i))
+            .collect();
         let mut batch_ocr_results: Vec<Option<crate::types::ExtractionResult>> = vec![None; batch_count];
         while let Some(join_result) = join_set.join_next().await {
             let (page_idx, ocr_result) = join_result.map_err(|e| crate::KreuzbergError::Plugin {
                 message: format!("OCR task panicked: {}", e),
                 plugin_name: "ocr".to_string(),
             })?;
-            batch_ocr_results[page_idx - batch_start] = Some(ocr_result?);
+            let offset = *page_idx_to_offset
+                .get(&page_idx)
+                .expect("OCR result page_idx must be present in encoded_batch");
+            batch_ocr_results[offset] = Some(ocr_result?);
         }
 
         // Sequential post-processing for this batch utilizing TATR.
         for offset in 0..batch_count {
-            let page_idx = batch_start + offset;
+            let page_idx = encoded_batch[offset].0;
             let mut ocr_result = batch_ocr_results[offset].take().expect("OCR result missing for page");
             #[cfg(feature = "layout-detection")]
             let _height = encoded_batch[offset].3;
@@ -849,8 +925,11 @@ pub(crate) async fn extract_with_ocr(
                         // Decode the page image from its PNG for TATR table recognition.
                         // When pre-rendered images are available, use them directly.
                         // Otherwise, decode from the PNG we already encoded.
+                        // batch_slice is keyed by (page_idx - batch_start), not by the
+                        // post-processing offset (which indexes the possibly-filtered
+                        // encoded_batch instead).
                         let rgb = if let Some(ref slice) = batch_slice {
-                            slice[offset].to_rgb8()
+                            slice[page_idx - batch_start].to_rgb8()
                         } else {
                             let png_data = &encoded_batch[offset].1;
                             let decoded =
