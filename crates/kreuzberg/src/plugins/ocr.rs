@@ -146,6 +146,80 @@ pub trait OcrBackend: Plugin {
     /// ```
     async fn process_image(&self, image_bytes: &[u8], config: &OcrConfig) -> Result<ExtractionResult>;
 
+    /// Process a raw RGBA8 pixel buffer and extract text via OCR.
+    ///
+    /// Hot-path companion to [`process_image`](Self::process_image) for
+    /// callers that already hold a decoded pixel buffer (e.g. the PDF
+    /// page renderer emits `pdf_oxide`'s `RawRgba8` format directly).
+    /// Skipping the PNG round-trip saves ~30-50 ms per page on typical
+    /// 200 DPI A4 input — material when triage routes 70 %+ of pages
+    /// past the backend.
+    ///
+    /// # Arguments
+    ///
+    /// * `pixels` - `width * height * 4` bytes, row-major, top-left origin
+    /// * `width` - Image width in pixels
+    /// * `height` - Image height in pixels
+    /// * `premultiplied` - `true` if the alpha channel is premultiplied
+    ///   into RGB (the default for `pdf_oxide::ImageFormat::RawRgba8`);
+    ///   `false` for straight RGBA (e.g. `image` crate decode output).
+    ///   The default implementation ignores this flag because PNG
+    ///   encoding accepts either; backend overrides that bypass PNG and
+    ///   feed pixels straight to a neural network must handle the
+    ///   un-premultiply themselves if needed.
+    /// * `config` - OCR configuration
+    ///
+    /// # Default implementation
+    ///
+    /// Wraps the buffer in an `image::RgbaImage`, encodes to PNG, and
+    /// delegates to `process_image`. Backends that consume raw pixels
+    /// natively (Tesseract via `tessd`, ONNX inference, custom triage)
+    /// should override to skip the PNG round-trip.
+    ///
+    /// # Errors
+    ///
+    /// Same as `process_image`, plus `KreuzbergError::Validation` when
+    /// the pixel buffer geometry doesn't match `width * height * 4`.
+    async fn process_image_raw(
+        &self,
+        pixels: &[u8],
+        width: u32,
+        height: u32,
+        premultiplied: bool,
+        config: &OcrConfig,
+    ) -> Result<ExtractionResult> {
+        let _ = premultiplied; // default impl is unaware of alpha mode
+        #[cfg(feature = "ocr")]
+        {
+            let rgba = image::RgbaImage::from_raw(width, height, pixels.to_vec()).ok_or_else(|| {
+                crate::error::KreuzbergError::Validation {
+                    message: format!(
+                        "process_image_raw: invalid RGBA8 buffer geometry — {} bytes for {}x{}",
+                        pixels.len(),
+                        width,
+                        height
+                    ),
+                    source: None,
+                }
+            })?;
+            let mut png_bytes = Vec::with_capacity((width as usize * height as usize).min(1 << 20));
+            image::DynamicImage::ImageRgba8(rgba)
+                .write_to(&mut std::io::Cursor::new(&mut png_bytes), image::ImageFormat::Png)
+                .map_err(|e| crate::error::KreuzbergError::Validation {
+                    message: format!("process_image_raw: PNG encode failed: {e}"),
+                    source: None,
+                })?;
+            self.process_image(&png_bytes, config).await
+        }
+        #[cfg(not(feature = "ocr"))]
+        {
+            let _ = (pixels, width, height, config);
+            Err(crate::error::KreuzbergError::Other(
+                "process_image_raw default impl requires the 'ocr' feature".to_string(),
+            ))
+        }
+    }
+
     /// Process a file and extract text via OCR.
     ///
     /// Default implementation reads the file and calls `process_image`.
